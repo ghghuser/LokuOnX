@@ -23,15 +23,33 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
     private static void Add(List<AudioDeviceInfo> list, MMDeviceEnumerator enumerator, DataFlow flow)
     {
         var loopback = flow == DataFlow.Render;
+        var found = new List<AudioDeviceInfo>();
         foreach (var dev in enumerator.EnumerateAudioEndPoints(flow, DeviceState.Active))
         {
             using (dev)
             {
                 var (rate, ch) = ReadMixFormat(dev);
-                var label = loopback ? $"🔊 {dev.FriendlyName}（PC音）" : $"🎤 {dev.FriendlyName}";
+                // 出力側（PC音）は先頭のアイコンで区別する
+                var label = loopback ? $"🔊 {dev.FriendlyName}" : $"🎤 {dev.FriendlyName}";
                 var key = (loopback ? RenderPrefix : CapturePrefix) + dev.ID;
-                list.Add(new AudioDeviceInfo(key, label, loopback, rate, ch));
+                found.Add(new AudioDeviceInfo(key, label, loopback, rate, ch));
             }
+        }
+        // それぞれ名前順（同じ側のラベルは先頭のアイコンが同じなので、そのまま並べれば名前順になる）
+        list.AddRange(found.OrderBy(d => d.Label, StringComparer.CurrentCultureIgnoreCase));
+    }
+
+    public string? DefaultCaptureKey()
+    {
+        try
+        {
+            using var enumerator = new MMDeviceEnumerator();
+            using var dev = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Console);
+            return CapturePrefix + dev.ID;
+        }
+        catch (Exception)
+        {
+            return null;   // 入力デバイスが1つも無いなど
         }
     }
 

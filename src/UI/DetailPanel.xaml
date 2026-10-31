@@ -32,6 +32,8 @@
         </WrapPanel>
         <DockPanel Margin="0,0,0,6">
             <TextBlock Text="パターン" Width="90" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+            <Button DockPanel.Dock="Right" Content="？" Width="28" Margin="6,0,0,0"
+                    ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="PatternHelp_Click"/>
             <TextBox x:Name="PatternBox" VerticalContentAlignment="Center"
                      TextChanged="Pattern_TextChanged" LostFocus="Pattern_LostFocus"/>
         </DockPanel>
@@ -53,10 +55,10 @@
             <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
                      ToolTip="日付フォルダの名前（録音開始日で固定）"
                      LostFocus="DateFormat_LostFocus"/>
+            <Button Content="？" Width="28" Margin="6,0,0,0"
+                    ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="DateFormatHelp_Click"/>
         </WrapPanel>
 
-        <TextBlock Margin="90,0,0,8" Opacity="0.6" TextWrapping="Wrap"
-                   Text="使える変数: {No} {Track} {Start} {End} {Length} {Date} {Time} {Device} {Preset} {ext}、日時の部品 {yyyy} {yy} {MM} {dd} {HH} {mm} {ss}。{Start:min} のように :min を付けると 125：30 の形（分のみ）になります。コロンは自動で全角になります。"/>
         <TextBlock Margin="90,0,0,0" Opacity="0.7" Text="タグ（タイトル・アーティスト等）は M5 で追加します。"/>
     </StackPanel>
 </UserControl>

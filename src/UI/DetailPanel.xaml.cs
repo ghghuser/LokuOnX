@@ -67,14 +67,38 @@ public partial class DetailPanel : UserControl
         UpdateExample();
     }
 
+    /// <summary>例の表示用。36：25 録音した場合の値。</summary>
+    private NameContext SampleContext(DateTime now) =>
+        new(now, _s!.NextNo, _s.TrackStart, TimeSpan.Zero, TimeSpan.FromSeconds(2185),
+            FileNamer.CleanDevice(_deviceLabel()), RecordingPlan.PresetName, _s.Encode.Fmt.Ext);
+
     private void UpdateExample()
     {
         if (_s == null) return;
         var now = DateTime.Now;
-        var ctx = new NameContext(now, _s.NextNo, _s.TrackStart, TimeSpan.Zero, TimeSpan.FromSeconds(2185),
-            FileNamer.CleanDevice(_deviceLabel()), RecordingPlan.PresetName, _s.Encode.Fmt.Ext);
-        ExampleText.Text = "ファイル名の例（36：25 録音した場合）: " + FileNamer.FileName(PatternBox.Text, ctx)
+        ExampleText.Text = "ファイル名の例（36：25 録音した場合）: " + FileNamer.FileName(PatternBox.Text, SampleContext(now))
                            + "\n保存先の例: " + RecordingPlan.PreviewFolder(_s, now);
+    }
+
+    // ---- 「？」ボタン：変数の説明と入力補助の別ウィンドウ ----
+    private void PatternHelp_Click(object sender, RoutedEventArgs e)
+    {
+        if (_s == null) return;
+        var win = new VariableEditor("ファイル名パターン", PatternBox.Text, VariableHelp.Pattern,
+            p => FileNamer.FileName(p, SampleContext(DateTime.Now))) { Owner = Window.GetWindow(this) };
+        if (win.ShowDialog() != true) return;
+        PatternBox.Text = win.Result;
+        CommitPattern();
+    }
+
+    private void DateFormatHelp_Click(object sender, RoutedEventArgs e)
+    {
+        if (_s == null) return;
+        var win = new VariableEditor("日付フォルダの名前", DateFormatBox.Text, VariableHelp.Date,
+            f => FileNamer.Folder(_s.Folder, true, f, SampleContext(DateTime.Now))) { Owner = Window.GetWindow(this) };
+        if (win.ShowDialog() != true) return;
+        DateFormatBox.Text = win.Result;
+        CommitDateFormat();
     }
 
     private void Notify()
@@ -232,7 +256,9 @@ public partial class DetailPanel : UserControl
         Notify();
     }
 
-    private void DateFormat_LostFocus(object sender, RoutedEventArgs e)
+    private void DateFormat_LostFocus(object sender, RoutedEventArgs e) => CommitDateFormat();
+
+    private void CommitDateFormat()
     {
         if (_s == null) return;
         var text = DateFormatBox.Text.Trim();

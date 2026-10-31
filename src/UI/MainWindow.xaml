@@ -87,14 +87,12 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Border x:Name="SummaryBorder" BorderBrush="#40808080" BorderThickness="1" CornerRadius="4"
-                    Padding="10,6" Cursor="Hand" ClipToBounds="True" Background="Transparent"
+                    Padding="10,6" Cursor="Hand" Background="Transparent"
                     ToolTipService.ShowDuration="30000" ToolTipService.InitialShowDelay="300"
-                    SizeChanged="SummaryBorder_SizeChanged"
                     MouseLeftButtonUp="Summary_Click">
-                <StackPanel x:Name="SummaryHost" Orientation="Horizontal" HorizontalAlignment="Left"
-                            VerticalAlignment="Center">
-                    <TextBlock x:Name="SummaryText" TextWrapping="NoWrap"/>
-                </StackPanel>
+                <!-- 動かさない。収まらないときは末尾を「…」で省略し、マウスオーバーで全文を表示 -->
+                <TextBlock x:Name="SummaryText" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"/>
             </Border>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0">
                 <Button x:Name="StartButton" Content="● 録音開始" Padding="22,8" FontWeight="SemiBold"

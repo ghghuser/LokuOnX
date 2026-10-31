@@ -54,24 +54,20 @@ public partial class MainWindow : Window
             StatusText.Text = "デバイス一覧を取得できませんでした: " + ex.Message;
         }
         DeviceBox.ItemsSource = _devices;
+        // 前回選んだデバイス → なければ（初回など）Windowsの既定の入力デバイス → それも無ければ先頭のマイク
+        var defaultKey = _provider.DefaultCaptureKey();
         DeviceBox.SelectedItem = _devices.FirstOrDefault(d => d.Key == wanted)
+                                 ?? _devices.FirstOrDefault(d => d.Key == defaultKey)
                                  ?? _devices.FirstOrDefault(d => !d.IsLoopback);
     }
 
     private void UpdateSummary()
     {
         SummaryText.Text = SummaryBar.Build(_settings, SelectedDevice);
-        // マウスを乗せると全文を表示。長いときは左右に流す
+        // 収まらないときは省略表示。マウスを乗せると全文を表示
         SummaryBorder.ToolTip = SummaryText.Text + "\n\n（クリックで詳細設定を開きます）";
-        ApplyMarquee();
         Detail.Refresh();
     }
-
-    private void ApplyMarquee() =>
-        Marquee.Apply(SummaryHost, SummaryBorder.ActualWidth - SummaryBorder.Padding.Left
-                                   - SummaryBorder.Padding.Right - 2);
-
-    private void SummaryBorder_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyMarquee();
 
     // ---- 設定の変更 ----
     private void DeviceBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

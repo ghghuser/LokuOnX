@@ -26,7 +26,11 @@ public interface IAudioSource : IDisposable
 /// <summary>デバイス一覧の取得と、選んだデバイスの入力を作る口。</summary>
 public interface IAudioDeviceProvider
 {
+    /// <summary>マイク（入力）→スピーカー等（出力のループバック）の順。それぞれ名前順。</summary>
     IReadOnlyList<AudioDeviceInfo> List();
+
+    /// <summary>Windowsの既定の入力デバイスの Key。取得できなければ null。</summary>
+    string? DefaultCaptureKey();
 
     IAudioSource Create(string key);
 }
