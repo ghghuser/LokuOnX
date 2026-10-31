@@ -24,6 +24,7 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
     {
         var loopback = flow == DataFlow.Render;
         var found = new List<AudioDeviceInfo>();
+        var defaultId = DefaultId(enumerator, flow);
         foreach (var dev in enumerator.EnumerateAudioEndPoints(flow, DeviceState.Active))
         {
             using (dev)
@@ -32,25 +33,32 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
                 // 出力側（PC音）は先頭のアイコンで区別する
                 var label = loopback ? $"🔊 {dev.FriendlyName}" : $"🎤 {dev.FriendlyName}";
                 var key = (loopback ? RenderPrefix : CapturePrefix) + dev.ID;
-                found.Add(new AudioDeviceInfo(key, label, loopback, rate, ch));
+                found.Add(new AudioDeviceInfo(key, label, loopback, rate, ch, dev.ID == defaultId));
             }
         }
         // それぞれ名前順（同じ側のラベルは先頭のアイコンが同じなので、そのまま並べれば名前順になる）
         list.AddRange(found.OrderBy(d => d.Label, StringComparer.CurrentCultureIgnoreCase));
     }
 
-    public string? DefaultCaptureKey()
+    /// <summary>Windowsの既定のデバイスのID。1つも無いなど取得できなければ null。</summary>
+    private static string? DefaultId(MMDeviceEnumerator enumerator, DataFlow flow)
     {
         try
         {
-            using var enumerator = new MMDeviceEnumerator();
-            using var dev = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Console);
-            return CapturePrefix + dev.ID;
+            using var dev = enumerator.GetDefaultAudioEndpoint(flow, Role.Console);
+            return dev.ID;
         }
         catch (Exception)
         {
-            return null;   // 入力デバイスが1つも無いなど
+            return null;
         }
+    }
+
+    public string? DefaultCaptureKey()
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        var id = DefaultId(enumerator, DataFlow.Capture);
+        return id == null ? null : CapturePrefix + id;
     }
 
     private static (int rate, int ch) ReadMixFormat(MMDevice dev)

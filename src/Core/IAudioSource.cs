@@ -1,7 +1,12 @@
 namespace Recorder.Core;
 
 /// <summary>録音デバイス1件（一覧表示用）。Key は "capture:{ID}" または "render:{ID}"。</summary>
-public sealed record AudioDeviceInfo(string Key, string Label, bool IsLoopback, int SampleRate, int Channels);
+public sealed record AudioDeviceInfo(string Key, string Label, bool IsLoopback, int SampleRate, int Channels,
+    bool IsDefault = false)
+{
+    /// <summary>一覧に出す名前。Windowsの既定のデバイスには末尾に ★ を付ける（ファイル名の {Device} には付けない）。</summary>
+    public string DisplayLabel => IsDefault ? Label + " ★" : Label;
+}
 
 /// <summary>音声データの形式（PCM）。</summary>
 public sealed record AudioFormatInfo(int SampleRate, int Channels, int BitsPerSample, bool IsFloat);
