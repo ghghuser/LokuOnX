@@ -1,0 +1,21 @@
+<Window x:Class="Recorder.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="pack://application:,,,/app.ico"
+        Title="LokuOnX"
+        Width="1200" Height="800"
+        MinWidth="1000" MinHeight="600"
+        FontFamily="Yu Gothic UI, Meiryo UI"
+        FontSize="14"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="24">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock x:Name="TitleText" FontSize="32" FontWeight="SemiBold"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="VersionText" Margin="0,8,0,0" Opacity="0.7"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="M0: 空の画面です（録音機能は M1 以降で追加します）"
+                       Margin="0,24,0,0" HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</Window>
