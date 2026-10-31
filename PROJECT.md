@@ -54,6 +54,7 @@
   - Start/End は「録音全体の0:00起点」の経過時間。`Length=End−Start`（秒単位で正確）。開始は前トラックの終了に一致。
   - ファイル名は**保存（閉じる）時に確定**。録音中は仮名で書き、閉じた後にリネーム。
 - 時間表記: 既定 `1：05：30`（h：mm：ss）。変数の書換えで `125：30`（分のみ）も可。
+  - （M2で確定）`{Start}`/`{End}` は1時間未満が `mm：ss`（例 `00：00`、`36：25`）、`{Length}` は `m：ss`（例 `3：35`）。1時間以上は `h：mm：ss`。`{Start:min}` のように `:min` を付けると `125：30`（分のみ）。`{Track}` は3桁ゼロ埋め（`001`）、`{No}` は桁埋めなし。`{Preset}` はプリセット実装（M5）までは「既定」。`{ext}` は小文字。
 - `{No}`: 開始番号の入力欄あり。既定1から録音ごとに+1。**終了後も維持**。
 - `{Track}`: 開始番号の入力欄あり。**新しい録音ごとに開始番号へ戻る**。分割ごとに+1。開始番号は再起動後も維持。
 - 日本語（ファイル名・タグ・UI）に完全対応。**UIは日本語**。
@@ -167,7 +168,7 @@ LokuOnX/
 ## 9. バックログ（現在の作業に混ぜない）
 - 簡易トリミング（前後カット）
 - 英語UI
-- **設定項目の常時表示化（折りたたみをやめるか）の検討。M2開始時に、M2で増える項目（音質・ファイル名テンプレート等）の量を見て決める**
+- 設定項目の常時表示化（折りたたみをやめるか）の検討。**M2での判断: 項目は増えたが、現在設定サマリー行（形式・音質・保存先・名前・No）で足りるため折りたたみのまま。実機で見づらければ再検討**
 - Linux版（UI差し替えの検討。§6-3）
 - （思いついた要望を1行ずつ追記）
 
@@ -175,31 +176,42 @@ LokuOnX/
 §2、§3、§4、§5の対策方針。アプリ名は **LokuOnX（仮）**、表示名は `AppInfo.Name` の1か所で管理、名前空間は `Recorder` のまま（改名で全ファイルを触らないため）。UIは日本語（Yu Gothic UI、なければ Meiryo UI）。
 
 ## 11. 現在の状態（毎回更新する）
-- 状態: **M1 実機確認OK（2026-10-31）。確認後の修正3点（既定ファイル名を `(No.{No})` に、既定保存先を `ドキュメント\LokuOnX\Rec` に、サマリー行を1行＋自動スクロール＋ホバー全文表示に）を反映済み・ビルド確認待ち。** ※旧版で保存済みの `settings.ini` の保存先は自動では変わらない。 Claude側にはLinux上の .NET SDK が入れられない（apt・配布元ともに不可）ため、Actions が唯一のビルド確認。ログ本文はプロキシで取れないが、`gh api repos/.../check-runs/<job>/annotations` でコンパイルエラーは読める。1回目は `System.IO` 未解決で失敗→csprojに `<Using Include="System.IO" />` を追加して成功。
+- 状態: **M2 実装完了・Actionsビルド成功（2026-10-31、コミット 2384aff）。実機確認待ち。** ※旧版で保存済みの `settings.ini` はそのまま読める（初回起動時にテンプレート一覧が追加される）。保存先は自動では変わらない。Claude側にはLinux上の .NET SDK が入れられないため、Actions が唯一のビルド確認（`gh run view` と `gh api repos/.../check-runs/<job>/annotations` でエラーを読む）。
 - 初版の指摘（M0で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い。M1で対応: スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
 - M0（完了）: 単一ファイル発行で動作確認済み（`app/` 方式は不要）。FFmpegのURLは n8.1 → 404 なら master へ自動切替。Releases の ZIP 添付は**未確認**（タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。初回Release作成時に確認）。
-- M1で入れたもの: NAudio 2.2.1（csprojに追加）、デバイス一覧（🎤マイク＋🔊出力のループバック）、WASAPI録音、FFmpeg直接エンコード（flac/mp3。mp3は192k固定）、開始/停止、音量メーター（-60〜0dB、0.99以上で赤＝クリップ表示）、現在設定サマリー行（クリックで詳細設定Expanderが開く）、同じフォルダのみの多重起動警告（2つ目は ini と `{No}` を書かない）、`settings.ini`（形式・保存先・デバイス・NextNo）。録音中にウィンドウを閉じると確認して停止・保存してから終了（M5の「終了時警告」の前倒し最小版）。
-- M1の既知の簡易実装（M2以降で置換）: ファイル名は `{yyyy_MM_dd HH_mm_ss} (No.{No}).{ext}` 固定で保存先直下に作成（日付フォルダなし・仮名リネームなし）／デバイスのネイティブ形式のまま録音（音質指定なし）／ループバックの無音補填なし（無音中は時間が詰まる）／FFmpeg死亡時は録音を止めてエラー表示（自動再開なし）。
-- 次にやること: Actions のビルドを確認 → 動作確認（付録B）→ 新規チャットで「今回はM2」。
-- ファイル一覧とインターフェース:
+- M1（実機確認OK）: デバイス一覧（🎤マイク＋🔊出力のループバック）、WASAPI録音、FFmpeg直接エンコード、開始/停止、音量メーター、現在設定サマリー行（1行・自動スクロール・ホバー全文）、同じフォルダのみの多重起動警告、`settings.ini`。録音中にウィンドウを閉じると確認して停止・保存してから終了。
+- **M2で入れたもの**:
+  - 無音補填: 壁時計基準。データ到着時に不足分を無音で埋め、データが来ない間（ループバックの無音）は100msごとのタイマーで埋める（0.3秒手前まで）。停止時に停止時刻ちょうどまで埋める。足りない分だけ補い、余った分は削らない（クロックずれ補正は M4）。
+  - 形式: flac / mp3 / aac(.m4a) / aac(.aac)。m4a は録音中は断片化MP4で、停止後に FFmpeg `-c copy -movflags +faststart` で通常のm4aへ整える（失敗しても断片化のまま残す＝再生可）。
+  - 音質: ビットレート（64〜320kbps、mp3/aacのみ。既定192）、サンプリング周波数（自動／22.05〜96kHz）、チャンネル（自動／モノ／ステレオ）。デバイスと違っても設定値へ変換。mp3は48kHz超・3ch以上、aacは3ch以上を上限へ丸める。
+  - ファイル名: `FileNamer` に集約。テンプレート（既定=日時形式／トラック形式。編集・削除・名前を付けて保存・初期テンプレート復元）、禁止文字の置換（コロンは全角）、予約名・260文字対策、`(2)` 付与。録音中は仮名 `_rec_<開始時刻>_No<n>.<ext>` で書き、閉じた後に最終名へリネーム。
+  - 日付フォルダ（既定ON、書式 `{yyyy}-{MM}-{dd}`、録音開始日で固定）。`{No}` の開始値入力欄（終了後も維持）、`{Track}` の開始値入力欄（新しい録音ごとに戻る。分割は M3）。
+  - 現在設定サマリー行は実際に書き出される形式・音質・保存先（日付フォルダ込み）・テンプレート名を表示。
+- M2の既知の簡易実装（以降で置換）: 分割がないため `{Track}` は常に開始値、`{Start}` は常に `00：00`（M3）／異常終了で残った `_rec_*` ファイルの起動時の復旧は未実装（M3）／FFmpeg死亡時は録音を止めてエラー表示（自動再開なし）／タグなし（M5）／`{Device}` の自動付加は複数デバイス別ファイル（M4）。
+- 次にやること: 動作確認（付録B）→ 新規チャットで「今回はM3」。
+- ファイル一覧とインターフェース（M2で変更・追加のもの＋据え置き）:
   - `.github/workflows/build.yml` … windows-latest。publish → FFmpeg取得 → `libmp3lame`/`aac`/`flac` 検査 → `dist/LokuOnX/` を組む → artifact（フォルダ）→ タグ時のみZIP作成とRelease添付
-  - `src/LokuOnX.csproj` … net8.0-windows、WPF、`ImplicitUsings`/`Nullable` enable、win-x64自己完結・単一ファイル、`SatelliteResourceLanguages=en`、NAudio 2.2.1
-  - `src/app.manifest` … Windows10/11対応、PerMonitorV2
-  - `src/App.xaml(.cs)` … `Recorder.App`。StartupUri は無し。`OnStartup` で多重起動判定→`Settings`生成→`MainWindow(settings)`表示。未処理例外はダイアログ表示
-  - `src/Core/AppInfo.cs` … `AppInfo.Name` / `AppInfo.Version`
-  - `src/Core/AppPaths.cs` … `Dir`（exeのフォルダ）、`SettingsIni`、`Ffmpeg`（`ffmpeg\ffmpeg.exe`）
-  - `src/Core/IAudioSource.cs` … `AudioDeviceInfo(Key,Label,IsLoopback,SampleRate,Channels)`、`AudioFormatInfo(SampleRate,Channels,BitsPerSample,IsFloat)`、`IAudioSource`（`Format`/`DataAvailable`/`Stopped`/`Start()`/`Stop()`）、`IAudioDeviceProvider`（`List()`/`Create(key)`）。Key は `capture:{ID}` または `render:{ID}`
-  - `src/Core/Win/WasapiDeviceProvider.cs`、`src/Core/Win/WasapiSource.cs` … NAudio(WASAPI)実装（Windows専用）。`Stop()` はUIスレッドで直接呼ばず `Task.Run` 経由（RecordingStopped がUIスレッドに戻るため）
-  - `src/Core/FfmpegEncoder.cs` … `Start()`/`Write(byte[])`/`Finish()`/`Failure`/`Failed`。専用スレッド＋上限付きキュー
-  - `src/Core/RecordingSession.cs` … `Start()`/`Stop()`/`Elapsed`/`TakePeak()`/`OutputPath`/`Failure`/`Error`
-  - `src/Core/PeakMeter.cs` … `Compute(buf,count,format)`
-  - `src/Core/OutputName.cs` … `Build(folder,no,ext,now)`（M2で `FileNamer` に置換）
-  - `src/Core/IniFile.cs`、`src/Core/Settings.cs` … 一時ファイル→置換で保存。`ReadOnly` なら書かない。`Device`/`Format`/`Folder`/`NextNo`
-  - `src/Core/InstanceGuard.cs` … `TryAcquire(exeDir)`（exeフォルダのハッシュでMutex）
-  - `src/UI/MainWindow.xaml(.cs)` … `Recorder.UI.MainWindow(Settings)`。上段=設定、折りたたみ2つ（中身はM2以降）、中段=経過時間・メーター、サマリー行＋録音/停止、下段=状態表示
+  - `src/LokuOnX.csproj`、`src/app.manifest`、`src/App.xaml(.cs)`、`src/Core/AppInfo.cs`、`AppPaths.cs`、`InstanceGuard.cs`、`PeakMeter.cs` … M1のまま
+  - `src/Core/IAudioSource.cs` … `AudioDeviceInfo(Key,Label,IsLoopback,SampleRate,Channels)`、`AudioFormatInfo(SampleRate,Channels,BitsPerSample,IsFloat)`、`IAudioSource`、`IAudioDeviceProvider`。Key は `capture:{ID}` または `render:{ID}`
+  - `src/Core/Win/WasapiDeviceProvider.cs`、`WasapiSource.cs` … NAudio(WASAPI)実装（Windows専用）。`Stop()` はUIスレッドで直接呼ばず `Task.Run` 経由
+  - `src/Core/OutputFormat.cs` … `OutputFormat(Key,Label,Ext,Muxer,Lossy,MaxSampleRate,MaxChannels)`、`All`、`Get(key)`
+  - `src/Core/EncodeOptions.cs` … `EncodeOptions(Format,BitrateKbps,SampleRate,Channels)`、`Fmt`、`Resolve(deviceRate,deviceCh)`、`Bitrates`/`SampleRates`
+  - `src/Core/FfmpegArgs.cs` … `Build(options,inputFormat,outputPath)`
+  - `src/Core/FfmpegEncoder.cs` … `FfmpegEncoder(ffmpegPath,outputPath,EncodeOptions,AudioFormatInfo)`、`Start()`/`Write(byte[])`/`Finish()`/`Failure`/`Failed`。専用スレッド＋上限付きキュー
+  - `src/Core/SilenceFiller.cs` … `Feed(buf,count)`/`FillIdle()`/`Finish()`
+  - `src/Core/RecordingSession.cs` … `RecordingSession(source,ffmpegPath,outputPath,EncodeOptions)`、`Start()`/`Stop()`/`Elapsed`/`TakePeak()`/`OutputPath`（仮名）/`Failure`/`Error`
+  - `src/Core/FileNamer.cs` … `NameContext(Time,No,Track,Start,End,Device,Preset,Ext)`、`Expand`/`FileName`/`Folder`/`Sanitize`/`CleanDevice`/`TempName`/`Unique`、`DefaultPattern`/`DefaultDateFormat`
+  - `src/Core/NameTemplates.cs` … `NameTemplate(Name,Pattern)`、`NameTemplates.Defaults`
+  - `src/Core/RecordingPlan.cs` … `Create(settings,deviceLabel,now)`/`PreviewFolder(settings,now)`/`Finish(elapsed,ffmpegPath)`、`Folder`/`TempPath`/`Options`
+  - `src/Core/FileFinalizer.cs` … `Run(tempPath,folder,fileName,options,ffmpegPath)` → `FinalizeResult(Path,Warning)`。m4aの整形もここ
+  - `src/Core/IniFile.cs` … `Get`/`Set`/`Remove`/`Save`（一時ファイル→置換）
+  - `src/Core/Settings.cs` … `Device`/`Format`/`BitrateKbps`/`SampleRate`/`Channels`/`Encode`/`Folder`/`NextNo`。`ReadOnly` なら書かない
+  - `src/Core/Settings.Naming.cs` … `Templates`/`SaveTemplate`/`DeleteTemplate`/`RestoreDefaultTemplates`/`Template`/`Pattern`/`DateFolder`/`DateFolderFormat`/`TrackStart`。ini のセクション `[Templates]`（`Count`,`Name<i>`,`Pattern<i>`）
+  - `src/UI/MainWindow.xaml(.cs)` … 上段=設定、詳細設定Expander（`DetailPanel`）、オプションExpander（中身はM3以降）、中段=経過時間・メーター、サマリー行＋録音/停止、下段=状態表示
+  - `src/UI/DetailPanel.xaml(.cs)` … 音質・ファイル名テンプレート・番号・日付フォルダ。`Init(settings,deviceLabel)`/`Reload()`/`Refresh()`/`Changed`
   - `src/UI/SummaryBar.cs` … `Build(settings, device)`
-  - `src/UI/Marquee.cs` … `Apply(host, viewportWidth)`（はみ出す文字を左右に流す）
-  - `assets/icon/app.ico` … 仮アイコン（16/32/48/256）。同名で上書きすれば差し替え可
+  - `src/UI/Marquee.cs` … `Apply(host, viewportWidth)`
+  - `assets/icon/app.ico` … 仮アイコン。同名で上書きすれば差し替え可
 
 ## 付録A. 固定プロンプト（各チャットの最初に貼る）
 ```
