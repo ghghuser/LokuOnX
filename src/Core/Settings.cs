@@ -57,7 +57,7 @@ public sealed class Settings
     public string Folder
     {
         get => Get("Folder", Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), AppInfo.Name));
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), AppInfo.Name, "Rec"));
         set => Set("Folder", value);
     }
 
