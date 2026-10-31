@@ -55,7 +55,19 @@ public partial class MainWindow : Window
                                  ?? _devices.FirstOrDefault(d => !d.IsLoopback);
     }
 
-    private void UpdateSummary() => SummaryText.Text = SummaryBar.Build(_settings, SelectedDevice);
+    private void UpdateSummary()
+    {
+        SummaryText.Text = SummaryBar.Build(_settings, SelectedDevice);
+        // マウスを乗せると全文を表示。長いときは左右に流す
+        SummaryBorder.ToolTip = SummaryText.Text + "\n\n（クリックで詳細設定を開きます）";
+        ApplyMarquee();
+    }
+
+    private void ApplyMarquee() =>
+        Marquee.Apply(SummaryHost, SummaryBorder.ActualWidth - SummaryBorder.Padding.Left
+                                   - SummaryBorder.Padding.Right - 2);
+
+    private void SummaryBorder_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyMarquee();
 
     // ---- 設定の変更 ----
     private void DeviceBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
