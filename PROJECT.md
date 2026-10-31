@@ -176,12 +176,12 @@ LokuOnX/
 ## 11. 現在の状態（毎回更新する）
 - 状態: **仕切り直し（2026-10-31）**。初版（M0〜M1）のコードは破棄し、新リポジトリで M0 からやり直す。初版でユーザーが確認できたこと: Actions/FFmpeg取得は成功、アプリ起動・マイク録音は動作。
 - 初版の指摘（本版で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い／スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
-- 進行中: **M0 のコードを main にpush済み（2026-10-31）。ユーザーの実機確認待ち。**
-  - Claude側のLinux環境に .NET SDK を入れられず（配布元がブロック）、**ビルド確認は未実施**。Actions の結果が最初のビルド確認になる。エラーは `error` の行だけ貼ってもらう。
-  - 単一ファイル発行（§4-2の第一案）で実装。実機で動かなければ代替案（`app/` サブフォルダ方式）へ。**どちらにしたかは確認後にここへ記録**。
+- 進行中: **M0 完了（2026-10-31）。** Actions ビルド成功、artifact は `LokuOnX/` 直下が `LokuOnX.exe` と `ffmpeg` フォルダだけ、起動・アイコン表示OK。
+  - **単一ファイル発行で動作確認済み（§4-2の代替案 `app/` 方式は不要）。**
+  - Claude側のLinux環境には .NET SDK を入れられない（配布元がブロック）。**Claudeはビルド確認ができないので、Actions の結果が唯一のビルド確認。** エラーは `error` の行だけ貼ってもらう。
   - FFmpegのURLは n8.1 → 404 なら master へ自動切替（build.yml）。
-  - Releases: タグ `v*` を push（またはWebで Release を作成）すると ZIP（`LokuOnX-win-x64.zip`）が添付される。main への push では artifact（フォルダのまま、二重ZIPなし）だけ作る。
-- 次にやること: M0 の確認結果（付録B）を受けて、問題がなければ新規チャットで「今回はM1」。
+  - Releases の ZIP 添付は**未確認**（まだ Release を作っていない）。タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。main への push では artifact（フォルダのまま、二重ZIPなし）だけ作る。初回の Release 作成時（M1以降のどこでもよい）に確認する。
+- 次にやること: 新規チャットで「今回はM1」（固定プロンプトは付録A）。
 - ファイル一覧とインターフェース（M0）:
   - `.github/workflows/build.yml` … windows-latest。publish → FFmpeg取得 → `libmp3lame`/`aac`/`flac` 検査 → `dist/LokuOnX/` を組む → artifact（フォルダ）→ タグ時のみZIP作成とRelease添付
   - `src/LokuOnX.csproj` … net8.0-windows、WPF、`ImplicitUsings`/`Nullable` enable、win-x64自己完結・単一ファイル、`SatelliteResourceLanguages=en`
