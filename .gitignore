@@ -1,1 +1,6 @@
-
+bin/
+obj/
+publish/
+stage/
+.vs/
+*.user
