@@ -10,6 +10,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        Title = AppInfo.Name;
+        TitleText.Text = AppInfo.Name;
+
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?";
         VersionText.Text = "バージョン " + version;
 
