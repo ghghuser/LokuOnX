@@ -129,7 +129,7 @@ LokuOnX/
 | 13 | Claudeは実機テスト不可 | **Claudeはコードを渡す前に Linux 上でビルド確認する**（`dotnet build -p:EnableWindowsTargeting=true`。SDKが入れられない場合はその旨を明記）。マイルストーンごとの5項目チェックリストで報告 |
 | 14 | 無料枠の上限 | §7のルール厳守 |
 | 15 | iniの書込み破損・`{No}`巻き戻り | 値の確定時に即保存。一時ファイル→置換 |
-| 16 | 画面の詰め込み | Expander＋現在設定サマリー（§3-6） |
+| 16 | 画面の詰め込み | メジャーな設定は常時表示、マイナーはExpander（§3-6） |
 | 17 | 多重起動でini・`{No}`が競合 | 同じフォルダのexeだけ Mutex で検出（§3-6）。2つ目は書き込まない |
 | 18 | UI幅1280px内に収める | M1でレイアウトを固めて実機確認 |
 | 19 | csprojに `ImplicitUsings` が無く `System.IO` 等が未解決（初版のビルドエラー原因） | csprojは `ImplicitUsings=enable`・`Nullable=enable` を必ず維持。さらに **WPFでは暗黙usingに `System.IO` が入らない**ため、csprojの `<Using Include="System.IO" />` も維持（M1で `Path`/`File` 未解決エラーになった）。書き換えるときも消さない |
@@ -180,7 +180,7 @@ LokuOnX/
 §2、§3、§4、§5の対策方針。アプリ名は **LokuOnX（仮）**、表示名は `AppInfo.Name` の1か所で管理、名前空間は `Recorder` のまま（改名で全ファイルを触らないため）。UIは日本語（Yu Gothic UI、なければ Meiryo UI）。
 
 ## 11. 現在の状態（毎回更新する）
-- 状態: **M2 実機確認OK（2026-10-31）。確認での指摘6点のうち4点（サマリー行を固定表示に／既定の入力デバイスを初期値に／デバイスを名前順・「（PC音）」削除／変数ヘルプを「？」の別ウィンドウに）を反映し、Actionsビルド成功（コミット 332ab35）。再確認待ち。残り2点は仕様・バックログに記録（一時停止ボタン→M3、画面構成の見直し→§9）。** ※旧版で保存済みの `settings.ini` はそのまま読める（初回起動時にテンプレート一覧が追加される）。保存先は自動では変わらない。Claude側にはLinux上の .NET SDK が入れられないため、Actions が唯一のビルド確認（`gh run view` と `gh api repos/.../check-runs/<job>/annotations` でエラーを読む）。
+- 状態: **M3 実装済み・Actionsビルド成功（コミット 60875c4）。実機確認待ち。** M2は実機確認OK（指摘6点は反映済み）。Claude側にはLinux上の .NET SDK が入れられないため、Actions が唯一のビルド確認（`gh run view` と `gh api repos/.../check-runs/<job>/annotations` でエラーを読む）。※旧版の `settings.ini` はそのまま読める。`SplitMinutes` が無ければ 0（分割なし）。
 - 初版の指摘（M0で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い。M1で対応: スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
 - M0（完了）: 単一ファイル発行で動作確認済み（`app/` 方式は不要）。FFmpegのURLは n8.1 → 404 なら master へ自動切替。Releases の ZIP 添付は**未確認**（タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。初回Release作成時に確認）。
 - M1（実機確認OK）: デバイス一覧（🎤マイク＋🔊出力のループバック）、WASAPI録音、FFmpeg直接エンコード、開始/停止、音量メーター、現在設定サマリー行（1行・自動スクロール・ホバー全文）、同じフォルダのみの多重起動警告、`settings.ini`。録音中にウィンドウを閉じると確認して停止・保存してから終了。
@@ -193,8 +193,14 @@ LokuOnX/
   - 現在設定サマリー行は実際に書き出される形式・音質・保存先（日付フォルダ込み）・テンプレート名を表示（動かさない。収まらないときは「…」で省略、ホバーで全文）。
   - 既定デバイスの印: `AudioDeviceInfo.IsDefault`/`DisplayLabel`（末尾に ★）。「一覧を更新」で既定の変更を反映（自動追従は M4）。
   - M2確認後の修正: 入力デバイスの初期値＝Windowsの既定の入力（前回選んだデバイスがあればそれを優先。`settings.ini` の `Device` 行を消すと既定に戻る）。一覧はマイク→スピーカー、それぞれ名前順、「（PC音）」なし。変数ヘルプは `？` ボタン→`VariableEditor` ウィンドウ（`VariableHelp` に変数一覧）。
-- M2の既知の簡易実装（以降で置換）: 分割がないため `{Track}` は常に開始値、`{Start}` は常に `00：00`（M3）／異常終了で残った `_rec_*` ファイルの起動時の復旧は未実装（M3）／FFmpeg死亡時は録音を止めてエラー表示（自動再開なし）／タグなし（M5）／`{Device}` の自動付加は複数デバイス別ファイル（M4）。
-- 次にやること: 修正の再確認（付録B）→ 新規チャットで「今回はM3」（一時停止の動作確認と、設定の常時表示の相談を開始時に行う）。
+- 既知の簡易実装（以降で置換）: FFmpeg死亡時は録音を止めてエラー表示（自動再開なし。M4）／タグなし（M5）／`{Device}` の自動付加は複数デバイス別ファイル（M4）／`{Preset}` は「既定」固定（M5）／分割の境界時刻は整数秒に切り捨て（ファイル名用。音声の切れ目は途切れなし）。
+- **M3で入れたもの**:
+  - 分割: 手動（分割ボタン。直前の分割から1秒未満は無視）、時間（分単位の入力欄を常時表示。0＝しない。最大1440）、24時間強制（間隔が0でも必ず）。次のFFmpegを先に起動してから出力先を切り替える（途切れなし）。閉じたファイルは別タスクで最終名へ確定し、状態表示に「保存しました」を出す。
+  - `{Track}`: 録音ごとに開始値へ戻り、分割ごとに+1。`{Start}`/`{End}`/`{Length}` は録音全体の0:00起点の整数秒。仮名は `_rec_<日時>_No<n>_T<track>.<ext>`。
+  - 一時停止／再開: デバイスは開いたまま、停止中の音は捨てる。経過時間・`{Start}`/`{End}`・自動分割の時計も止まる（無音も入れない）。停止中でも停止・分割は可。
+  - 異常終了復旧: 起動時（2つ目の起動では行わない）に保存先（日付フォルダ内も、深さ3まで）の `_rec_*` を探し、確認ダイアログ後に `{Date} {Time} (No.{No}-Track{Track}) 復旧.{ext}` へリネーム。他プロセスが開いているものは対象外、空ファイルは削除、「いいえ」なら残す。
+  - 画面: サマリー行を廃止。入力デバイス／形式・音質／保存先／自動分割／名前の例を常時表示。録音ボタンは 開始・一時停止・分割・停止。
+- 次にやること: M3の実機確認（付録B）→ 新規チャットで「今回はM4」（開始時に、常時表示する設定の相談と、複数デバイス同時録音の確認を行う）。
 - ファイル一覧とインターフェース（M2で変更・追加のもの＋据え置き）:
   - `.github/workflows/build.yml` … windows-latest。publish → FFmpeg取得 → `libmp3lame`/`aac`/`flac` 検査 → `dist/LokuOnX/` を組む → artifact（フォルダ）→ タグ時のみZIP作成とRelease添付
   - `src/LokuOnX.csproj`、`src/app.manifest`、`src/App.xaml(.cs)`、`src/Core/AppInfo.cs`、`AppPaths.cs`、`InstanceGuard.cs`、`PeakMeter.cs` … M1のまま
@@ -205,17 +211,20 @@ LokuOnX/
   - `src/Core/FfmpegArgs.cs` … `Build(options,inputFormat,outputPath)`
   - `src/Core/FfmpegEncoder.cs` … `FfmpegEncoder(ffmpegPath,outputPath,EncodeOptions,AudioFormatInfo)`、`Start()`/`Write(byte[])`/`Finish()`/`Failure`/`Failed`。専用スレッド＋上限付きキュー
   - `src/Core/SilenceFiller.cs` … `Feed(buf,count)`/`FillIdle()`/`Finish()`
-  - `src/Core/RecordingSession.cs` … `RecordingSession(source,ffmpegPath,outputPath,EncodeOptions)`、`Start()`/`Stop()`/`Elapsed`/`TakePeak()`/`OutputPath`（仮名）/`Failure`/`Error`
+  - `src/Core/RecordingSession.cs`（＋`.Split.cs`） … `RecordingSession(source,ffmpegPath,RecordingPlan,splitInterval)`、`Start()`/`Stop()`/`Pause()`/`Resume()`/`Split()`、`Elapsed`/`Paused`/`CurrentTrackNumber`/`TakePeak()`/`OutputPath`（仮名）/`Results`/`Failure`、イベント `Error`/`Notice`。`Stop()`/`Split()` はUIスレッドで直接呼ばず `Task.Run` 経由
   - `src/Core/FileNamer.cs` … `NameContext(Time,No,Track,Start,End,Device,Preset,Ext)`、`Expand`/`FileName`/`Folder`/`Sanitize`/`CleanDevice`/`TempName`/`Unique`、`DefaultPattern`/`DefaultDateFormat`
   - `src/Core/NameTemplates.cs` … `NameTemplate(Name,Pattern)`、`NameTemplates.Defaults`
-  - `src/Core/RecordingPlan.cs` … `Create(settings,deviceLabel,now)`/`PreviewFolder(settings,now)`/`Finish(elapsed,ffmpegPath)`、`Folder`/`TempPath`/`Options`
+  - `src/Core/RecordingPlan.cs` … `Create(settings,deviceLabel,now)`/`PreviewFolder(settings,now)`、`TempPathFor(index)`/`TrackNumber(index)`/`FinishTrack(tempPath,index,start,end,ffmpegPath)`、`Folder`/`Options`、`PresetName`
   - `src/Core/FileFinalizer.cs` … `Run(tempPath,folder,fileName,options,ffmpegPath)` → `FinalizeResult(Path,Warning)`。m4aの整形もここ
   - `src/Core/IniFile.cs` … `Get`/`Set`/`Remove`/`Save`（一時ファイル→置換）
   - `src/Core/Settings.cs` … `Device`/`Format`/`BitrateKbps`/`SampleRate`/`Channels`/`Encode`/`Folder`/`NextNo`。`ReadOnly` なら書かない
   - `src/Core/Settings.Naming.cs` … `Templates`/`SaveTemplate`/`DeleteTemplate`/`RestoreDefaultTemplates`/`Template`/`Pattern`/`DateFolder`/`DateFolderFormat`/`TrackStart`。ini のセクション `[Templates]`（`Count`,`Name<i>`,`Pattern<i>`）
-  - `src/UI/MainWindow.xaml(.cs)` … 上段=設定、詳細設定Expander（`DetailPanel`）、オプションExpander（中身はM3以降）、中段=経過時間・メーター、サマリー行＋録音/停止、下段=状態表示
+  - `src/Core/Splitter.cs` … `Splitter(interval)`、`Due`/`Rolled`/`Retry`/`TrackStart`/`NextSplitAt`、`Floor`、`MaxLength`（24h）。純粋ロジック
+  - `src/Core/Settings.Split.cs` … `SplitMinutes`（0〜1440）
+  - `src/Core/Recovery.cs` … `Find(baseFolder)`/`Repair(files,ffmpegPath)`
+  - `src/UI/MainWindow.xaml(.cs)`（＋`MainWindow.Recording.cs`） … 上段=常時表示の設定（入力・形式音質・保存先・自動分割・名前の例）、詳細設定Expander（`DetailPanel`）、オプションExpander（中身はM7以降）、中段=経過時間・メーター、録音/一時停止/分割/停止ボタン、下段=状態表示
   - `src/UI/DetailPanel.xaml(.cs)` … 音質・ファイル名テンプレート・番号・日付フォルダ。`Init(settings,deviceLabel)`/`Reload()`/`Refresh()`/`Changed`
-  - `src/UI/SummaryBar.cs` … `Build(settings, device)`
+  - `src/UI/QualityBar.xaml(.cs)` … 形式の横のビットレート・周波数・チャンネル。`src/UI/RecoveryPrompt.cs` … `RunAsync(owner,settings,busy,status)`。（`SummaryBar.cs` は廃止）
   - `src/UI/VariableEditor.xaml(.cs)` … `VariableEditor(title, initial, vars, preview)`、`Result`。`src/UI/VariableHelp.cs` … `VarInfo(Token,Description)`、`VariableHelp.Pattern`/`Date`
   - `assets/icon/app.ico` … 仮アイコン。同名で上書きすれば差し替え可
 
