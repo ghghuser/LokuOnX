@@ -3,19 +3,103 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Icon="pack://application:,,,/app.ico"
         Title="LokuOnX"
-        Width="1200" Height="800"
-        MinWidth="1000" MinHeight="600"
+        Width="1200" Height="720"
+        MinWidth="1000" MinHeight="560"
         FontFamily="Yu Gothic UI, Meiryo UI"
         FontSize="14"
         WindowStartupLocation="CenterScreen">
-    <Grid Margin="24">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock x:Name="TitleText" FontSize="32" FontWeight="SemiBold"
-                       HorizontalAlignment="Center"/>
-            <TextBlock x:Name="VersionText" Margin="0,8,0,0" Opacity="0.7"
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="M0: 空の画面です（録音機能は M1 以降で追加します）"
-                       Margin="0,24,0,0" HorizontalAlignment="Center"/>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 上段: 設定（常時表示） -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="入力デバイス" VerticalAlignment="Center"/>
+            <ComboBox x:Name="DeviceBox" Grid.Row="0" Grid.Column="1" Margin="0,0,8,6"
+                      DisplayMemberPath="Label" SelectionChanged="DeviceBox_SelectionChanged"/>
+            <Button x:Name="RefreshButton" Grid.Row="0" Grid.Column="2" Content="一覧を更新"
+                    Margin="0,0,0,6" Padding="12,3" Click="Refresh_Click"/>
+
+            <TextBlock Grid.Row="1" Text="形式" VerticalAlignment="Center"/>
+            <ComboBox x:Name="FormatBox" Grid.Row="1" Grid.Column="1" Margin="0,0,8,6"
+                      Width="120" HorizontalAlignment="Left"
+                      SelectionChanged="FormatBox_SelectionChanged"/>
+
+            <TextBlock Grid.Row="2" Text="保存先" VerticalAlignment="Center"/>
+            <TextBox x:Name="FolderBox" Grid.Row="2" Grid.Column="1" Margin="0,0,8,0"
+                     VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
+            <Button x:Name="BrowseButton" Grid.Row="2" Grid.Column="2" Content="参照..."
+                    Padding="12,3" Click="Browse_Click"/>
+        </Grid>
+
+        <!-- 折りたたみ設定（M2以降で中身を追加） -->
+        <StackPanel Grid.Row="1" Margin="0,10,0,0">
+            <Expander x:Name="ExpDetail" Header="詳細設定（音質・ファイル名・タグ）">
+                <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="音質・ファイル名・タグは M2 以降で追加します。"/>
+            </Expander>
+            <Expander x:Name="ExpOption" Header="オプション">
+                <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="オプションは M3 以降で追加します。"/>
+            </Expander>
         </StackPanel>
+
+        <!-- 中段: 経過時間・メーター -->
+        <Border Grid.Row="2" Margin="0,12,0,12" BorderBrush="#40808080" BorderThickness="1" CornerRadius="4" Padding="16">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40" FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="90"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="音量" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ProgressBar x:Name="Meter" Grid.Column="1" Height="22" Minimum="0" Maximum="1"
+                                 Foreground="#2E9E4F"/>
+                    <TextBlock x:Name="PeakText" Grid.Column="2" Margin="10,0,0,0"
+                               Foreground="#D33" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- 現在の設定サマリー行＋録音ボタン（折りたたみの外に常時表示） -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Border BorderBrush="#40808080" BorderThickness="1" CornerRadius="4" Padding="10,6"
+                    Cursor="Hand" ToolTip="クリックで詳細設定を開きます"
+                    MouseLeftButtonUp="Summary_Click">
+                <TextBlock x:Name="SummaryText" TextWrapping="Wrap" VerticalAlignment="Center"/>
+            </Border>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0">
+                <Button x:Name="StartButton" Content="● 録音開始" Padding="22,8" FontWeight="SemiBold"
+                        Click="Start_Click"/>
+                <Button x:Name="StopButton" Content="■ 停止" Padding="22,8" Margin="8,0,0,0"
+                        IsEnabled="False" Click="Stop_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 下段: 状態表示（ファイル一覧とプレイヤーは M6） -->
+        <TextBox x:Name="StatusText" Grid.Row="4" Margin="0,10,0,0" IsReadOnly="True"
+                 BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
+                 Text="待機中"/>
     </Grid>
 </Window>

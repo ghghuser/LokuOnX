@@ -174,21 +174,29 @@ LokuOnX/
 §2、§3、§4、§5の対策方針。アプリ名は **LokuOnX（仮）**、表示名は `AppInfo.Name` の1か所で管理、名前空間は `Recorder` のまま（改名で全ファイルを触らないため）。UIは日本語（Yu Gothic UI、なければ Meiryo UI）。
 
 ## 11. 現在の状態（毎回更新する）
-- 状態: **仕切り直し（2026-10-31）**。初版（M0〜M1）のコードは破棄し、新リポジトリで M0 からやり直す。初版でユーザーが確認できたこと: Actions/FFmpeg取得は成功、アプリ起動・マイク録音は動作。
-- 初版の指摘（本版で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い／スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
-- 進行中: **M0 完了（2026-10-31）。** Actions ビルド成功、artifact は `LokuOnX/` 直下が `LokuOnX.exe` と `ffmpeg` フォルダだけ、起動・アイコン表示OK。
-  - **単一ファイル発行で動作確認済み（§4-2の代替案 `app/` 方式は不要）。**
-  - Claude側のLinux環境には .NET SDK を入れられない（配布元がブロック）。**Claudeはビルド確認ができないので、Actions の結果が唯一のビルド確認。** エラーは `error` の行だけ貼ってもらう。
-  - FFmpegのURLは n8.1 → 404 なら master へ自動切替（build.yml）。
-  - Releases の ZIP 添付は**未確認**（まだ Release を作っていない）。タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。main への push では artifact（フォルダのまま、二重ZIPなし）だけ作る。初回の Release 作成時（M1以降のどこでもよい）に確認する。
-- 次にやること: 新規チャットで「今回はM1」（固定プロンプトは付録A）。
-- ファイル一覧とインターフェース（M0）:
+- 状態: **M1 実装完了・未ビルド確認（2026-10-31）。** コードは push 済み。Claude側にはLinux上の .NET SDK が入れられず（apt・配布元ともに不可）、**ビルド確認ができていない。Actions の結果が唯一のビルド確認。** エラーは `error` の行だけ貼ってもらう。
+- 初版の指摘（M0で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い。M1で対応: スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
+- M0（完了）: 単一ファイル発行で動作確認済み（`app/` 方式は不要）。FFmpegのURLは n8.1 → 404 なら master へ自動切替。Releases の ZIP 添付は**未確認**（タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。初回Release作成時に確認）。
+- M1で入れたもの: NAudio 2.2.1（csprojに追加）、デバイス一覧（🎤マイク＋🔊出力のループバック）、WASAPI録音、FFmpeg直接エンコード（flac/mp3。mp3は192k固定）、開始/停止、音量メーター（-60〜0dB、0.99以上で赤＝クリップ表示）、現在設定サマリー行（クリックで詳細設定Expanderが開く）、同じフォルダのみの多重起動警告（2つ目は ini と `{No}` を書かない）、`settings.ini`（形式・保存先・デバイス・NextNo）。録音中にウィンドウを閉じると確認して停止・保存してから終了（M5の「終了時警告」の前倒し最小版）。
+- M1の既知の簡易実装（M2以降で置換）: ファイル名は `{yyyy_MM_dd HH_mm_ss} ({No}).{ext}` 固定で保存先直下に作成（日付フォルダなし・仮名リネームなし）／デバイスのネイティブ形式のまま録音（音質指定なし）／ループバックの無音補填なし（無音中は時間が詰まる）／FFmpeg死亡時は録音を止めてエラー表示（自動再開なし）。
+- 次にやること: Actions のビルドを確認 → 動作確認（付録B）→ 新規チャットで「今回はM2」。
+- ファイル一覧とインターフェース:
   - `.github/workflows/build.yml` … windows-latest。publish → FFmpeg取得 → `libmp3lame`/`aac`/`flac` 検査 → `dist/LokuOnX/` を組む → artifact（フォルダ）→ タグ時のみZIP作成とRelease添付
-  - `src/LokuOnX.csproj` … net8.0-windows、WPF、`ImplicitUsings`/`Nullable` enable、win-x64自己完結・単一ファイル、`SatelliteResourceLanguages=en`
+  - `src/LokuOnX.csproj` … net8.0-windows、WPF、`ImplicitUsings`/`Nullable` enable、win-x64自己完結・単一ファイル、`SatelliteResourceLanguages=en`、NAudio 2.2.1
   - `src/app.manifest` … Windows10/11対応、PerMonitorV2
-  - `src/App.xaml(.cs)` … `Recorder.App`、`StartupUri=UI/MainWindow.xaml`
-  - `src/Core/AppInfo.cs` … `Recorder.Core.AppInfo`（`const string Name`、`static string Version`）
-  - `src/UI/MainWindow.xaml(.cs)` … `Recorder.UI.MainWindow`（空画面。1200×800、最小1000×600、Yu Gothic UI/Meiryo UI）
+  - `src/App.xaml(.cs)` … `Recorder.App`。StartupUri は無し。`OnStartup` で多重起動判定→`Settings`生成→`MainWindow(settings)`表示。未処理例外はダイアログ表示
+  - `src/Core/AppInfo.cs` … `AppInfo.Name` / `AppInfo.Version`
+  - `src/Core/AppPaths.cs` … `Dir`（exeのフォルダ）、`SettingsIni`、`Ffmpeg`（`ffmpeg\ffmpeg.exe`）
+  - `src/Core/IAudioSource.cs` … `AudioDeviceInfo(Key,Label,IsLoopback,SampleRate,Channels)`、`AudioFormatInfo(SampleRate,Channels,BitsPerSample,IsFloat)`、`IAudioSource`（`Format`/`DataAvailable`/`Stopped`/`Start()`/`Stop()`）、`IAudioDeviceProvider`（`List()`/`Create(key)`）。Key は `capture:{ID}` または `render:{ID}`
+  - `src/Core/Win/WasapiDeviceProvider.cs`、`src/Core/Win/WasapiSource.cs` … NAudio(WASAPI)実装（Windows専用）。`Stop()` はUIスレッドで直接呼ばず `Task.Run` 経由（RecordingStopped がUIスレッドに戻るため）
+  - `src/Core/FfmpegEncoder.cs` … `Start()`/`Write(byte[])`/`Finish()`/`Failure`/`Failed`。専用スレッド＋上限付きキュー
+  - `src/Core/RecordingSession.cs` … `Start()`/`Stop()`/`Elapsed`/`TakePeak()`/`OutputPath`/`Failure`/`Error`
+  - `src/Core/PeakMeter.cs` … `Compute(buf,count,format)`
+  - `src/Core/OutputName.cs` … `Build(folder,no,ext,now)`（M2で `FileNamer` に置換）
+  - `src/Core/IniFile.cs`、`src/Core/Settings.cs` … 一時ファイル→置換で保存。`ReadOnly` なら書かない。`Device`/`Format`/`Folder`/`NextNo`
+  - `src/Core/InstanceGuard.cs` … `TryAcquire(exeDir)`（exeフォルダのハッシュでMutex）
+  - `src/UI/MainWindow.xaml(.cs)` … `Recorder.UI.MainWindow(Settings)`。上段=設定、折りたたみ2つ（中身はM2以降）、中段=経過時間・メーター、サマリー行＋録音/停止、下段=状態表示
+  - `src/UI/SummaryBar.cs` … `Build(settings, device)`
   - `assets/icon/app.ico` … 仮アイコン（16/32/48/256）。同名で上書きすれば差し替え可
 
 ## 付録A. 固定プロンプト（各チャットの最初に貼る）
