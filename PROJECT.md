@@ -128,7 +128,7 @@ LokuOnX/
 | 16 | 画面の詰め込み | Expander＋現在設定サマリー（§3-6） |
 | 17 | 多重起動でini・`{No}`が競合 | 同じフォルダのexeだけ Mutex で検出（§3-6）。2つ目は書き込まない |
 | 18 | UI幅1280px内に収める | M1でレイアウトを固めて実機確認 |
-| 19 | csprojに `ImplicitUsings` が無く `System.IO` 等が未解決（初版のビルドエラー原因） | csprojは `ImplicitUsings=enable`・`Nullable=enable` を必ず維持。書き換えるときも消さない |
+| 19 | csprojに `ImplicitUsings` が無く `System.IO` 等が未解決（初版のビルドエラー原因） | csprojは `ImplicitUsings=enable`・`Nullable=enable` を必ず維持。さらに **WPFでは暗黙usingに `System.IO` が入らない**ため、csprojの `<Using Include="System.IO" />` も維持（M1で `Path`/`File` 未解決エラーになった）。書き換えるときも消さない |
 
 ## 6. コード構成の規則
 1. 1ファイル**200行前後まで**。大きければ分割。

@@ -33,4 +33,9 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
+  <!-- WPF では ImplicitUsings に System.IO が含まれないため明示する（PROJECT.md §5-19） -->
+  <ItemGroup>
+    <Using Include="System.IO" />
+  </ItemGroup>
+
 </Project>
