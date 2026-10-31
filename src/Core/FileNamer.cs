@@ -115,9 +115,9 @@ public static class FileNamer
         return sb.ToString().Trim();
     }
 
-    /// <summary>録音中に書く仮名。開始時刻を含める（異常終了後の復旧用。M3）。</summary>
-    public static string TempName(DateTime start, int no, string ext) =>
-        $"_rec_{start.ToString("yyyyMMdd_HHmmss", Inv)}_No{no}.{ext}";
+    /// <summary>録音中に書く仮名。開始時刻・No・Track を含める（異常終了後の復旧用。Recovery が読む）。</summary>
+    public static string TempName(DateTime start, int no, int track, string ext) =>
+        $"_rec_{start.ToString("yyyyMMdd_HHmmss", Inv)}_No{no}_T{track}.{ext}";
 
     /// <summary>同名があれば末尾に ` (2)` ` (3)` を付ける。パス全体が長すぎる場合は名前を短くする。</summary>
     public static string Unique(string folder, string fileName)

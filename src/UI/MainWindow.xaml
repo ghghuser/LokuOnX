@@ -4,8 +4,8 @@
         xmlns:ui="clr-namespace:Recorder.UI"
         Icon="pack://application:,,,/app.ico"
         Title="LokuOnX"
-        Width="1200" Height="720"
-        MinWidth="1000" MinHeight="560"
+        Width="1200" Height="740"
+        MinWidth="1000" MinHeight="580"
         FontFamily="Yu Gothic UI, Meiryo UI"
         FontSize="14"
         WindowStartupLocation="CenterScreen">
@@ -18,7 +18,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 上段: 設定（常時表示） -->
+        <!-- 上段: メジャーな設定（常時表示） -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="90"/>
@@ -26,6 +26,8 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -37,26 +39,41 @@
             <Button x:Name="RefreshButton" Grid.Row="0" Grid.Column="2" Content="一覧を更新"
                     Margin="0,0,0,6" Padding="12,3" Click="Refresh_Click"/>
 
-            <TextBlock Grid.Row="1" Text="形式" VerticalAlignment="Center"/>
-            <ComboBox x:Name="FormatBox" Grid.Row="1" Grid.Column="1" Margin="0,0,8,6"
-                      Width="140" HorizontalAlignment="Left"
-                      DisplayMemberPath="Label" SelectedValuePath="Key"
-                      SelectionChanged="FormatBox_SelectionChanged"/>
+            <TextBlock Grid.Row="1" Text="形式・音質" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,6">
+                <ComboBox x:Name="FormatBox" Width="140" Margin="0,0,18,0"
+                          DisplayMemberPath="Label" SelectedValuePath="Key"
+                          SelectionChanged="FormatBox_SelectionChanged"/>
+                <ui:QualityBar x:Name="Quality" VerticalAlignment="Center"/>
+            </StackPanel>
 
             <TextBlock Grid.Row="2" Text="保存先" VerticalAlignment="Center"/>
-            <TextBox x:Name="FolderBox" Grid.Row="2" Grid.Column="1" Margin="0,0,8,0"
+            <TextBox x:Name="FolderBox" Grid.Row="2" Grid.Column="1" Margin="0,0,8,6"
                      VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
             <Button x:Name="BrowseButton" Grid.Row="2" Grid.Column="2" Content="参照..."
-                    Padding="12,3" Click="Browse_Click"/>
+                    Margin="0,0,0,6" Padding="12,3" Click="Browse_Click"/>
+
+            <TextBlock Grid.Row="3" Text="自動分割" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,6">
+                <TextBox x:Name="SplitBox" Width="60" VerticalContentAlignment="Center"
+                         ToolTip="0 のときは自動分割しません（1つのファイルは最長24時間で必ず分割されます）"
+                         LostFocus="Split_LostFocus"/>
+                <TextBlock Text="分ごとに分割（0＝しない。1つのファイルは最長24時間）" VerticalAlignment="Center"
+                           Margin="8,0,0,0" Opacity="0.75"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="4" Text="名前の例" VerticalAlignment="Top"/>
+            <TextBlock x:Name="NameExample" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
+                       TextWrapping="Wrap" Opacity="0.75"/>
         </Grid>
 
-        <!-- 折りたたみ設定 -->
+        <!-- 折りたたみ設定（マイナーな設定） -->
         <StackPanel Grid.Row="1" Margin="0,10,0,0">
-            <Expander x:Name="ExpDetail" Header="詳細設定（音質・ファイル名・タグ）">
+            <Expander x:Name="ExpDetail" Header="詳細設定（ファイル名・番号・日付フォルダ・タグ）">
                 <ui:DetailPanel x:Name="Detail" Margin="16,8,0,6"/>
             </Expander>
             <Expander x:Name="ExpOption" Header="オプション">
-                <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="オプションは M3 以降で追加します。"/>
+                <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="オプションは M7 以降で追加します（無音検出など）。"/>
             </Expander>
         </StackPanel>
 
@@ -65,6 +82,7 @@
             <StackPanel VerticalAlignment="Center">
                 <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40" FontWeight="SemiBold"
                            HorizontalAlignment="Center"/>
+                <TextBlock x:Name="StateText" Text="待機中" HorizontalAlignment="Center" Opacity="0.75"/>
                 <Grid Margin="0,16,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -80,27 +98,17 @@
             </StackPanel>
         </Border>
 
-        <!-- 現在の設定サマリー行＋録音ボタン（折りたたみの外に常時表示） -->
-        <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Border x:Name="SummaryBorder" BorderBrush="#40808080" BorderThickness="1" CornerRadius="4"
-                    Padding="10,6" Cursor="Hand" Background="Transparent"
-                    ToolTipService.ShowDuration="30000" ToolTipService.InitialShowDelay="300"
-                    MouseLeftButtonUp="Summary_Click">
-                <!-- 動かさない。収まらないときは末尾を「…」で省略し、マウスオーバーで全文を表示 -->
-                <TextBlock x:Name="SummaryText" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                           VerticalAlignment="Center"/>
-            </Border>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0">
-                <Button x:Name="StartButton" Content="● 録音開始" Padding="22,8" FontWeight="SemiBold"
-                        Click="Start_Click"/>
-                <Button x:Name="StopButton" Content="■ 停止" Padding="22,8" Margin="8,0,0,0"
-                        IsEnabled="False" Click="Stop_Click"/>
-            </StackPanel>
-        </Grid>
+        <!-- 録音ボタン -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="StartButton" Content="● 録音開始" Padding="22,8" FontWeight="SemiBold"
+                    Click="Start_Click"/>
+            <Button x:Name="PauseButton" Content="一時停止" Padding="22,8" Margin="8,0,0,0"
+                    IsEnabled="False" Click="Pause_Click"/>
+            <Button x:Name="SplitButton" Content="分割" Padding="22,8" Margin="8,0,0,0"
+                    IsEnabled="False" ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click"/>
+            <Button x:Name="StopButton" Content="■ 停止" Padding="22,8" Margin="8,0,0,0"
+                    IsEnabled="False" Click="Stop_Click"/>
+        </StackPanel>
 
         <!-- 下段: 状態表示（ファイル一覧とプレイヤーは M6） -->
         <TextBox x:Name="StatusText" Grid.Row="4" Margin="0,10,0,0" IsReadOnly="True"

@@ -4,25 +4,14 @@ using Recorder.Core;
 
 namespace Recorder.UI;
 
-/// <summary>コンボボックスの選択肢（値と表示名）。</summary>
-public sealed record Choice(int Value, string Label);
-
-/// <summary>「詳細設定」の中身: 音質・ファイル名テンプレート・番号・日付フォルダ。値は Settings に即保存する。</summary>
+/// <summary>「詳細設定」の中身: ファイル名テンプレート・番号・日付フォルダ。値は Settings に即保存する。（音質は QualityBar）</summary>
 public partial class DetailPanel : UserControl
 {
-    private static readonly Choice[] RateChoices =
-    {
-        new(0, "自動（デバイスに合わせる）"), new(22050, "22.05 kHz"), new(32000, "32 kHz"),
-        new(44100, "44.1 kHz"), new(48000, "48 kHz"), new(88200, "88.2 kHz"), new(96000, "96 kHz"),
-    };
-
-    private static readonly Choice[] ChannelChoices = { new(0, "自動"), new(1, "モノ"), new(2, "ステレオ") };
-
     private Settings? _s;
     private Func<string> _deviceLabel = () => "";
     private bool _loading;
 
-    /// <summary>設定が変わった（現在設定サマリーの更新用）。</summary>
+    /// <summary>設定が変わった（常時表示のファイル名の例の更新用）。</summary>
     public event Action? Changed;
 
     public DetailPanel() => InitializeComponent();
@@ -32,9 +21,6 @@ public partial class DetailPanel : UserControl
         _s = settings;
         _deviceLabel = deviceLabel;
         _loading = true;
-        BitrateBox.ItemsSource = EncodeOptions.Bitrates.Select(b => new Choice(b, $"{b} kbps")).ToList();
-        RateBox.ItemsSource = RateChoices;
-        ChannelBox.ItemsSource = ChannelChoices;
         ReloadTemplates(null);
         _loading = false;
         Reload();
@@ -46,9 +32,6 @@ public partial class DetailPanel : UserControl
         if (_s == null) return;
         var was = _loading;
         _loading = true;
-        BitrateBox.SelectedValue = _s.BitrateKbps;
-        RateBox.SelectedValue = _s.SampleRate;
-        ChannelBox.SelectedValue = _s.Channels;
         PatternBox.Text = _s.Pattern;
         NoBox.Text = _s.NextNo.ToString();
         TrackBox.Text = _s.TrackStart.ToString();
@@ -59,13 +42,15 @@ public partial class DetailPanel : UserControl
         Refresh();
     }
 
-    /// <summary>形式やデバイスが変わったときに、ビットレートの有効/無効と例の表示を更新する。</summary>
+    /// <summary>形式やデバイスが変わったときに、例の表示を更新する。</summary>
     public void Refresh()
     {
         if (_s == null) return;
-        BitrateBox.IsEnabled = _s.Encode.Fmt.Lossy;
         UpdateExample();
     }
+
+    /// <summary>ファイル名と保存先の例（画面の常時表示用）。</summary>
+    public string ExampleLine => ExampleText.Text;
 
     /// <summary>例の表示用。36：25 録音した場合の値。</summary>
     private NameContext SampleContext(DateTime now) =>
@@ -105,28 +90,6 @@ public partial class DetailPanel : UserControl
     {
         UpdateExample();
         Changed?.Invoke();
-    }
-
-    // ---- 音質 ----
-    private void Bitrate_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || _s == null || BitrateBox.SelectedValue is not int v) return;
-        _s.BitrateKbps = v;
-        Notify();
-    }
-
-    private void Rate_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || _s == null || RateBox.SelectedValue is not int v) return;
-        _s.SampleRate = v;
-        Notify();
-    }
-
-    private void Channel_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || _s == null || ChannelBox.SelectedValue is not int v) return;
-        _s.Channels = v;
-        Notify();
     }
 
     // ---- ファイル名テンプレート ----

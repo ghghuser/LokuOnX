@@ -1,0 +1,19 @@
+<UserControl x:Class="Recorder.UI.QualityBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <WrapPanel>
+        <TextBlock Text="ビットレート" VerticalAlignment="Center" Margin="0,0,6,0"/>
+        <ComboBox x:Name="BitrateBox" Width="100" Margin="0,0,18,0"
+                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                  ToolTip="mp3 / aac のとき有効（flac は無劣化のため指定なし）"
+                  SelectionChanged="Bitrate_Changed"/>
+        <TextBlock Text="サンプリング周波数" VerticalAlignment="Center" Margin="0,0,6,0"/>
+        <ComboBox x:Name="RateBox" Width="190" Margin="0,0,18,0"
+                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                  SelectionChanged="Rate_Changed"/>
+        <TextBlock Text="チャンネル" VerticalAlignment="Center" Margin="0,0,6,0"/>
+        <ComboBox x:Name="ChannelBox" Width="100"
+                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                  SelectionChanged="Channel_Changed"/>
+    </WrapPanel>
+</UserControl>
