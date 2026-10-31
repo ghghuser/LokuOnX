@@ -1,1 +1,14 @@
-
+<Window x:Class="Recorder.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Recorder" Width="1000" Height="600"
+        MinWidth="1000" MaxWidth="1280"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="16">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="Recorder" FontSize="28" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="VersionText" FontSize="13" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="FfmpegText" FontSize="13" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</Window>
