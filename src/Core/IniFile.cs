@@ -46,6 +46,12 @@ public sealed class IniFile
 
     public void Set(string section, string key, string value) => Put(section, key, value);
 
+    public void Remove(string section, string key)
+    {
+        var id = Id(section, key);
+        if (_values.Remove(id)) _order.Remove(id);
+    }
+
     /// <summary>保存。失敗したら例外を投げる（呼び出し側で扱う）。</summary>
     public void Save()
     {

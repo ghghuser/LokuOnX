@@ -5,14 +5,14 @@ using System.Text;
 namespace Recorder.Core;
 
 /// <summary>
-/// FFmpeg を子プロセスとして起動し、標準入力にPCMを流して flac / mp3 へ直接書き出す。
+/// FFmpeg を子プロセスとして起動し、標準入力にPCMを流して flac / mp3 / aac へ直接書き出す。
 /// 書き込みは専用スレッド＋キューで行い、FFmpegが詰まっても録音スレッドを止めない（PROJECT.md §5-5）。
 /// </summary>
 public sealed class FfmpegEncoder : IDisposable
 {
     private readonly string _ffmpegPath;
     private readonly string _outputPath;
-    private readonly string _format;
+    private readonly EncodeOptions _options;
     private readonly AudioFormatInfo _fmt;
     private readonly BlockingCollection<byte[]> _queue = new(4096);
     private readonly StringBuilder _stderr = new();
@@ -26,18 +26,12 @@ public sealed class FfmpegEncoder : IDisposable
     /// <summary>失敗したとき一度だけ呼ばれる（別スレッドから）。</summary>
     public event Action<string>? Failed;
 
-    public FfmpegEncoder(string ffmpegPath, string outputPath, string format, AudioFormatInfo fmt)
+    public FfmpegEncoder(string ffmpegPath, string outputPath, EncodeOptions options, AudioFormatInfo fmt)
     {
         _ffmpegPath = ffmpegPath;
         _outputPath = outputPath;
-        _format = format;
+        _options = options;
         _fmt = fmt;
-    }
-
-    private static string InputFormatName(AudioFormatInfo f)
-    {
-        if (f.IsFloat) return f.BitsPerSample == 64 ? "f64le" : "f32le";
-        return f.BitsPerSample switch { 16 => "s16le", 24 => "s24le", 32 => "s32le", _ => "s16le" };
     }
 
     public void Start()
@@ -51,21 +45,8 @@ public sealed class FfmpegEncoder : IDisposable
             CreateNoWindow = true,
             StandardErrorEncoding = Encoding.UTF8,
         };
-        foreach (var a in new[] { "-hide_banner", "-loglevel", "error", "-y",
-                     "-f", InputFormatName(_fmt), "-ar", _fmt.SampleRate.ToString(),
-                     "-ac", _fmt.Channels.ToString(), "-i", "pipe:0", "-vn" })
+        foreach (var a in FfmpegArgs.Build(_options, _fmt, _outputPath))
             psi.ArgumentList.Add(a);
-
-        if (_format == "mp3")
-        {
-            foreach (var a in new[] { "-c:a", "libmp3lame", "-b:a", "192k", "-id3v2_version", "3" })
-                psi.ArgumentList.Add(a);
-        }
-        else
-        {
-            foreach (var a in new[] { "-c:a", "flac" }) psi.ArgumentList.Add(a);
-        }
-        psi.ArgumentList.Add(_outputPath);
 
         _proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
         _proc.ErrorDataReceived += (_, e) =>
@@ -88,7 +69,14 @@ public sealed class FfmpegEncoder : IDisposable
     public void Write(byte[] data)
     {
         if (_failure != null) return;
-        if (!_queue.TryAdd(data, 2000)) Fail("エンコードが追いつきません（FFmpegが応答しません）");
+        try
+        {
+            if (!_queue.TryAdd(data, 2000)) Fail("エンコードが追いつきません（FFmpegが応答しません）");
+        }
+        catch (InvalidOperationException)
+        {
+            // 停止処理に入った後に届いたデータは捨てる
+        }
     }
 
     private void WriteLoop()

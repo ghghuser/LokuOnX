@@ -1,6 +1,7 @@
 <Window x:Class="Recorder.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:Recorder.UI"
         Icon="pack://application:,,,/app.ico"
         Title="LokuOnX"
         Width="1200" Height="720"
@@ -38,7 +39,8 @@
 
             <TextBlock Grid.Row="1" Text="形式" VerticalAlignment="Center"/>
             <ComboBox x:Name="FormatBox" Grid.Row="1" Grid.Column="1" Margin="0,0,8,6"
-                      Width="120" HorizontalAlignment="Left"
+                      Width="140" HorizontalAlignment="Left"
+                      DisplayMemberPath="Label" SelectedValuePath="Key"
                       SelectionChanged="FormatBox_SelectionChanged"/>
 
             <TextBlock Grid.Row="2" Text="保存先" VerticalAlignment="Center"/>
@@ -48,10 +50,10 @@
                     Padding="12,3" Click="Browse_Click"/>
         </Grid>
 
-        <!-- 折りたたみ設定（M2以降で中身を追加） -->
+        <!-- 折りたたみ設定 -->
         <StackPanel Grid.Row="1" Margin="0,10,0,0">
             <Expander x:Name="ExpDetail" Header="詳細設定（音質・ファイル名・タグ）">
-                <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="音質・ファイル名・タグは M2 以降で追加します。"/>
+                <ui:DetailPanel x:Name="Detail" Margin="16,8,0,6"/>
             </Expander>
             <Expander x:Name="ExpOption" Header="オプション">
                 <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="オプションは M3 以降で追加します。"/>

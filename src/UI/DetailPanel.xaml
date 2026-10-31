@@ -1,0 +1,62 @@
+<UserControl x:Class="Recorder.UI.DetailPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <!-- 音質 -->
+        <WrapPanel Margin="0,0,0,8">
+            <TextBlock Text="音質" Width="90" VerticalAlignment="Center"/>
+            <TextBlock Text="ビットレート" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="BitrateBox" Width="100" Margin="0,0,18,0"
+                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                      ToolTip="mp3 / aac のとき有効（flac は無劣化のため指定なし）"
+                      SelectionChanged="Bitrate_Changed"/>
+            <TextBlock Text="サンプリング周波数" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="RateBox" Width="190" Margin="0,0,18,0"
+                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                      SelectionChanged="Rate_Changed"/>
+            <TextBlock Text="チャンネル" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="ChannelBox" Width="100"
+                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                      SelectionChanged="Channel_Changed"/>
+        </WrapPanel>
+
+        <!-- ファイル名テンプレート -->
+        <WrapPanel Margin="0,0,0,6">
+            <TextBlock Text="ファイル名" Width="90" VerticalAlignment="Center"/>
+            <ComboBox x:Name="TemplateBox" Width="200" IsEditable="True" Margin="0,0,8,0"
+                      ToolTip="選ぶと下のパターンに入ります。名前を書いて「保存」すると新しいテンプレートになります"
+                      SelectionChanged="Template_Selected"/>
+            <Button Content="保存" Padding="12,3" Margin="0,0,6,0" Click="SaveTemplate_Click"/>
+            <Button Content="削除" Padding="12,3" Margin="0,0,6,0" Click="DeleteTemplate_Click"/>
+            <Button Content="初期テンプレートを復元" Padding="12,3" Click="RestoreTemplates_Click"/>
+        </WrapPanel>
+        <DockPanel Margin="0,0,0,6">
+            <TextBlock Text="パターン" Width="90" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+            <TextBox x:Name="PatternBox" VerticalContentAlignment="Center"
+                     TextChanged="Pattern_TextChanged" LostFocus="Pattern_LostFocus"/>
+        </DockPanel>
+        <TextBlock x:Name="ExampleText" Margin="90,0,0,8" Opacity="0.75" TextWrapping="Wrap"/>
+
+        <!-- 番号・日付フォルダ -->
+        <WrapPanel Margin="0,0,0,8">
+            <TextBlock Text="番号" Width="90" VerticalAlignment="Center"/>
+            <TextBlock Text="No の開始値" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="NoBox" Width="80" VerticalContentAlignment="Center" Margin="0,0,18,0"
+                     ToolTip="次の録音に使う No。録音のたびに +1 され、終了後も維持されます"
+                     LostFocus="No_LostFocus"/>
+            <TextBlock Text="Track の開始値" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="TrackBox" Width="80" VerticalContentAlignment="Center" Margin="0,0,18,0"
+                     ToolTip="新しい録音ごとにこの番号へ戻ります（分割のたびに +1）"
+                     LostFocus="Track_LostFocus"/>
+            <CheckBox x:Name="DateFolderCheck" Content="日付フォルダを作る" VerticalAlignment="Center"
+                      Margin="0,0,8,0" Checked="DateFolder_Changed" Unchecked="DateFolder_Changed"/>
+            <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
+                     ToolTip="日付フォルダの名前（録音開始日で固定）"
+                     LostFocus="DateFormat_LostFocus"/>
+        </WrapPanel>
+
+        <TextBlock Margin="90,0,0,8" Opacity="0.6" TextWrapping="Wrap"
+                   Text="使える変数: {No} {Track} {Start} {End} {Length} {Date} {Time} {Device} {Preset} {ext}、日時の部品 {yyyy} {yy} {MM} {dd} {HH} {mm} {ss}。{Start:min} のように :min を付けると 125：30 の形（分のみ）になります。コロンは自動で全角になります。"/>
+        <TextBlock Margin="90,0,0,0" Opacity="0.7" Text="タグ（タイトル・アーティスト等）は M5 で追加します。"/>
+    </StackPanel>
+</UserControl>

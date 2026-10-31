@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(50) };
     private List<AudioDeviceInfo> _devices = new();
     private RecordingSession? _session;
+    private RecordingPlan? _plan;
     private DateTime _clipUntil = DateTime.MinValue;
     private bool _loading;
     private bool _closeAfterStop;
@@ -28,10 +29,12 @@ public partial class MainWindow : Window
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
 
         _loading = true;
-        FormatBox.ItemsSource = new[] { "flac", "mp3" };
-        FormatBox.SelectedItem = settings.Format;
+        FormatBox.ItemsSource = OutputFormat.All;
+        FormatBox.SelectedValue = settings.Format;
         FolderBox.Text = settings.Folder;
         RefreshDevices();
+        Detail.Init(settings, () => SelectedDevice?.Label ?? "");
+        Detail.Changed += UpdateSummary;
         _loading = false;
 
         UpdateSummary();
@@ -61,6 +64,7 @@ public partial class MainWindow : Window
         // マウスを乗せると全文を表示。長いときは左右に流す
         SummaryBorder.ToolTip = SummaryText.Text + "\n\n（クリックで詳細設定を開きます）";
         ApplyMarquee();
+        Detail.Refresh();
     }
 
     private void ApplyMarquee() =>
@@ -79,7 +83,7 @@ public partial class MainWindow : Window
 
     private void FormatBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        if (_loading || FormatBox.SelectedItem is not string f) return;
+        if (_loading || FormatBox.SelectedValue is not string f) return;
         _settings.Format = f;
         UpdateSummary();
     }
@@ -127,14 +131,15 @@ public partial class MainWindow : Window
         try
         {
             FolderBox_LostFocus(sender, e);
-            Directory.CreateDirectory(_settings.Folder);
             var no = _settings.NextNo;
-            var path = OutputName.Build(_settings.Folder, no, _settings.Format, DateTime.Now);
+            var plan = RecordingPlan.Create(_settings, dev.Label, DateTime.Now);
+            Directory.CreateDirectory(plan.Folder);
             src = _provider.Create(dev.Key);
-            session = new RecordingSession(src, AppPaths.Ffmpeg, path, _settings.Format);
+            session = new RecordingSession(src, AppPaths.Ffmpeg, plan.TempPath, plan.Options);
             session.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
             session.Start();
             _session = session;
+            _plan = plan;
             if (!_settings.ReadOnly) _settings.NextNo = no + 1;
         }
         catch (Exception ex)
@@ -144,6 +149,7 @@ public partial class MainWindow : Window
             return;
         }
         SetRecording(true);
+        Detail.Reload();   // {No} が進んだので画面へ反映
         StatusText.Text = "録音中: " + _session!.OutputPath;
         UpdateSummary();
     }
@@ -153,13 +159,23 @@ public partial class MainWindow : Window
     private async Task StopAsync(string? error)
     {
         var s = _session;
+        var plan = _plan;
         if (s == null) return;
         _session = null;
+        _plan = null;
         StopButton.IsEnabled = false;
         StatusText.Text = "保存中...";
-        await Task.Run(() => { try { s.Stop(); } catch (Exception ex) { error ??= ex.Message; } });
+        FinalizeResult? fin = null;
+        await Task.Run(() =>
+        {
+            try { s.Stop(); } catch (Exception ex) { error ??= ex.Message; }
+            // 閉じたあとで最終のファイル名を確定する（名前は保存時に確定。録音中は仮名）
+            try { if (plan != null) fin = plan.Finish(s.Elapsed, AppPaths.Ffmpeg); }
+            catch (Exception ex) { error ??= "ファイル名の確定に失敗しました: " + ex.Message; }
+        });
         var failure = error ?? s.Failure;
-        var path = s.OutputPath;
+        var path = fin?.Path ?? s.OutputPath;
+        var warning = fin?.Warning;
         s.Dispose();
 
         SetRecording(false);
@@ -174,6 +190,7 @@ public partial class MainWindow : Window
             StatusText.Text = size > 0
                 ? $"保存しました: {path}（{size / 1024.0 / 1024.0:0.0} MB）"
                 : "ファイルが空でした。入力デバイスに音が来ていない可能性があります: " + path;
+            if (warning != null) StatusText.Text += "\n注意: " + warning;
         }
         if (_closeAfterStop) Close();
     }
@@ -182,7 +199,7 @@ public partial class MainWindow : Window
     {
         StartButton.IsEnabled = !recording;
         StopButton.IsEnabled = recording;
-        DeviceBox.IsEnabled = FormatBox.IsEnabled = FolderBox.IsEnabled = !recording;
+        DeviceBox.IsEnabled = FormatBox.IsEnabled = FolderBox.IsEnabled = Detail.IsEnabled = !recording;
         RefreshButton.IsEnabled = BrowseButton.IsEnabled = !recording;
         UpdateSummary();
     }

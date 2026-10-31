@@ -4,7 +4,7 @@ namespace Recorder.Core;
 /// 設定（settings.ini）。値を変えた時点で即保存する。
 /// ReadOnly のとき（同じフォルダの2つ目の起動）は iniに書き込まず、変更はその起動中だけ有効（PROJECT.md §3-6）。
 /// </summary>
-public sealed class Settings
+public sealed partial class Settings
 {
     private const string Section = "Recorder";
     private readonly IniFile _ini;
@@ -24,6 +24,7 @@ public sealed class Settings
             _ini.Set(Section, "NextNo", "1");
             Save();
         }
+        EnsureTemplates();   // 旧版の ini にはテンプレートが無いので、足りなければ初期テンプレートを登録
     }
 
     private string Get(string key, string fallback) => _ini.Get(Section, key, fallback);
@@ -47,12 +48,36 @@ public sealed class Settings
     /// <summary>最後に選んだデバイスの Key。</summary>
     public string Device { get => Get("Device", ""); set => Set("Device", value); }
 
-    /// <summary>"flac" または "mp3"。既定 flac。</summary>
+    /// <summary>"flac" / "mp3" / "m4a" / "aac"（OutputFormat.Key）。既定 flac。</summary>
     public string Format
     {
-        get => Get("Format", "flac") is "mp3" ? "mp3" : "flac";
+        get => OutputFormat.Get(Get("Format", "flac")).Key;
         set => Set("Format", value);
     }
+
+    /// <summary>mp3 / aac のビットレート(kbps)。既定192。flac では使わない。</summary>
+    public int BitrateKbps
+    {
+        get => int.TryParse(Get("Bitrate", "192"), out var n) && EncodeOptions.Bitrates.Contains(n) ? n : 192;
+        set => Set("Bitrate", value.ToString());
+    }
+
+    /// <summary>サンプリング周波数。0 = デバイスに合わせる（自動）。</summary>
+    public int SampleRate
+    {
+        get => int.TryParse(Get("SampleRate", "0"), out var n) && (n == 0 || EncodeOptions.SampleRates.Contains(n)) ? n : 0;
+        set => Set("SampleRate", value.ToString());
+    }
+
+    /// <summary>チャンネル数。0 = デバイスに合わせる（自動）、1 = モノ、2 = ステレオ。</summary>
+    public int Channels
+    {
+        get => int.TryParse(Get("Channels", "0"), out var n) && (n is 0 or 1 or 2) ? n : 0;
+        set => Set("Channels", value.ToString());
+    }
+
+    /// <summary>形式と音質をまとめたもの。</summary>
+    public EncodeOptions Encode => new(Format, BitrateKbps, SampleRate, Channels);
 
     public string Folder
     {
