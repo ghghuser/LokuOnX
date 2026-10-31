@@ -49,17 +49,17 @@ jobs:
       - name: Make ZIP
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path stage/Recorder | Out-Null
-          Copy-Item -Path publish/* -Destination stage/Recorder -Recurse
-          Compress-Archive -Path stage/Recorder -DestinationPath Recorder-win-x64.zip
+          New-Item -ItemType Directory -Force -Path stage/LokuonX | Out-Null
+          Copy-Item -Path publish/* -Destination stage/LokuonX -Recurse
+          Compress-Archive -Path stage/LokuonX -DestinationPath LokuonX-win-x64.zip
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Recorder-win-x64
-          path: Recorder-win-x64.zip
+          name: LokuonX-win-x64
+          path: LokuonX-win-x64.zip
 
       - name: Attach to Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: Recorder-win-x64.zip
+          files: LokuonX-win-x64.zip
