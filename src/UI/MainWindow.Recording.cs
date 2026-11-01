@@ -114,6 +114,7 @@ public partial class MainWindow
         });
         var failure = error ?? s.Failure;
         var results = s.Results;
+        var seconds = s.Seconds;
         var path = results.Count > 0 ? results[results.Count - 1].Path : s.OutputPath;
         var warnings = results.Where(r => r.Warning != null).Select(r => r.Warning!).Distinct().ToList();
         s.Dispose();
@@ -126,20 +127,21 @@ public partial class MainWindow
         }
         else
         {
-            StatusText.Text = SavedText(results);
+            StatusText.Text = SavedText(results, seconds);
         }
         if (warnings.Count > 0) StatusText.Text += "\n注意: " + string.Join(" / ", warnings);
         if (_closeAfterStop) Close();
     }
 
-    private static string SavedText(IReadOnlyList<FinalizeResult> results)
+    private static string SavedText(IReadOnlyList<FinalizeResult> results, IReadOnlyList<double> seconds)
     {
         long total = results.Sum(r => File.Exists(r.Path) ? new FileInfo(r.Path).Length : 0);
         var mb = $"{total / 1024.0 / 1024.0:0.0} MB";
         if (results.Count == 0) return "保存されたファイルがありません。";
         if (total == 0) return "ファイルが空でした。入力デバイスに音が来ていない可能性があります: " + results[0].Path;
-        if (results.Count == 1) return $"保存しました: {results[0].Path}（{mb}）";
-        var lines = results.Take(5).Select(r => r.Path).ToList();
+        string Sec(int i) => i < seconds.Count ? $"（音声 {seconds[i]:0.00}秒）" : "";
+        if (results.Count == 1) return $"保存しました: {results[0].Path}（{mb}）{Sec(0)}";
+        var lines = results.Take(5).Select((r, i) => r.Path + Sec(i)).ToList();
         var more = results.Count > lines.Count ? $"\n…ほか {results.Count - lines.Count} 個" : "";
         return $"{results.Count} 個のファイルを保存しました（合計 {mb}）:\n" + string.Join("\n", lines) + more;
     }

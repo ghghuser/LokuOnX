@@ -59,7 +59,6 @@ public partial class MainWindow : Window
     {
         Detail.Refresh();
         Quality.Refresh();
-        NameExample.Text = Detail.ExampleLine;
     }
 
     // ---- 設定の変更 ----

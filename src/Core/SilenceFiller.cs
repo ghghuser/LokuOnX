@@ -54,6 +54,19 @@ public sealed class SilenceFiller
         }
     }
 
+    /// <summary>
+    /// 分割用。boundary ちょうどのフレーム数まで無音で埋めてから swap を呼ぶ（フィラーのロック内なので、
+    /// 前のファイルはちょうど boundary の長さになり、次のファイルはそこから始まる）。
+    /// </summary>
+    public void CutAt(TimeSpan boundary, Action swap)
+    {
+        lock (_lock)
+        {
+            if (!_closed) FillTo(boundary.TotalSeconds, 0);
+            swap();
+        }
+    }
+
     /// <summary>停止時。経過時間ちょうどまで埋めて、以後は何も流さない。</summary>
     public void Finish()
     {

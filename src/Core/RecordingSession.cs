@@ -61,7 +61,11 @@ public sealed partial class RecordingSession : IDisposable
 
     private void Sink(byte[] data)
     {
-        lock (_sinkLock) _current.Encoder.Write(data);
+        lock (_sinkLock)
+        {
+            _current.Bytes += data.Length;
+            _current.Encoder.Write(data);
+        }
     }
 
     private Track NewTrack(int index, TimeSpan start)
@@ -171,6 +175,23 @@ public sealed partial class RecordingSession : IDisposable
         get
         {
             lock (_splitLock) return _tracks.Where(t => t.Result != null).Select(t => t.Result!).ToList();
+        }
+    }
+
+    private double SecondsOf(Track t)
+    {
+        var f = _source.Format;
+        return t.Bytes / (double)Math.Max(1, f.SampleRate * f.Channels * f.BitsPerSample / 8);
+    }
+
+    /// <summary>Results と同じ順の、実際に書いた音声の長さ（秒）。</summary>
+    public IReadOnlyList<double> Seconds
+    {
+        get
+        {
+            var f = _source.Format;
+            double perSec = Math.Max(1, f.SampleRate * f.Channels * f.BitsPerSample / 8);
+            lock (_splitLock) return _tracks.Where(t => t.Result != null).Select(t => t.Bytes / perSec).ToList();
         }
     }
 

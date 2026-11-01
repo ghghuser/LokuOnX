@@ -26,6 +26,8 @@ public sealed partial class RecordingSession
         public TimeSpan End { get; set; }
         public FinalizeResult? Result { get; set; }
         public string? Failure { get; set; }
+        /// <summary>このファイルへ書いたPCMのバイト数（実際の音声の長さの確認用）。</summary>
+        public long Bytes { get; set; }
     }
 
     // ---- 分割 ----
@@ -63,13 +65,17 @@ public sealed partial class RecordingSession
                 return false;
             }
 
-            Track old;
-            lock (_sinkLock)
+            // 境界ちょうどのフレーム数まで無音で埋めてから切り替える（前のファイルがちょうどの長さになる）
+            Track old = _current;
+            _filler.CutAt(boundary, () =>
             {
-                old = _current;
-                old.End = cut;
-                _current = next;
-            }
+                lock (_sinkLock)
+                {
+                    old = _current;
+                    old.End = cut;
+                    _current = next;
+                }
+            });
             _splitter.Rolled(boundary);
 
             var task = Task.Run(() => Close(old, announce: true));
@@ -90,7 +96,7 @@ public sealed partial class RecordingSession
                 t.Result = _plan.FinishTrack(t.TempPath, t.Index, t.Time, t.Start, t.End, _ffmpeg);
             if (announce && t.Failure == null)
             {
-                var msg = "保存しました: " + t.Result.Path;
+                var msg = "保存しました: " + t.Result.Path + $"（音声 {SecondsOf(t):0.00}秒）";
                 if (t.Result.Warning != null) msg += "（注意: " + t.Result.Warning + "）";
                 Notice?.Invoke(msg);
             }

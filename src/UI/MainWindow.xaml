@@ -4,8 +4,8 @@
         xmlns:ui="clr-namespace:Recorder.UI"
         Icon="pack://application:,,,/app.ico"
         Title="LokuOnX"
-        Width="1200" Height="740"
-        MinWidth="1000" MinHeight="580"
+        Width="1200" Height="820"
+        MinWidth="1000" MinHeight="700"
         FontFamily="Yu Gothic UI, Meiryo UI"
         FontSize="14"
         WindowStartupLocation="CenterScreen">
@@ -26,7 +26,6 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -62,16 +61,11 @@
                            Margin="8,0,0,0" Opacity="0.75"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="4" Text="名前の例" VerticalAlignment="Top"/>
-            <TextBlock x:Name="NameExample" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
-                       TextWrapping="Wrap" Opacity="0.75"/>
         </Grid>
 
-        <!-- 折りたたみ設定（マイナーな設定） -->
-        <StackPanel Grid.Row="1" Margin="0,10,0,0">
-            <Expander x:Name="ExpDetail" Header="詳細設定（ファイル名・番号・日付フォルダ・タグ）">
-                <ui:DetailPanel x:Name="Detail" Margin="16,8,0,6"/>
-            </Expander>
+        <!-- ファイル名・番号（常時表示）と、折りたたみ（日付フォルダ・タグ） -->
+        <StackPanel Grid.Row="1" Margin="0,4,0,0">
+            <ui:DetailPanel x:Name="Detail"/>
             <Expander x:Name="ExpOption" Header="オプション">
                 <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="オプションは M7 以降で追加します（無音検出など）。"/>
             </Expander>
