@@ -14,7 +14,12 @@ public partial class DetailPanel : UserControl
     /// <summary>設定が変わった（常時表示のファイル名の例の更新用）。</summary>
     public event Action? Changed;
 
-    public DetailPanel() => InitializeComponent();
+    public DetailPanel()
+    {
+        InitializeComponent();
+        NumericBox.Attach(NoBox);
+        NumericBox.Attach(TrackBox);
+    }
 
     public void Init(Settings settings, Func<string> deviceLabel)
     {

@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     public MainWindow(Settings settings)
     {
         InitializeComponent();
+        NumericBox.Attach(SplitBox);
         _settings = settings;
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
 

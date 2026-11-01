@@ -68,9 +68,8 @@ public sealed partial class RecordingSession : IDisposable
         }
     }
 
-    private Track NewTrack(int index, TimeSpan start)
+    private Track NewTrack(int index, TimeSpan start, DateTime time)
     {
-        var time = index == 0 ? _plan.StartTime : DateTime.Now;
         var path = _plan.TempPathFor(index, time);
         var encoder = new FfmpegEncoder(_ffmpeg, path, _plan.Options, _source.Format);
         var track = new Track(index, path, encoder, start, time);
@@ -84,7 +83,7 @@ public sealed partial class RecordingSession : IDisposable
 
     public void Start()
     {
-        var first = NewTrack(0, TimeSpan.Zero);
+        var first = NewTrack(0, TimeSpan.Zero, _plan.StartTime);
         _tracks.Add(first);
         _current = first;
         first.Encoder.Start();
@@ -125,7 +124,8 @@ public sealed partial class RecordingSession : IDisposable
         try
         {
             _filler.FillIdle();
-            if (_splitter.Due(_clock.Elapsed)) RollOver(manual: false);
+            var now = _clock.Elapsed;
+            if (_pending == null && _splitter.Due(now + TimeSpan.FromSeconds(1))) PrepareAuto(now);
         }
         catch (Exception ex)
         {
@@ -217,6 +217,7 @@ public sealed partial class RecordingSession : IDisposable
         StopIdleTimer();
         _source.Stop();
         _filler.Finish();   // 停止時刻ちょうどまで無音で埋める
+        lock (_splitLock) CancelPending();   // 切り替え前の予約が残っていれば捨てる
 
         Track last;
         lock (_sinkLock) last = _current;

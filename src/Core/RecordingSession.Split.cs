@@ -31,57 +31,88 @@ public sealed partial class RecordingSession
     }
 
     // ---- 分割 ----
-    /// <summary>手動で分割する。途切れずに次のファイルへ移る。直前の分割から1秒未満なら何もしない。UIスレッドを止めないよう Task.Run 経由で呼ぶこと。</summary>
-    public bool Split() => RollOver(manual: true);
+    private volatile Track? _pending;   // 準備済みで、切り替えを待っている次のトラック
 
-    private bool RollOver(bool manual)
+    /// <summary>手動で分割する。途切れずに次のファイルへ移る。直前の分割から1秒未満なら何もしない。UIスレッドを止めないよう Task.Run 経由で呼ぶこと。</summary>
+    public bool Split()
     {
         lock (_splitLock)
         {
             if (_stopped) return false;
             var now = _clock.Elapsed;
-            if (manual ? now - _splitter.TrackStart < TimeSpan.FromSeconds(1) : !_splitter.Due(now)) return false;
-
-            var boundary = manual ? now : _splitter.NextSplitAt;
-            var cut = Splitter.Floor(boundary);
-
-            // 次のFFmpegを先に起動してから出力先を切り替える（起動中の音は標準入力のパイプに溜まる）
-            Track? next = null;
-            try
-            {
-                next = NewTrack(_current.Index + 1, cut);
-                _tracks.Add(next);
-                next.Encoder.Start();
-            }
-            catch (Exception ex)
-            {
-                if (next != null)
-                {
-                    _tracks.Remove(next);
-                    next.Encoder.Dispose();
-                }
-                if (!manual) _splitter.Retry(now);
-                Notice?.Invoke("分割できませんでした: " + ex.Message);
-                return false;
-            }
-
-            // 境界ちょうどのフレーム数まで無音で埋めてから切り替える（前のファイルがちょうどの長さになる）
-            Track old = _current;
-            _filler.CutAt(boundary, () =>
-            {
-                lock (_sinkLock)
-                {
-                    old = _current;
-                    old.End = cut;
-                    _current = next;
-                }
-            });
-            _splitter.Rolled(boundary);
-
-            var task = Task.Run(() => Close(old, announce: true));
-            lock (_closing) _closing.Add(task);
+            if (now - _splitter.TrackStart < TimeSpan.FromSeconds(1)) return false;
+            CancelPending();   // 自動分割の準備中なら取り消して、手動を優先する
+            var next = Prepare(now, DateTime.Now);
+            if (next == null) return false;
+            _filler.CutNow(() => Swap(next, now));
             return true;
         }
+    }
+
+    /// <summary>自動分割の準備（Tick から。境界の1秒前から）。次のFFmpegを先に起動し、境界ちょうどのフレームで切り替わるよう予約する。</summary>
+    private void PrepareAuto(TimeSpan now)
+    {
+        lock (_splitLock)
+        {
+            if (_stopped || _pending != null) return;
+            var boundary = _splitter.NextSplitAt;
+            var wall = DateTime.Now + (boundary - now);   // 境界の実時刻（ファイル名の {Date}/{Time} 用）
+            var next = Prepare(boundary, wall);
+            if (next == null) { _splitter.Retry(now); return; }
+            _pending = next;
+            _filler.ScheduleCut(_filler.FramesFor(boundary), () => Swap(next, boundary));
+        }
+    }
+
+    /// <summary>次のトラックを作ってFFmpegを起動する（起動中の音は標準入力のパイプに溜まる）。</summary>
+    private Track? Prepare(TimeSpan boundary, DateTime wall)
+    {
+        Track? next = null;
+        try
+        {
+            next = NewTrack(_current.Index + 1, Splitter.Floor(boundary), wall);
+            _tracks.Add(next);
+            next.Encoder.Start();
+            return next;
+        }
+        catch (Exception ex)
+        {
+            if (next != null)
+            {
+                _tracks.Remove(next);
+                next.Encoder.Dispose();
+            }
+            Notice?.Invoke("分割できませんでした: " + ex.Message);
+            return null;
+        }
+    }
+
+    /// <summary>切り替え（SilenceFiller のロック内で呼ばれる）。前のファイルを閉じる作業は別タスクへ。</summary>
+    private void Swap(Track next, TimeSpan boundary)
+    {
+        Track old;
+        lock (_sinkLock)
+        {
+            old = _current;
+            old.End = Splitter.Floor(boundary);
+            _current = next;
+        }
+        _splitter.Rolled(boundary);
+        _pending = null;
+        var task = Task.Run(() => Close(old, announce: true));
+        lock (_closing) _closing.Add(task);
+    }
+
+    /// <summary>切り替え待ちの次のトラックを捨てる（停止時・手動分割時）。_splitLock を持って呼ぶ。</summary>
+    private void CancelPending()
+    {
+        var p = _pending;
+        if (p == null) return;
+        if (!_filler.CancelCut()) return;   // すでに切り替わっていた
+        _pending = null;
+        _tracks.Remove(p);
+        p.Encoder.Dispose();
+        try { if (File.Exists(p.TempPath)) File.Delete(p.TempPath); } catch (Exception) { }
     }
 
     /// <summary>トラックのFFmpegを終わらせ、最終名へ確定する。</summary>
