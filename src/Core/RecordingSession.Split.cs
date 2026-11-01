@@ -8,18 +8,21 @@ public sealed partial class RecordingSession
     /// <summary>1つのファイル（トラック）。</summary>
     private sealed class Track
     {
-        public Track(int index, string tempPath, FfmpegEncoder encoder, TimeSpan start)
+        public Track(int index, string tempPath, FfmpegEncoder encoder, TimeSpan start, DateTime time)
         {
             Index = index;
             TempPath = tempPath;
             Encoder = encoder;
             Start = start;
+            Time = time;
         }
 
         public int Index { get; }
         public string TempPath { get; }
         public FfmpegEncoder Encoder { get; }
         public TimeSpan Start { get; }
+        /// <summary>このファイルを始めた実際の時刻（ファイル名の {Date}/{Time} 用）。</summary>
+        public DateTime Time { get; }
         public TimeSpan End { get; set; }
         public FinalizeResult? Result { get; set; }
         public string? Failure { get; set; }
@@ -84,7 +87,7 @@ public sealed partial class RecordingSession
             t.Failure = t.Encoder.Failure;
             // 名前の確定は1つずつ（同名の取り合いを避ける）
             lock (FinalizeLock)
-                t.Result = _plan.FinishTrack(t.TempPath, t.Index, t.Start, t.End, _ffmpeg);
+                t.Result = _plan.FinishTrack(t.TempPath, t.Index, t.Time, t.Start, t.End, _ffmpeg);
             if (announce && t.Failure == null)
             {
                 var msg = "保存しました: " + t.Result.Path;

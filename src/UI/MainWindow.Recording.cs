@@ -43,6 +43,7 @@ public partial class MainWindow
         {
             FolderBox_LostFocus(sender, e);
             Split_LostFocus(sender, e);
+            Detail.CommitAll();
             var no = _settings.NextNo;
             var plan = RecordingPlan.Create(_settings, dev.Label, DateTime.Now);
             Directory.CreateDirectory(plan.Folder);

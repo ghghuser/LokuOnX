@@ -191,6 +191,18 @@ public partial class DetailPanel : UserControl
         Changed?.Invoke();
     }
 
+    /// <summary>録音開始の直前に、入力途中の欄を設定へ反映する（フォーカスが外れる前に開始されても反映されるように）。</summary>
+    public void CommitAll()
+    {
+        if (_s == null) return;
+        CommitPattern();
+        if (TryNumber(NoBox, out var n)) _s.NextNo = n;
+        if (TryNumber(TrackBox, out var t)) _s.TrackStart = t;
+        CommitDateFormat();
+        NoBox.Text = _s.NextNo.ToString();
+        TrackBox.Text = _s.TrackStart.ToString();
+    }
+
     // ---- 番号・日付フォルダ ----
     private static bool TryNumber(TextBox box, out int n) =>
         int.TryParse(box.Text.Trim(), out n) && n >= 1 && n <= 999999999;

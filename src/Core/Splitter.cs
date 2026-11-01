@@ -35,6 +35,7 @@ public sealed class Splitter
     /// <summary>自動分割に失敗したとき、少し後でやり直す。</summary>
     public void Retry(TimeSpan now) => NextSplitAt = now + TimeSpan.FromSeconds(10);
 
-    /// <summary>ファイル名に使う時間は整数秒（切り捨て）。</summary>
-    public static TimeSpan Floor(TimeSpan t) => TimeSpan.FromSeconds(Math.Floor(Math.Max(0, t.TotalSeconds)));
+    /// <summary>ファイル名に使う時間は整数秒（四捨五入。59.9秒は1：00になる）。</summary>
+    public static TimeSpan Floor(TimeSpan t) =>
+        TimeSpan.FromSeconds(Math.Round(Math.Max(0, t.TotalSeconds), MidpointRounding.AwayFromZero));
 }

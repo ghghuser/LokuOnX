@@ -14,6 +14,9 @@ public sealed partial class RecordingSession : IDisposable
     private readonly RecordingPlan _plan;
     private readonly SilenceFiller _filler;
     private readonly Splitter _splitter;
+    private readonly Fader _fader;
+    private readonly object _pauseLock = new();
+    private long _pauseAt;
     private readonly Stopwatch _clock = new();
     private readonly object _sinkLock = new();    // 書き込み先の切り替えと書き込みを直列にする
     private readonly object _splitLock = new();   // 分割と停止を直列にする
@@ -23,7 +26,8 @@ public sealed partial class RecordingSession : IDisposable
     private System.Threading.Timer? _idleTimer;
     private float _peak;
     private volatile bool _stopped;
-    private volatile bool _paused;
+    private volatile bool _paused;    // 音を捨てている（フェードアウト完了後）
+    private volatile bool _pausing;   // 一時停止が要求されている
 
     /// <summary>いま書き込んでいるファイル（仮名）。最終名への確定は FinishTrack。</summary>
     public string OutputPath => _current.TempPath;
@@ -32,7 +36,7 @@ public sealed partial class RecordingSession : IDisposable
     /// <summary>録音全体の経過時間。一時停止中は進まない。</summary>
     public TimeSpan Elapsed => _clock.Elapsed;
 
-    public bool Paused => _paused;
+    public bool Paused => _pausing;
 
     /// <summary>いま録音しているトラックの {Track} 番号。</summary>
     public int CurrentTrackNumber => _plan.TrackNumber(_current.Index);
@@ -49,6 +53,7 @@ public sealed partial class RecordingSession : IDisposable
         _ffmpeg = ffmpegPath;
         _plan = plan;
         _splitter = new Splitter(splitInterval);
+        _fader = new Fader(source.Format);
         _filler = new SilenceFiller(source.Format, () => _clock.Elapsed, Sink);
         _source.DataAvailable += OnData;
         _source.Stopped += OnSourceStopped;
@@ -61,9 +66,10 @@ public sealed partial class RecordingSession : IDisposable
 
     private Track NewTrack(int index, TimeSpan start)
     {
-        var path = _plan.TempPathFor(index);
+        var time = index == 0 ? _plan.StartTime : DateTime.Now;
+        var path = _plan.TempPathFor(index, time);
         var encoder = new FfmpegEncoder(_ffmpeg, path, _plan.Options, _source.Format);
-        var track = new Track(index, path, encoder, start);
+        var track = new Track(index, path, encoder, start, time);
         encoder.Failed += msg =>
         {
             if (track == _current) Error?.Invoke(msg);
@@ -86,6 +92,11 @@ public sealed partial class RecordingSession : IDisposable
     private void OnData(byte[] buf, int count)
     {
         if (_paused) return;
+        // 一時停止・再開のつなぎ目は短いフェードでプツッという音を防ぐ
+        count = _fader.Apply(buf, count, out var faded);
+        if (faded)
+            lock (_pauseLock) { if (_pausing) _paused = true; }
+        if (count <= 0) return;
         var p = PeakMeter.Compute(buf, count, _source.Format);
         if (p > _peak) _peak = p;
         _filler.Feed(buf, count);
@@ -100,6 +111,13 @@ public sealed partial class RecordingSession : IDisposable
     private void Tick()
     {
         if (_stopped || _paused) return;
+        if (_pausing)
+        {
+            // データが来ない間（ループバックの無音）はフェードが終わらないので、少し待って止める
+            if (Stopwatch.GetElapsedTime(_pauseAt).TotalMilliseconds > 100)
+                lock (_pauseLock) { if (_pausing) _paused = true; }
+            return;
+        }
         try
         {
             _filler.FillIdle();
@@ -122,16 +140,28 @@ public sealed partial class RecordingSession : IDisposable
     // ---- 一時停止／再開 ----
     public void Pause()
     {
-        if (_paused || _stopped) return;
-        _paused = true;
-        _clock.Stop();
+        if (_stopped) return;
+        lock (_pauseLock)
+        {
+            if (_pausing) return;
+            _pauseAt = Stopwatch.GetTimestamp();
+            _fader.StartOut();
+            _pausing = true;
+            _clock.Stop();
+        }
     }
 
     public void Resume()
     {
-        if (!_paused || _stopped) return;
-        _clock.Start();
-        _paused = false;
+        if (_stopped) return;
+        lock (_pauseLock)
+        {
+            if (!_pausing) return;
+            _fader.StartIn();
+            _clock.Start();
+            _paused = false;
+            _pausing = false;
+        }
     }
 
     // ---- 結果 ----

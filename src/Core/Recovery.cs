@@ -57,7 +57,7 @@ public static class Recovery
     }
 
     /// <summary>
-    /// 仮名のファイルを「日付 時刻 (No.n-Trackxxx) 復旧.拡張子」へリネームする（m4aは通常のm4aへ整える）。
+    /// 仮名のファイルを「日付 時刻 (No.n-Trackxxx) _restored.拡張子」へリネームする（m4aは通常のm4aへ整える）。
     /// 終了時刻などは分からないので、ユーザーのパターンは使わない。
     /// </summary>
     public static IReadOnlyList<FinalizeResult> Repair(IEnumerable<string> files, string ffmpegPath)
@@ -76,8 +76,8 @@ public static class Recovery
             var fmt = OutputFormat.All.FirstOrDefault(f => f.Ext == ext) ?? OutputFormat.All[0];
 
             var pattern = m.Groups[4].Success
-                ? "{Date} {Time} (No.{No}-Track{Track}) 復旧.{ext}"
-                : "{Date} {Time} (No.{No}) 復旧.{ext}";
+                ? "{Date} {Time} (No.{No}-Track{Track}) _restored.{ext}"
+                : "{Date} {Time} (No.{No}) _restored.{ext}";
             var ctx = new NameContext(time, no, track, TimeSpan.Zero, TimeSpan.Zero, "", RecordingPlan.PresetName, ext);
             var name = FileNamer.FileName(pattern, ctx);
             var folder = Path.GetDirectoryName(path) ?? "";

@@ -4,8 +4,8 @@ namespace Recorder.Core;
 public sealed record AudioDeviceInfo(string Key, string Label, bool IsLoopback, int SampleRate, int Channels,
     bool IsDefault = false)
 {
-    /// <summary>一覧に出す名前。Windowsの既定のデバイスには末尾に ★ を付ける（ファイル名の {Device} には付けない）。</summary>
-    public string DisplayLabel => IsDefault ? Label + " ★" : Label;
+    /// <summary>一覧に出す名前。Windowsの既定のデバイスには末尾に ＊（全角）を付ける（ファイル名の {Device} には付けない）。</summary>
+    public string DisplayLabel => IsDefault ? Label + " ＊" : Label;
 }
 
 /// <summary>音声データの形式（PCM）。</summary>

@@ -42,14 +42,17 @@ public sealed class RecordingPlan
     /// <summary>index番目（0始まり）のトラックの {Track} の値。</summary>
     public int TrackNumber(int index) => _ctx.Track + index;
 
-    /// <summary>index番目のトラックを録音中に書き込む仮名のパス。開始時刻・No・Track を含める（異常終了後の復旧用）。</summary>
-    public string TempPathFor(int index) =>
-        FileNamer.Unique(Folder, FileNamer.TempName(_ctx.Time, _ctx.No, TrackNumber(index), _ctx.Ext));
+    /// <summary>録音を始めた時刻。1つ目のファイルの {Date}/{Time} に使う（2つ目以降は分割した時刻）。</summary>
+    public DateTime StartTime => _ctx.Time;
+
+    /// <summary>index番目のトラックを録音中に書き込む仮名のパス。そのファイルの開始時刻・No・Track を含める（異常終了後の復旧用）。</summary>
+    public string TempPathFor(int index, DateTime time) =>
+        FileNamer.Unique(Folder, FileNamer.TempName(time, _ctx.No, TrackNumber(index), _ctx.Ext));
 
     /// <summary>トラックを閉じた後に呼ぶ。start / end（整数秒）から最終名を作り、仮名をリネームする。</summary>
-    public FinalizeResult FinishTrack(string tempPath, int index, TimeSpan start, TimeSpan end, string ffmpegPath)
+    public FinalizeResult FinishTrack(string tempPath, int index, DateTime time, TimeSpan start, TimeSpan end, string ffmpegPath)
     {
-        var name = FileNamer.FileName(_pattern, _ctx with { Track = TrackNumber(index), Start = start, End = end });
+        var name = FileNamer.FileName(_pattern, _ctx with { Time = time, Track = TrackNumber(index), Start = start, End = end });
         return FileFinalizer.Run(tempPath, Folder, name, Options, ffmpegPath);
     }
 }
