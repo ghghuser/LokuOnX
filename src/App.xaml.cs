@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Recorder.Core;
 
 namespace Recorder;
@@ -14,6 +16,9 @@ public partial class App : Application
                 AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
+
+        // メイン画面の入力欄は、Enter で確定する（欄から離れたときと同じ処理が走る）
+        EventManager.RegisterClassHandler(typeof(TextBox), UIElement.KeyDownEvent, new KeyEventHandler(OnTextBoxKeyDown));
 
         // 同じフォルダのexeだけを多重起動とみなす（別フォルダのコピーは警告なしで起動）
         var first = InstanceGuard.TryAcquire(AppPaths.Dir);
@@ -31,5 +36,13 @@ public partial class App : Application
 
         var settings = new Settings(AppPaths.SettingsIni, readOnly: !first);
         new UI.MainWindow(settings).Show();
+    }
+
+    private static void OnTextBoxKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || sender is not TextBox tb || tb.IsReadOnly || tb.AcceptsReturn) return;
+        if (Window.GetWindow(tb) is not UI.MainWindow window) return;
+        window.Focus();   // 欄からフォーカスが外れ、LostFocus の処理（設定への反映）が走る
+        e.Handled = true;
     }
 }

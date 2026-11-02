@@ -26,11 +26,11 @@
         <WrapPanel Margin="0,0,0,8">
             <TextBlock Text="番号" Width="90" VerticalAlignment="Center"/>
             <TextBlock Text="No の開始値" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ui:NumberBox x:Name="NoBox" Width="68" Minimum="1" Maximum="999999999" Margin="0,0,18,0"
+            <ui:NumberBox x:Name="NoBox" Width="70" Minimum="1" Maximum="999999999" Margin="0,0,18,0"
                      ToolTip="次の録音に使う No。録音のたびに +1 され、終了後も維持されます"
                      LostFocus="No_LostFocus"/>
             <TextBlock Text="Track の開始値" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ui:NumberBox x:Name="TrackBox" Width="68" Minimum="1" Maximum="999999999"
+            <ui:NumberBox x:Name="TrackBox" Width="70" Minimum="1" Maximum="999999999"
                      ToolTip="新しい録音ごとにこの番号へ戻ります（分割のたびに +1）"
                      LostFocus="Track_LostFocus"/>
         </WrapPanel>
