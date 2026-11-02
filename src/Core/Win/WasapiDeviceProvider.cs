@@ -36,6 +36,11 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
                 found.Add(new AudioDeviceInfo(key, label, loopback, rate, ch, dev.ID == defaultId));
             }
         }
+        // 先頭は「既定のデバイスに追従」の擬似デバイス（Windowsの既定が変わったら自動で切り替わる）
+        var def = found.FirstOrDefault(d => d.IsDefault);
+        list.Add(new AudioDeviceInfo(loopback ? AudioKeys.RenderDefault : AudioKeys.CaptureDefault,
+            loopback ? "🔊 既定の出力デバイス（変更に追従）" : "🎤 既定の入力デバイス（変更に追従）",
+            loopback, def?.SampleRate ?? 0, def?.Channels ?? 0));
         // それぞれ名前順（同じ側のラベルは先頭のアイコンが同じなので、そのまま並べれば名前順になる）
         list.AddRange(found.OrderBy(d => d.Label, StringComparer.CurrentCultureIgnoreCase));
     }
@@ -59,6 +64,27 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
         using var enumerator = new MMDeviceEnumerator();
         var id = DefaultId(enumerator, DataFlow.Capture);
         return id == null ? null : CapturePrefix + id;
+    }
+
+    public string? DefaultRenderKey()
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        var id = DefaultId(enumerator, DataFlow.Render);
+        return id == null ? null : RenderPrefix + id;
+    }
+
+    public string Signature()
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        var sb = new System.Text.StringBuilder();
+        foreach (var flow in new[] { DataFlow.Capture, DataFlow.Render })
+        {
+            sb.Append(DefaultId(enumerator, flow)).Append('>');
+            foreach (var dev in enumerator.EnumerateAudioEndPoints(flow, DeviceState.Active))
+                using (dev) sb.Append(dev.ID).Append(';');
+            sb.Append('/');
+        }
+        return sb.ToString();
     }
 
     private static (int rate, int ch) ReadMixFormat(MMDevice dev)

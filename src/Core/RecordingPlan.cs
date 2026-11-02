@@ -10,25 +10,29 @@ public sealed class RecordingPlan
 
     private readonly NameContext _ctx;
     private readonly string _pattern;
+    private readonly int? _lane;
 
     public string Folder { get; }
     public EncodeOptions Options { get; }
 
-    private RecordingPlan(NameContext ctx, string pattern, string folder, EncodeOptions options)
+    private RecordingPlan(NameContext ctx, string pattern, string folder, EncodeOptions options, int? lane)
     {
         _ctx = ctx;
         _pattern = pattern;
+        _lane = lane;
         Folder = folder;
         Options = options;
     }
 
-    public static RecordingPlan Create(Settings s, string deviceLabel, DateTime now)
+    /// <param name="lane">デバイスごとに別ファイルのとき、何番目のデバイスか（0始まり）。仮名が重ならないようにする。</param>
+    /// <param name="addDevice">true なら、パターンに {Device} が無くても自動で付ける。</param>
+    public static RecordingPlan Create(Settings s, string deviceLabel, DateTime now, int? lane = null, bool addDevice = false)
     {
         var options = s.Encode;
         var ctx = new NameContext(now, s.NextNo, s.TrackStart, TimeSpan.Zero, TimeSpan.Zero,
             FileNamer.CleanDevice(deviceLabel), PresetName, options.Fmt.Ext);
         var folder = FileNamer.Folder(s.Folder, s.DateFolder, s.DateFolderFormat, ctx);
-        return new RecordingPlan(ctx, s.Pattern, folder, options);
+        return new RecordingPlan(ctx, addDevice ? FileNamer.WithDevice(s.Pattern) : s.Pattern, folder, options, lane);
     }
 
     /// <summary>画面表示用。いま録音を始めたら保存先になるフォルダ。</summary>
@@ -47,7 +51,7 @@ public sealed class RecordingPlan
 
     /// <summary>index番目のトラックを録音中に書き込む仮名のパス。そのファイルの開始時刻・No・Track を含める（異常終了後の復旧用）。</summary>
     public string TempPathFor(int index, DateTime time) =>
-        FileNamer.Unique(Folder, FileNamer.TempName(time, _ctx.No, TrackNumber(index), _ctx.Ext));
+        FileNamer.Unique(Folder, FileNamer.TempName(time, _ctx.No, TrackNumber(index), _ctx.Ext, _lane));
 
     /// <summary>トラックを閉じた後に呼ぶ。start / end（整数秒）から最終名を作り、仮名をリネームする。</summary>
     public FinalizeResult FinishTrack(string tempPath, int index, DateTime time, TimeSpan start, TimeSpan end, string ffmpegPath)

@@ -10,7 +10,7 @@ namespace Recorder.Core;
 public static class Recovery
 {
     private static readonly Regex TempName = new(
-        @"^_rec_(\d{8})_(\d{6})_No(\d+)(?:_T(\d+))?\.([A-Za-z0-9]+)$", RegexOptions.Compiled);
+        @"^_rec_(\d{8})_(\d{6})_No(\d+)(?:_T(\d+))?(?:_D(\d+))?\.([A-Za-z0-9]+)$", RegexOptions.Compiled);
 
     /// <summary>保存先フォルダ（日付フォルダの中も）から、整える対象を探す。空ファイルは消す。ほかのプロセスが開いているものは除く。</summary>
     public static IReadOnlyList<string> Find(string baseFolder)
@@ -72,12 +72,14 @@ public static class Recovery
             int.TryParse(m.Groups[3].Value, out var no);
             var track = 1;
             if (m.Groups[4].Success && !int.TryParse(m.Groups[4].Value, out track)) track = 1;
-            var ext = m.Groups[5].Value.ToLowerInvariant();
+            var ext = m.Groups[6].Value.ToLowerInvariant();
             var fmt = OutputFormat.All.FirstOrDefault(f => f.Ext == ext) ?? OutputFormat.All[0];
 
+            // デバイスごとに別ファイルで録音したものは、デバイスの番号（Dev1…）を名前に入れる
+            var dev = m.Groups[5].Success ? "-Dev" + m.Groups[5].Value : "";
             var pattern = m.Groups[4].Success
-                ? "{Date} {Time} (No.{No}-Track{Track})＿restored.{ext}"
-                : "{Date} {Time} (No.{No})＿restored.{ext}";
+                ? "{Date} {Time} (No.{No}-Track{Track}" + dev + ")＿restored.{ext}"
+                : "{Date} {Time} (No.{No}" + dev + ")＿restored.{ext}";
             var ctx = new NameContext(time, no, track, TimeSpan.Zero, TimeSpan.Zero, "", RecordingPlan.PresetName, ext);
             var name = FileNamer.FileName(pattern, ctx);
             var folder = Path.GetDirectoryName(path) ?? "";

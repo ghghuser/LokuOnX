@@ -116,8 +116,18 @@ public static class FileNamer
     }
 
     /// <summary>録音中に書く仮名。開始時刻・No・Track を含める（異常終了後の復旧用。Recovery が読む）。</summary>
-    public static string TempName(DateTime start, int no, int track, string ext) =>
-        $"_rec_{start.ToString("yyyyMMdd_HHmmss", Inv)}_No{no}_T{track}.{ext}";
+    public static string TempName(DateTime start, int no, int track, string ext, int? lane = null) =>
+        $"_rec_{start.ToString("yyyyMMdd_HHmmss", Inv)}_No{no}_T{track}" + (lane is { } l ? $"_D{l + 1}" : "") + $".{ext}";
+
+    /// <summary>デバイスごとに別ファイルにするとき、パターンに {Device} が無ければ拡張子の手前に " {Device}" を足す。</summary>
+    public static string WithDevice(string pattern)
+    {
+        if (pattern.Contains("{Device}", StringComparison.OrdinalIgnoreCase)) return pattern;
+        const string tail = ".{ext}";
+        if (pattern.EndsWith(tail, StringComparison.OrdinalIgnoreCase))
+            return pattern[..^tail.Length] + " {Device}" + pattern[^tail.Length..];
+        return pattern + " {Device}";
+    }
 
     /// <summary>同名があれば末尾に ` (2)` ` (3)` を付ける。パス全体が長すぎる場合は名前を短くする。</summary>
     public static string Unique(string folder, string fileName)

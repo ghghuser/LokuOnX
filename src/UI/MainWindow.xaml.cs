@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Threading;
 using Recorder.Core;
 using Recorder.Core.Win;
 
@@ -9,7 +10,9 @@ public partial class MainWindow : Window
 {
     private readonly Settings _settings;
     private readonly IAudioDeviceProvider _provider = new WasapiDeviceProvider();
+    private readonly DispatcherTimer _deviceTimer = new() { Interval = TimeSpan.FromSeconds(3) };
     private List<AudioDeviceInfo> _devices = new();
+    private string _signature = "";
     private bool _loading;
 
     public MainWindow(Settings settings)
@@ -23,35 +26,56 @@ public partial class MainWindow : Window
         FormatBox.SelectedValue = settings.Format;
         FolderBox.Text = settings.Folder;
         SplitBox.Text = SplitTime.Format(settings.SplitSeconds);
-        RefreshDevices();
+        LoadDevices();
+        Devices.Init(settings, _devices, DefaultCaptureKey());
+        Devices.Changed += UpdateInfo;
+        Devices.GainChanged += (index, db) => _session?.SetGain(index, db);
         Quality.Init(settings);
         Quality.Changed += UpdateInfo;
-        Detail.Init(settings, () => SelectedDevice?.Label ?? "");
+        Detail.Init(settings, () => Devices.NameLabel);
         Detail.Changed += UpdateInfo;
         _loading = false;
+
+        // デバイスの抜き差し・既定の変更を、録音していないときは自動で一覧へ反映する
+        _deviceTimer.Tick += (_, _) => PollDevices();
+        _deviceTimer.Start();
 
         UpdateInfo();
         StartTimer();
         Loaded += async (_, _) => await RecoverAsync();
     }
 
-    private AudioDeviceInfo? SelectedDevice => DeviceBox.SelectedItem as AudioDeviceInfo;
-
-    private void RefreshDevices()
+    private void LoadDevices()
     {
-        var wanted = SelectedDevice?.Key ?? _settings.Device;
-        try { _devices = _provider.List().ToList(); }
+        try
+        {
+            _devices = _provider.List().ToList();
+            _signature = _provider.Signature();
+        }
         catch (Exception ex)
         {
             _devices = new List<AudioDeviceInfo>();
             StatusText.Text = "デバイス一覧を取得できませんでした: " + ex.Message;
         }
-        DeviceBox.ItemsSource = _devices;
-        // 前回選んだデバイス → なければ（初回など）Windowsの既定の入力デバイス → それも無ければ先頭のマイク
-        var defaultKey = _provider.DefaultCaptureKey();
-        DeviceBox.SelectedItem = _devices.FirstOrDefault(d => d.Key == wanted)
-                                 ?? _devices.FirstOrDefault(d => d.Key == defaultKey)
-                                 ?? _devices.FirstOrDefault(d => !d.IsLoopback);
+    }
+
+    private string? DefaultCaptureKey()
+    {
+        try { return _provider.DefaultCaptureKey(); }
+        catch (Exception) { return null; }
+    }
+
+    /// <summary>3秒ごと。つながっているデバイスや既定が変わっていたら一覧を読み直す（録音中は何もしない）。</summary>
+    private void PollDevices()
+    {
+        if (_session != null) return;
+        try
+        {
+            if (_provider.Signature() == _signature) return;
+            LoadDevices();
+            Devices.Reload(_devices);
+        }
+        catch (Exception) { }
     }
 
     /// <summary>設定が変わったとき、常時表示の「名前の例」などを更新する。</summary>
@@ -62,13 +86,6 @@ public partial class MainWindow : Window
     }
 
     // ---- 設定の変更 ----
-    private void DeviceBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (_loading) return;
-        if (SelectedDevice != null) _settings.Device = SelectedDevice.Key;
-        UpdateInfo();
-    }
-
     private void FormatBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (_loading || FormatBox.SelectedValue is not string f) return;
@@ -95,10 +112,8 @@ public partial class MainWindow : Window
 
     private void Refresh_Click(object sender, RoutedEventArgs e)
     {
-        _loading = true;
-        RefreshDevices();
-        _loading = false;
-        UpdateInfo();
+        LoadDevices();
+        Devices.Reload(_devices);
     }
 
     private void Split_LostFocus(object sender, RoutedEventArgs e)

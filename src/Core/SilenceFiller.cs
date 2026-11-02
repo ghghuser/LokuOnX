@@ -7,9 +7,10 @@ namespace Recorder.Core;
 /// </summary>
 public sealed class SilenceFiller
 {
-    private const double ToleranceSec = 0.25;   // データ到着時：これ以内の遅れは通常の揺れとして補わない
-    private const double IdleMarginSec = 0.3;   // 無音中の補填は少し手前まで（遅れて届くデータと順序が逆転しないように）
     private const double IdleToleranceSec = 0.1;
+
+    private readonly double _toleranceSec;      // データ到着時：これ以内の遅れは通常の揺れとして補わない
+    private readonly double _idleMarginSec;     // 無音中の補填は少し手前まで（遅れて届くデータと順序が逆転しないように）
 
     private readonly object _lock = new();
     private readonly Action<byte[]> _sink;
@@ -23,8 +24,13 @@ public sealed class SilenceFiller
     private long _cutAt = -1;       // このフレーム数に達したところで onCut を呼ぶ（-1 = 予約なし）
     private Action? _onCut;
 
-    public SilenceFiller(AudioFormatInfo fmt, Func<TimeSpan> elapsed, Action<byte[]> sink)
+    /// <param name="toleranceSec">データ到着時に補わない遅れの上限（秒）。音源が自分で壁時計に合わせるなら大きくする。</param>
+    /// <param name="idleMarginSec">データが来ない間の補填を、壁時計よりどれだけ手前までにするか（秒）。</param>
+    public SilenceFiller(AudioFormatInfo fmt, Func<TimeSpan> elapsed, Action<byte[]> sink,
+        double toleranceSec = 0.25, double idleMarginSec = 0.3)
     {
+        _toleranceSec = toleranceSec;
+        _idleMarginSec = idleMarginSec;
         _rate = Math.Max(1, fmt.SampleRate);
         _bytesPerFrame = Math.Max(1, fmt.Channels * fmt.BitsPerSample / 8);
         _bpf2 = _bytesPerFrame;
@@ -42,7 +48,7 @@ public sealed class SilenceFiller
             long frames = count / _bytesPerFrame;
             if (frames <= 0) return;
             // このデータは「いま」終わった音なので、その手前までの不足を無音で埋める
-            FillTo(_elapsed().TotalSeconds - (double)frames / _rate, ToleranceSec);
+            FillTo(_elapsed().TotalSeconds - (double)frames / _rate, _toleranceSec);
             Emit(count == buf.Length ? buf : buf.AsSpan(0, count).ToArray(), frames);
         }
     }
@@ -53,8 +59,14 @@ public sealed class SilenceFiller
         lock (_lock)
         {
             if (_closed) return;
-            FillTo(_elapsed().TotalSeconds - IdleMarginSec, IdleToleranceSec);
+            FillTo(_elapsed().TotalSeconds - _idleMarginSec, IdleToleranceSec);
         }
+    }
+
+    /// <summary>実際に書き込んだ長さ（録音全体の0:00起点）。手動分割の境界に使うと、ファイル名の時間と音声の長さが一致する。</summary>
+    public TimeSpan Position
+    {
+        get { lock (_lock) return TimeSpan.FromSeconds((double)_writtenFrames / _rate); }
     }
 
     /// <summary>秒 → フレーム数。</summary>

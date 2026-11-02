@@ -67,7 +67,8 @@ public sealed partial class RecordingSession : IDisposable
         _plan = plan;
         _splitter = new Splitter(splitInterval);
         _fader = new Fader(source.Format);
-        _filler = new SilenceFiller(source.Format, () => _clock.Elapsed, Sink);
+        // 音源（MixedSource）が各デバイスを壁時計に合わせて無音補填するので、ここでは大きな欠落だけを補う
+        _filler = new SilenceFiller(source.Format, () => _clock.Elapsed, Sink, toleranceSec: 1.0, idleMarginSec: 1.5);
         _source.DataAvailable += OnData;
         _source.Stopped += OnSourceStopped;
     }

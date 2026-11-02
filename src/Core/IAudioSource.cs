@@ -31,11 +31,17 @@ public interface IAudioSource : IDisposable
 /// <summary>デバイス一覧の取得と、選んだデバイスの入力を作る口。</summary>
 public interface IAudioDeviceProvider
 {
-    /// <summary>マイク（入力）→スピーカー等（出力のループバック）の順。それぞれ名前順。</summary>
+    /// <summary>マイク（入力）→スピーカー等（出力のループバック）の順。それぞれ名前順。各グループの先頭は「既定のデバイスに追従」の擬似デバイス。</summary>
     IReadOnlyList<AudioDeviceInfo> List();
 
     /// <summary>Windowsの既定の入力デバイスの Key。取得できなければ null。</summary>
     string? DefaultCaptureKey();
+
+    /// <summary>Windowsの既定の出力デバイス（ループバック用）の Key。取得できなければ null。</summary>
+    string? DefaultRenderKey();
+
+    /// <summary>つながっているデバイスと既定の組み合わせを表す文字列。変わったら一覧を読み直す目安（軽い）。</summary>
+    string Signature();
 
     IAudioSource Create(string key);
 }

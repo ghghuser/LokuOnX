@@ -12,7 +12,7 @@ public partial class MainWindow
     private static readonly Brush RedBrush = new SolidColorBrush(Color.FromRgb(0xD3, 0x33, 0x33));
 
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(50) };
-    private RecordingSession? _session;
+    private RecordingGroup? _session;
     private DateTime _clipUntil = DateTime.MinValue;
     private bool _closeAfterStop;
     private string _notice = "";
@@ -30,37 +30,35 @@ public partial class MainWindow
     private void Start_Click(object sender, RoutedEventArgs e)
     {
         if (_session != null) return;
-        if (SelectedDevice is not { } dev) { ShowError("入力デバイスを選んでください。"); return; }
+        var inputs = Devices.Inputs;
+        if (inputs.Count == 0) { ShowError("入力デバイスを選んでください。"); return; }
         if (!File.Exists(AppPaths.Ffmpeg))
         {
             ShowError($"FFmpeg が見つかりません。\n{AppPaths.Ffmpeg}");
             return;
         }
 
-        IAudioSource? src = null;
-        RecordingSession? session = null;
+        RecordingGroup? group = null;
         try
         {
             FolderBox_LostFocus(sender, e);
             Split_LostFocus(sender, e);
             Detail.CommitAll();
             var no = _settings.NextNo;
-            var plan = RecordingPlan.Create(_settings, dev.Label, DateTime.Now);
-            Directory.CreateDirectory(plan.Folder);
-            src = _provider.Create(dev.Key);
-            session = new RecordingSession(src, AppPaths.Ffmpeg, plan, TimeSpan.FromSeconds(_settings.SplitSeconds));
-            session.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
-            session.Notice += OnNotice;
-            session.Start();
-            _session = session;
+            group = RecordingGroup.Create(_provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now);
+            group.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
+            group.Notice += OnNotice;
+            group.Start();
+            _session = group;
             if (!_settings.ReadOnly) _settings.NextNo = no + 1;
         }
         catch (Exception ex)
         {
-            if (session != null) session.Dispose(); else src?.Dispose();
+            group?.Dispose();
             ShowError("録音を開始できませんでした。\n" + ex.Message);
             return;
         }
+        Wave.SetRows(inputs.Select(i => _devices.FirstOrDefault(d => d.Key == i.Key)?.Label ?? "（不明）").ToList());
         _notice = "";
         SetRecording(true);
         Detail.Reload();   // {No} が進んだので画面へ反映
@@ -78,7 +76,7 @@ public partial class MainWindow
     private void ShowRecordingStatus()
     {
         if (_session is not { } s) return;
-        StatusText.Text = "録音中: " + s.OutputPath + (_notice.Length > 0 ? "\n" + _notice : "");
+        StatusText.Text = "録音中: " + s.OutputText + (_notice.Length > 0 ? "\n" + _notice : "");
     }
 
     // ---- 一時停止・分割 ----
@@ -115,7 +113,7 @@ public partial class MainWindow
         var failure = error ?? s.Failure;
         var results = s.Results;
         var seconds = s.Seconds;
-        var path = results.Count > 0 ? results[results.Count - 1].Path : s.OutputPath;
+        var path = results.Count > 0 ? results[results.Count - 1].Path : s.OutputText;
         var warnings = results.Where(r => r.Warning != null).Select(r => r.Warning!).Distinct().ToList();
         s.Dispose();
 
@@ -151,7 +149,8 @@ public partial class MainWindow
         StartButton.IsEnabled = !recording;
         StopButton.IsEnabled = PauseButton.IsEnabled = SplitButton.IsEnabled = recording;
         PauseButton.Content = "一時停止";
-        DeviceBox.IsEnabled = FormatBox.IsEnabled = FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
+        FormatBox.IsEnabled = FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
+        Devices.SetRecording(recording);
         Quality.IsEnabled = Detail.IsEnabled = !recording;
         RefreshButton.IsEnabled = BrowseButton.IsEnabled = !recording;
         if (!recording) StateText.Text = "待機中";
@@ -172,6 +171,9 @@ public partial class MainWindow
         TimeText.Text = Clock(f);
         TotalText.Text = s.SplitCount > 0 ? "（連続 " + Clock(t) + "）" : "";
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
+        var devicePeaks = s.TakeDevicePeaks();
+        Devices.SetLevels(devicePeaks);
+        if (!s.Paused) Wave.Push(devicePeaks);
         var peak = s.TakePeak();
         var level = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
         Meter.Value = Math.Max(level, Meter.Value - 0.03);

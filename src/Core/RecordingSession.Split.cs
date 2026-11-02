@@ -39,7 +39,8 @@ public sealed partial class RecordingSession
         lock (_splitLock)
         {
             if (_stopped) return false;
-            var now = _clock.Elapsed;
+            // 実際に書き込んだ位置で分ける（音源の出力は壁時計より少し遅れるため。名前の時間と音声の長さが一致する）
+            var now = _filler.Position;
             if (now - _splitter.TrackStart < TimeSpan.FromSeconds(1)) return false;
             // 自動分割の準備中（境界の1秒前から）なら、その準備済みのファイルを手動分割にそのまま使う（捨てない）
             var ready = _pending;
