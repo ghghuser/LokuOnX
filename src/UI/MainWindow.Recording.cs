@@ -167,7 +167,10 @@ public partial class MainWindow
             return;
         }
         var t = s.Elapsed;
-        TimeText.Text = $"{(int)t.TotalHours}：{t.Minutes:00}：{t.Seconds:00}";
+        // 大きい表示 = いまのファイルを始めてから。分割したあとは、横に（連続 ○）で録音全体の時間も出す
+        var f = s.TrackElapsed;
+        TimeText.Text = Clock(f);
+        TotalText.Text = s.SplitCount > 0 ? "（連続 " + Clock(t) + "）" : "";
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
         var peak = s.TakePeak();
         var level = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
@@ -177,6 +180,8 @@ public partial class MainWindow
         Meter.Foreground = clip ? RedBrush : GreenBrush;
         PeakText.Text = clip ? "クリップ!" : "";
     }
+
+    private static string Clock(TimeSpan t) => $"{(int)t.TotalHours}：{t.Minutes:00}：{t.Seconds:00}";
 
     private void ShowError(string message) =>
         MessageBox.Show(this, message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);

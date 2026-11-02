@@ -38,6 +38,19 @@ public sealed partial class RecordingSession : IDisposable
 
     public bool Paused => _pausing;
 
+    /// <summary>いまのファイルを始めてからの経過時間（分割するとリセット）。一時停止中は進まない。</summary>
+    public TimeSpan TrackElapsed
+    {
+        get
+        {
+            var t = _clock.Elapsed - _splitter.TrackStart;
+            return t < TimeSpan.Zero ? TimeSpan.Zero : t;
+        }
+    }
+
+    /// <summary>分割した回数（0 = まだ分割していない）。</summary>
+    public int SplitCount => _current.Index;
+
     /// <summary>いま録音しているトラックの {Track} 番号。</summary>
     public int CurrentTrackNumber => _plan.TrackNumber(_current.Index);
 

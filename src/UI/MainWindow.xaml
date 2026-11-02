@@ -74,8 +74,12 @@
         <!-- 中段: 経過時間・メーター -->
         <Border Grid.Row="2" Margin="0,12,0,12" BorderBrush="#40808080" BorderThickness="1" CornerRadius="4" Padding="16">
             <StackPanel VerticalAlignment="Center">
-                <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40" FontWeight="SemiBold"
-                           HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="TotalText" FontSize="20" Opacity="0.75" Margin="14,0,0,5"
+                               VerticalAlignment="Bottom"
+                               ToolTip="録音を始めてからの連続録音時間（分割しても続きます）"/>
+                </StackPanel>
                 <TextBlock x:Name="StateText" Text="待機中" HorizontalAlignment="Center" Opacity="0.75"/>
                 <Grid Margin="0,16,0,0">
                     <Grid.ColumnDefinitions>

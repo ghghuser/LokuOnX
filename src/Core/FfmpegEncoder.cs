@@ -101,8 +101,22 @@ public sealed class FfmpegEncoder : IDisposable
         }
     }
 
+    private volatile bool _aborted;
+
+    /// <summary>書き出しを捨てて止める（分割の取り消し用）。FFmpegの終了を待つので、そのあとファイルを消せる。</summary>
+    public void Abort()
+    {
+        _aborted = true;
+        try { _queue.CompleteAdding(); } catch (Exception) { }
+        try { if (_proc is { HasExited: false }) _proc.Kill(true); } catch (Exception) { }
+        try { _proc?.WaitForExit(3000); } catch (Exception) { }
+        _writer?.Join(1000);
+        Dispose();
+    }
+
     private void Fail(string message)
     {
+        if (_aborted) return;
         string detail;
         lock (_stderr) detail = _stderr.ToString().Trim();
         var full = detail.Length > 0 ? message + "\n" + detail : message;

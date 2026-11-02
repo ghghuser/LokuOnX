@@ -111,8 +111,13 @@ public sealed partial class RecordingSession
         if (!_filler.CancelCut()) return;   // すでに切り替わっていた
         _pending = null;
         _tracks.Remove(p);
-        p.Encoder.Dispose();
-        try { if (File.Exists(p.TempPath)) File.Delete(p.TempPath); } catch (Exception) { }
+        p.Encoder.Abort();
+        // FFmpegがファイルを放すまで少し待ってから消す（消し損ねると _rec_ のファイルが残る）
+        for (int i = 0; i < 20; i++)
+        {
+            try { if (File.Exists(p.TempPath)) File.Delete(p.TempPath); return; }
+            catch (Exception) { Thread.Sleep(100); }
+        }
     }
 
     /// <summary>トラックのFFmpegを終わらせ、最終名へ確定する。</summary>
