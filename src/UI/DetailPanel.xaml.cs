@@ -17,8 +17,6 @@ public partial class DetailPanel : UserControl
     public DetailPanel()
     {
         InitializeComponent();
-        NumericBox.Attach(NoBox);
-        NumericBox.Attach(TrackBox);
     }
 
     public void Init(Settings settings, Func<string> deviceLabel)
@@ -209,7 +207,7 @@ public partial class DetailPanel : UserControl
     }
 
     // ---- 番号・日付フォルダ ----
-    private static bool TryNumber(TextBox box, out int n) =>
+    private static bool TryNumber(NumberBox box, out int n) =>
         int.TryParse(box.Text.Trim(), out n) && n >= 1 && n <= 999999999;
 
     private void No_LostFocus(object sender, RoutedEventArgs e)

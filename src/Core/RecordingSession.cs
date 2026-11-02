@@ -240,6 +240,11 @@ public sealed partial class RecordingSession : IDisposable
         Task[] pending;
         lock (_closing) pending = _closing.ToArray();
         Task.WaitAll(pending);
+
+        // 取り消した準備ファイルで消し損ねたものを、最後にもう一度消す
+        string[] left;
+        lock (_splitLock) left = _abandoned.ToArray();
+        foreach (var path in left) TryDelete(path, 10);
     }
 
     private void StopIdleTimer()

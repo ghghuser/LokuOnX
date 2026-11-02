@@ -20,9 +20,9 @@ public sealed partial class RecordingSession
         public int Index { get; }
         public string TempPath { get; }
         public FfmpegEncoder Encoder { get; }
-        public TimeSpan Start { get; }
+        public TimeSpan Start { get; set; }
         /// <summary>このファイルを始めた実際の時刻（ファイル名の {Date}/{Time} 用）。</summary>
-        public DateTime Time { get; }
+        public DateTime Time { get; set; }
         public TimeSpan End { get; set; }
         public FinalizeResult? Result { get; set; }
         public string? Failure { get; set; }
@@ -41,7 +41,15 @@ public sealed partial class RecordingSession
             if (_stopped) return false;
             var now = _clock.Elapsed;
             if (now - _splitter.TrackStart < TimeSpan.FromSeconds(1)) return false;
-            CancelPending();   // 自動分割の準備中なら取り消して、手動を優先する
+            // 自動分割の準備中（境界の1秒前から）なら、その準備済みのファイルを手動分割にそのまま使う（捨てない）
+            var ready = _pending;
+            if (ready != null && _filler.CancelCut())
+            {
+                ready.Start = Splitter.Floor(now);
+                ready.Time = DateTime.Now;
+                _filler.CutNow(() => Swap(ready, now));
+                return true;
+            }
             var next = Prepare(now, DateTime.Now);
             if (next == null) return false;
             _filler.CutNow(() => Swap(next, now));
@@ -111,13 +119,21 @@ public sealed partial class RecordingSession
         if (!_filler.CancelCut()) return;   // すでに切り替わっていた
         _pending = null;
         _tracks.Remove(p);
-        p.Encoder.Abort();
-        // FFmpegがファイルを放すまで少し待ってから消す（消し損ねると _rec_ のファイルが残る）
-        for (int i = 0; i < 20; i++)
+        try { p.Encoder.Abort(); } catch (Exception) { }
+        if (!TryDelete(p.TempPath, 10)) _abandoned.Add(p.TempPath);   // 消せなければ停止時にもう一度試す
+    }
+
+    private readonly List<string> _abandoned = new();
+
+    /// <summary>FFmpegがファイルを放すまで少し待ちながら消す（消し損ねると _rec_ のファイルが残る）。</summary>
+    private static bool TryDelete(string path, int tries)
+    {
+        for (int i = 0; i < tries; i++)
         {
-            try { if (File.Exists(p.TempPath)) File.Delete(p.TempPath); return; }
-            catch (Exception) { Thread.Sleep(100); }
+            try { if (File.Exists(path)) File.Delete(path); return true; }
+            catch (Exception) { Thread.Sleep(150); }
         }
+        return !File.Exists(path);
     }
 
     /// <summary>トラックのFFmpegを終わらせ、最終名へ確定する。</summary>
