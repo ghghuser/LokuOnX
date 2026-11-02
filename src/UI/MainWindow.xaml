@@ -54,10 +54,10 @@
 
             <TextBlock Grid.Row="3" Text="自動分割" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,6">
-                <ui:NumberBox x:Name="SplitBox" Width="76" Minimum="0" Maximum="1440"
-                         ToolTip="0 のときは自動分割しません（1つのファイルは最長24時間で必ず分割されます）"
+                <ui:TimeBox x:Name="SplitBox" Width="86"
+                         ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
                          LostFocus="Split_LostFocus"/>
-                <TextBlock Text="分ごとに分割（0＝しない。1つのファイルは最長24時間）" VerticalAlignment="Center"
+                <TextBlock Text="(0＝無効。最長24時間)" VerticalAlignment="Center"
                            Margin="8,0,0,0" Opacity="0.75"/>
             </StackPanel>
 

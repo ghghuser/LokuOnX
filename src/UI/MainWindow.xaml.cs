@@ -22,7 +22,7 @@ public partial class MainWindow : Window
         FormatBox.ItemsSource = OutputFormat.All;
         FormatBox.SelectedValue = settings.Format;
         FolderBox.Text = settings.Folder;
-        SplitBox.Text = settings.SplitMinutes.ToString();
+        SplitBox.Text = SplitTime.Format(settings.SplitSeconds);
         RefreshDevices();
         Quality.Init(settings);
         Quality.Changed += UpdateInfo;
@@ -103,7 +103,7 @@ public partial class MainWindow : Window
 
     private void Split_LostFocus(object sender, RoutedEventArgs e)
     {
-        if (int.TryParse(SplitBox.Text.Trim(), out var n) && n >= 0 && n <= 1440) _settings.SplitMinutes = n;
-        SplitBox.Text = _settings.SplitMinutes.ToString();
+        if (SplitTime.TryParse(SplitBox.Text, out var sec)) _settings.SplitSeconds = sec;
+        SplitBox.Text = SplitTime.Format(_settings.SplitSeconds);
     }
 }

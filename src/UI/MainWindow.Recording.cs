@@ -48,7 +48,7 @@ public partial class MainWindow
             var plan = RecordingPlan.Create(_settings, dev.Label, DateTime.Now);
             Directory.CreateDirectory(plan.Folder);
             src = _provider.Create(dev.Key);
-            session = new RecordingSession(src, AppPaths.Ffmpeg, plan, TimeSpan.FromMinutes(_settings.SplitMinutes));
+            session = new RecordingSession(src, AppPaths.Ffmpeg, plan, TimeSpan.FromSeconds(_settings.SplitSeconds));
             session.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
             session.Notice += OnNotice;
             session.Start();

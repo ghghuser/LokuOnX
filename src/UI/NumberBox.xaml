@@ -7,18 +7,18 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <TextBox x:Name="Box" VerticalContentAlignment="Center"/>
-        <Grid Grid.Column="1" Width="16">
+        <Grid Grid.Column="1" Width="13">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <RepeatButton x:Name="UpButton" Focusable="False" Padding="0" Click="Up_Click"
                           Delay="400" Interval="80">
-                <TextBlock Text="▲" FontSize="7"/>
+                <TextBlock Text="▲" FontSize="6"/>
             </RepeatButton>
             <RepeatButton x:Name="DownButton" Grid.Row="1" Focusable="False" Padding="0" Click="Down_Click"
                           Delay="400" Interval="80">
-                <TextBlock Text="▼" FontSize="7"/>
+                <TextBlock Text="▼" FontSize="6"/>
             </RepeatButton>
         </Grid>
     </Grid>
