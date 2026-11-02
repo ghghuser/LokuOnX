@@ -36,11 +36,19 @@ public sealed class RecordingGroup : IDisposable
         IReadOnlyList<AudioDeviceInfo> devices, string ffmpegPath, DateTime now)
     {
         if (inputs.Count == 0) throw new InvalidOperationException("入力デバイスを選んでください。");
-        if (inputs.Select(i => i.Key).Distinct().Count() != inputs.Count)
-            throw new InvalidOperationException("同じデバイスが重複して選ばれています。");
+        // 「既定のデバイス」は、いま実際に使われるデバイスで重複を判定する（既定＋実際の同じデバイスだと音が二重になるため）
+        string RealKey(string key)
+        {
+            try { return provider.Resolve(key) ?? key; }
+            catch (Exception) { return key; }
+        }
+        if (inputs.Select(i => RealKey(i.Key)).Distinct().Count() != inputs.Count)
+            throw new InvalidOperationException("同じデバイスが重複して選ばれています（「既定のデバイス」と、その実際のデバイスの組み合わせも重複です）。");
 
         bool separate = s.SeparateFiles && inputs.Count > 1;
-        string LabelOf(string key) => devices.FirstOrDefault(d => d.Key == key)?.Label ?? key;
+        // ファイル名の {Device} には、既定のデバイスなら「いま実際のデバイス名」を使う（ファイルを始めた時点の名前）
+        string LabelOf(string key) => devices.FirstOrDefault(d => d.Key == RealKey(key))?.Label
+                                      ?? devices.FirstOrDefault(d => d.Key == key)?.Label ?? key;
         var lanes = separate
             ? inputs.Select(i => new List<InputSetting> { i }).ToList()
             : new List<List<InputSetting>> { inputs.ToList() };

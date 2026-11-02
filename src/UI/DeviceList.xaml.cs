@@ -20,6 +20,7 @@ public partial class DeviceList : UserControl
     private sealed class Row
     {
         public readonly Grid Panel = new();
+        public readonly CheckBox Use = new();
         public readonly ComboBox Combo = new();
         public readonly Slider Gain = new();
         public readonly TextBlock GainText = new();
@@ -68,11 +69,15 @@ public partial class DeviceList : UserControl
                   ?? _devices.FirstOrDefault()?.Key ?? "";
             inputs.Add(new InputSetting(key, 0));
         }
+        else if (inputs.All(i => i.Key.Length == 0) && defaultKey != null && _devices.Any(d => d.Key == defaultKey))
+        {
+            inputs[0] = inputs[0] with { Key = defaultKey };
+        }
         else
         {
             _touched = true;
         }
-        foreach (var i in inputs) AddRow(i.Key, i.GainDb);
+        foreach (var i in inputs) AddRow(i.Key, i.GainDb, i.Enabled);
         MixRadio.IsChecked = !settings.SeparateFiles;
         SeparateRadio.IsChecked = settings.SeparateFiles;
         _loading = false;
@@ -92,35 +97,53 @@ public partial class DeviceList : UserControl
 
     /// <summary>いま選ばれているデバイス（上から順）とゲイン。</summary>
     public IReadOnlyList<InputSetting> Inputs =>
-        _rows.Where(r => r.Key.Length > 0).Select(r => new InputSetting(r.Key, r.Gain.Value)).ToList();
+        Active().Select(r => new InputSetting(r.Key, r.Gain.Value)).ToList();
+
+    /// <summary>録音に使う行（デバイスが選ばれていて、チェックが入っているもの）。</summary>
+    private List<Row> Active() => _rows.Where(r => r.Key.Length > 0 && r.Use.IsChecked == true).ToList();
+
+    /// <summary>設定へ保存する全行（「なし」・無効の行も含む）。</summary>
+    private List<InputSetting> AllRows() =>
+        _rows.Select(r => new InputSetting(r.Key, r.Gain.Value, r.Use.IsChecked == true)).ToList();
 
     /// <summary>ファイル名の {Device} の例に使う名前。</summary>
     public string NameLabel
     {
         get
         {
-            var sel = _rows.Select(r => r.Combo.SelectedItem as AudioDeviceInfo).Where(d => d != null).ToList();
+            var sel = Active().Select(r => r.Combo.SelectedItem as AudioDeviceInfo).Where(d => d != null).Select(d => d!).ToList();
             if (sel.Count == 0) return "";
-            if (sel.Count == 1 || (_s?.SeparateFiles ?? false)) return sel[0]!.Label;
+            // 「既定のデバイス」は、いま実際の既定のデバイス名で表す
+            var first = AudioKeys.IsDefault(sel[0].Key)
+                ? _devices.FirstOrDefault(d => d.IsDefault && d.IsLoopback == sel[0].IsLoopback) ?? sel[0]
+                : sel[0];
+            if (sel.Count == 1 || (_s?.SeparateFiles ?? false)) return first.Label;
             return "ミックス";
         }
     }
 
     // ---- 行の作成 ----
-    private Row AddRow(string key, double gainDb)
+    private Row AddRow(string key, double gainDb, bool enabled = true)
     {
         var row = new Row { Key = key };
         var g = row.Panel;
         g.Margin = new Thickness(0, 0, 0, 4);
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(30) });
 
+        row.Use.IsChecked = enabled;
+        row.Use.VerticalAlignment = VerticalAlignment.Center;
+        row.Use.Margin = new Thickness(0, 0, 8, 0);
+        row.Use.ToolTip = "チェックを外すと、このデバイスは録音しません（設定は残ります。録音中は変えられません）";
+        Grid.SetColumn(row.Use, 0);
+
         row.Combo.DisplayMemberPath = "DisplayLabel";
         row.Combo.Margin = new Thickness(0, 0, 8, 0);
-        Grid.SetColumn(row.Combo, 0);
+        Grid.SetColumn(row.Combo, 1);
 
         row.Gain.Minimum = Settings.MinGainDb;
         row.Gain.Maximum = Settings.MaxGainDb;
@@ -130,14 +153,14 @@ public partial class DeviceList : UserControl
         row.Gain.LargeChange = 3;
         row.Gain.Value = Math.Clamp(gainDb, Settings.MinGainDb, Settings.MaxGainDb);
         row.Gain.VerticalAlignment = VerticalAlignment.Center;
-        row.Gain.ToolTip = "ゲイン（音量調整）。ダブルクリックで 0 dB に戻ります。録音中も変えられます";
-        Grid.SetColumn(row.Gain, 1);
+        row.Gain.ToolTip = "ゲイン（音量調整）。いちばん左＝ミュート。ダブルクリックで 0 dB に戻ります。録音中も変えられます";
+        Grid.SetColumn(row.Gain, 2);
 
         row.GainText.Text = GainLabel(row.Gain.Value);
         row.GainText.VerticalAlignment = VerticalAlignment.Center;
         row.GainText.TextAlignment = TextAlignment.Right;
         row.GainText.Margin = new Thickness(0, 0, 8, 0);
-        Grid.SetColumn(row.GainText, 2);
+        Grid.SetColumn(row.GainText, 3);
 
         row.Level.Minimum = 0;
         row.Level.Maximum = 1;
@@ -145,14 +168,15 @@ public partial class DeviceList : UserControl
         row.Level.Foreground = GreenBrush;
         row.Level.VerticalAlignment = VerticalAlignment.Center;
         row.Level.ToolTip = "このデバイスの音量（ゲインを掛けたあと）。赤＝クリップ";
-        Grid.SetColumn(row.Level, 3);
+        Grid.SetColumn(row.Level, 4);
 
         row.Remove.Content = "✕";
         row.Remove.Width = 24;
         row.Remove.Margin = new Thickness(6, 0, 0, 0);
         row.Remove.ToolTip = "このデバイスを外す";
-        Grid.SetColumn(row.Remove, 4);
+        Grid.SetColumn(row.Remove, 5);
 
+        g.Children.Add(row.Use);
         g.Children.Add(row.Combo);
         g.Children.Add(row.Gain);
         g.Children.Add(row.GainText);
@@ -165,6 +189,15 @@ public partial class DeviceList : UserControl
             if (_loading) return;
             if (row.Combo.SelectedItem is AudioDeviceInfo d) row.Key = d.Key;
             _touched = true;
+            UpdateLayout2();
+            SaveNow();
+            Changed?.Invoke();
+        };
+        row.Use.Click += (_, _) =>
+        {
+            if (_loading) return;
+            _touched = true;
+            UpdateLayout2();
             SaveNow();
             Changed?.Invoke();
         };
@@ -173,7 +206,8 @@ public partial class DeviceList : UserControl
             row.GainText.Text = GainLabel(row.Gain.Value);
             if (_loading) return;
             _touched = true;
-            GainChanged?.Invoke(_rows.IndexOf(row), row.Gain.Value);
+            var at = Active().IndexOf(row);
+            if (at >= 0) GainChanged?.Invoke(at, row.Gain.Value);
             _saveTimer.Stop();
             _saveTimer.Start();
         };
@@ -185,12 +219,14 @@ public partial class DeviceList : UserControl
         return row;
     }
 
-    private static string GainLabel(double db) =>
-        db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + " dB";
+    private static string GainLabel(double db) => db <= Settings.MinGainDb
+        ? "ミュート"
+        : db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + " dB";
 
     private List<AudioDeviceInfo> ItemsFor(string key)
     {
-        var items = new List<AudioDeviceInfo>(_devices);
+        var items = new List<AudioDeviceInfo> { new("", "（なし）", false, 0, 0) };
+        items.AddRange(_devices);
         if (key.Length > 0 && !items.Any(d => d.Key == key))
             items.Add(new AudioDeviceInfo(key, "（接続されていないデバイス）", AudioKeys.IsLoopback(key), 0, 0));
         return items;
@@ -207,14 +243,7 @@ public partial class DeviceList : UserControl
     private void Add_Click(object sender, RoutedEventArgs e)
     {
         if (_rows.Count >= Settings.MaxInputs) return;
-        var used = _rows.Select(r => r.Key).ToHashSet();
-        var free = _devices.Where(d => !used.Contains(d.Key) && !AudioKeys.IsDefault(d.Key)).ToList();
-        // 例: マイクが1行目なら、2行目は Windows の既定の出力（PC音）
-        var pick = free.FirstOrDefault(d => d.IsLoopback && d.IsDefault)
-                   ?? free.FirstOrDefault(d => d.IsDefault)
-                   ?? free.FirstOrDefault()
-                   ?? _devices.FirstOrDefault();
-        AddRow(pick?.Key ?? "", 0);
+        AddRow("", 0);   // 追加した行は「なし」から始める（選ぶまで録音に使われない）
         _touched = true;
         UpdateLayout2();
         SaveNow();
@@ -244,7 +273,7 @@ public partial class DeviceList : UserControl
     {
         foreach (var r in _rows) r.Remove.Visibility = _rows.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         AddButton.IsEnabled = !_recording && _rows.Count < Settings.MaxInputs;
-        var multi = _rows.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+        var multi = Active().Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         MixRadio.Visibility = SeparateRadio.Visibility = multi;
     }
 
@@ -252,7 +281,7 @@ public partial class DeviceList : UserControl
     {
         _saveTimer.Stop();
         if (_s == null || _loading || !_touched) return;
-        _s.Inputs = Inputs;
+        _s.Inputs = AllRows();
     }
 
     // ---- 録音中の表示 ----
@@ -263,6 +292,7 @@ public partial class DeviceList : UserControl
         foreach (var r in _rows)
         {
             r.Combo.IsEnabled = !recording;
+            r.Use.IsEnabled = !recording;
             r.Remove.IsEnabled = !recording;
             if (!recording) r.Level.Value = 0;
         }
@@ -274,9 +304,11 @@ public partial class DeviceList : UserControl
     public void SetLevels(float[] peaks)
     {
         var now = DateTime.Now;
-        for (int i = 0; i < _rows.Count; i++)
+        var active = Active();
+        foreach (var r in _rows.Where(r => !active.Contains(r))) r.Level.Value = 0;
+        for (int i = 0; i < active.Count; i++)
         {
-            var row = _rows[i];
+            var row = active[i];
             float p = i < peaks.Length ? peaks[i] : 0f;
             var level = p <= 0 ? 0 : Math.Clamp((20 * Math.Log10(p) + 60) / 60, 0, 1);
             row.Level.Value = Math.Max(level, row.Level.Value - 0.03);
