@@ -23,7 +23,9 @@
 
 ### 3-1 録音
 - 入力デバイスをプルダウンで選択。**マイク（入力）と、スピーカー等の出力デバイス（ループバック＝PC内部音）の両方を同じ一覧に表示**（出力側は先頭のアイコンで区別し、「（PC音）」は付けない: 🎤名前 / 🔊名前）。**並びはマイク→スピーカーの順で、それぞれ名前順。Windowsの既定のデバイス（入力・出力それぞれ）は名前の末尾に「＊」（全角アスタリスク）を付けて示す（表示だけで、ファイル名の `{Device}` には入れない）。初期値はWindowsの既定の入力デバイス**（前回選んだデバイスがあればそれ）。※初版でスピーカーが出なかった不具合の再発防止。
-- **複数デバイス同時録音**: 初期値は「ミックスして1ファイル」。切替で「デバイスごとに別ファイル」。
+- **複数デバイス同時録音**: 初期値は「ミックスして1ファイル」。切替で「デバイスごとに別ファイル」。（M4で確定: 入力デバイス欄は1行＝1デバイス（プルダウン・ゲイン−30〜+20dB・音量メーター・✕）、「＋デバイスを追加」で最大4台。2台以上のときだけミックス／別ファイルの切替を表示。録音中はデバイスの選択・追加・削除・モード切替は不可、ゲインだけ変えられる。ミックスは最大ステレオ・共通の周波数は選んだデバイスの最大値、合計がクリップしないよう±1で制限。別ファイルでは `{Device}` をパターンへ自動付加し、分割・一時停止・停止は全ファイル同時。選んだデバイスは settings.ini の `Device`/`Gain`（2台目以降は `Device2`/`Gain2`…）、`SeparateFiles`。ユーザーが触るまで保存せず、触らなければ起動のたびにWindowsの既定の入力）
+- **一覧の先頭に「既定の入力デバイス／既定の出力デバイス（変更に追従）」**を置く（M4）。選ぶとWindowsの既定の変更を検知して自動で切り替える（§3-2）。
+- **波形**（M4）: 録音中に右から左へ流れるピーク波形（デバイスごとに1段）。ピーク警告は全体メーターの「クリップ!」＋デバイス行のメーターが赤。
 - 形式: **mp3 / aac(.m4a。.aacも選択可) / flac**。**既定flac**。**wav・ogg・opus を追加予定（M5。2026-11-02に要望）**: wav＝16bit PCM（長時間は `-rf64 auto` で4GB超に対応。異常終了時は長さ情報が壊れるので、復旧（Recovery）で `-c copy` で作り直す）、ogg＝Vorbis（ビルド時に `libvorbis` を検査項目へ追加。ビットレート指定可）。opus＝Ogg Opus（拡張子 `.opus`、`libopus`、ビットレート指定可。サンプリング周波数は48kHzへ変換）。タグはwavがLIST INFO、ogg/opusがVorbisコメント。ビルド時の検査に `libvorbis` `libopus` も加える。最後に選んだ形式を次回も維持。
 - 音質指定: ビットレート／サンプリング周波数／チャンネル。デバイス側と違っても設定値へ変換。**圧縮率の設定欄も付ける（M5。2026-11-02に要望）**: 変更できる形式だけ表示する＝flac（圧縮レベル0〜12、既定5。大きいほど小さいが重い）、opus（圧縮レベル0〜10、既定10）、mp3（LAMEの品質0〜9、既定は変更しない値）、ogg（Vorbisの品質）。wav・aacは圧縮率の設定なし。
 - 長時間対応。**最長24時間**で強制自動分割。
@@ -35,7 +37,7 @@
 - 録音中のスリープ防止（既定ON）。ディスク残量監視（少なければ警告）。録音中にアプリを閉じようとしたら警告。
 
 ### 3-2 デバイス変更時の継続
-- 初期値: **同じファイルに継続**（途切れ区間は無音で埋め、時間がずれない）。
+- 初期値: **同じファイルに継続**（途切れ区間は無音で埋め、時間がずれない）。（M4で実装: 外れたデバイスは1秒ごとにつなぎ直し、戻れば自動で再開、その間は無音。他のデバイスは録音を続ける。全デバイスが最初から開けなければ開始しない。「戻るまで待機」「戻ったら別ファイルに分割」のオプションは M7）
 - 「既定のデバイス」選択時は、Windowsの既定デバイス変更を検知して自動切替。
 - 特定デバイス選択時: オプション「戻るまで待機」＋「戻ったら別ファイルに分割」。自動再開オプション（既定ON）。
 
@@ -180,20 +182,20 @@ LokuOnX/
 §2、§3、§4、§5の対策方針。アプリ名は **LokuOnX（仮）**、表示名は `AppInfo.Name` の1か所で管理、名前空間は `Recorder` のまま（改名で全ファイルを触らないため）。UIは日本語（Yu Gothic UI、なければ Meiryo UI）。
 
 ## 11. 現在の状態（毎回更新する）
-- 状態: **M3 実機確認OK・完了（2026-11-02。最終コミットのActionsビルド成功）。** 次は M4。Claude側にはLinux上の .NET SDK が入れられないため、Actions が唯一のビルド確認（`gh run view` と `gh api repos/.../check-runs/<job>/annotations` でエラーを読む）。※旧版の `settings.ini` はそのまま読める（`SplitMinutes` は `SplitSeconds` へ読み替え）。
+- 状態: **M4 実装完了・Actionsビルド成功（2026-11-02）。実機確認待ち。** （M3は実機確認OK・完了）Claude側にはLinux上の .NET SDK が入れられないため、Actions が唯一のビルド確認（`gh run view` と `gh api repos/.../check-runs/<job>/annotations` でエラーを読む）。※旧版の `settings.ini` はそのまま読める（`SplitMinutes` は `SplitSeconds` へ読み替え）。
 - 初版の指摘（M0で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い。M1で対応: スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
 - M0（完了）: 単一ファイル発行で動作確認済み（`app/` 方式は不要）。FFmpegのURLは n8.1 → 404 なら master へ自動切替。Releases の ZIP 添付は**未確認**（タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。初回Release作成時に確認）。
 - M1（実機確認OK）: デバイス一覧（🎤マイク＋🔊出力のループバック）、WASAPI録音、FFmpeg直接エンコード、開始/停止、音量メーター、現在設定サマリー行（1行・自動スクロール・ホバー全文）、同じフォルダのみの多重起動警告、`settings.ini`。録音中にウィンドウを閉じると確認して停止・保存してから終了。
 - **M2で入れたもの**:
-  - 無音補填: 壁時計基準。データ到着時に不足分を無音で埋め、データが来ない間（ループバックの無音）は100msごとのタイマーで埋める（0.3秒手前まで）。停止時に停止時刻ちょうどまで埋める。足りない分だけ補い、余った分は削らない（クロックずれ補正は M4）。
+  - 無音補填: 壁時計基準。データ到着時に不足分を無音で埋め、データが来ない間（ループバックの無音）は100msごとのタイマーで埋める（0.3秒手前まで）。停止時に停止時刻ちょうどまで埋める。足りない分だけ補い、余った分は削らない（クロックずれ補正は M4で実装済み）。
   - 形式: flac / mp3 / aac(.m4a) / aac(.aac)。m4a は録音中は断片化MP4で、停止後に FFmpeg `-c copy -movflags +faststart` で通常のm4aへ整える（失敗しても断片化のまま残す＝再生可）。
   - 音質: ビットレート（64〜320kbps、mp3/aacのみ。既定192）、サンプリング周波数（自動／22.05〜96kHz）、チャンネル（自動／モノ／ステレオ）。デバイスと違っても設定値へ変換。mp3は48kHz超・3ch以上、aacは3ch以上を上限へ丸める。
   - ファイル名: `FileNamer` に集約。テンプレート（既定=日時形式／トラック形式。編集・削除・名前を付けて保存・初期テンプレート復元）、禁止文字の置換（コロンは全角）、予約名・260文字対策、`(2)` 付与。録音中は仮名 `_rec_<開始時刻>_No<n>.<ext>` で書き、閉じた後に最終名へリネーム。
   - 日付フォルダ（既定ON、書式 `{yyyy}-{MM}-{dd}`、録音開始日で固定）。`{No}` の開始値入力欄（終了後も維持）、`{Track}` の開始値入力欄（新しい録音ごとに戻る。分割は M3）。
   - 現在設定サマリー行は実際に書き出される形式・音質・保存先（日付フォルダ込み）・テンプレート名を表示（動かさない。収まらないときは「…」で省略、ホバーで全文）。
-  - 既定デバイスの印: `AudioDeviceInfo.IsDefault`/`DisplayLabel`（末尾に ＊）。「一覧を更新」で既定の変更を反映（自動追従は M4）。
+  - 既定デバイスの印: `AudioDeviceInfo.IsDefault`/`DisplayLabel`（末尾に ＊）。「一覧を更新」で既定の変更を反映（M4で、録音していないときは3秒ごとに自動反映）。
   - M2確認後の修正: 入力デバイスの初期値＝Windowsの既定の入力（前回選んだデバイスがあればそれを優先。`settings.ini` の `Device` 行を消すと既定に戻る）。一覧はマイク→スピーカー、それぞれ名前順、「（PC音）」なし。変数ヘルプは `？` ボタン→`VariableEditor` ウィンドウ（`VariableHelp` に変数一覧）。
-- 既知の簡易実装（以降で置換）: FFmpeg死亡時は録音を止めてエラー表示（自動再開なし。M4）／タグなし（M5）／`{Device}` の自動付加は複数デバイス別ファイル（M4）／`{Preset}` は「既定」固定（M5）／分割の境界時刻は整数秒に切り捨て（ファイル名用。音声の切れ目は途切れなし）。
+- 既知の簡易実装（以降で置換）: FFmpeg死亡時は録音を止めてエラー表示（自動再開なし。M4の範囲外のため据え置き。§5-5。次に入れる場所はM5以降で相談）／タグなし（M5）／`{Preset}` は「既定」固定（M5）／分割の境界時刻は整数秒に切り捨て（ファイル名用。音声の切れ目は途切れなし）。
 - **M3で入れたもの**:
   - 分割: 手動（分割ボタン。直前の分割から1秒未満は無視）、時間（時:分:秒の入力欄を常時表示。00:00:00＝無効。最短10秒、最長24時間）、24時間強制（間隔が0でも必ず）。次のFFmpegを先に起動してから出力先を切り替える（途切れなし）。閉じたファイルは別タスクで最終名へ確定し、状態表示に「保存しました」を出す。
   - `{Track}`: 録音ごとに開始値へ戻り、分割ごとに+1。`{Start}`/`{End}`/`{Length}` は録音全体の0:00起点の整数秒。仮名は `_rec_<日時>_No<n>_T<track>.<ext>`。
@@ -209,12 +211,21 @@ LokuOnX/
 - M3追加3（2026-11-02）: 自動分割の入力を時:分:秒に変更（`Core/SplitTime`、`Settings.SplitSeconds`、`UI/TimeBox`。数字だけ入力すると右詰めで時分秒、コロン1つは分:秒）。▲▼は幅13・6pt。入力欄の幅は自動分割＝00:00:00が入る幅（86）、No/Track＝5桁が入る幅（68）。
 - M3追加4（2026-11-02）: 自動分割欄の幅を70に（No/Trackも70に統一）。メイン画面の入力欄はすべて Enter で確定（`App.OnTextBoxKeyDown`：Enterでウィンドウへフォーカスを移し、LostFocus の処理を走らせる。複数行・読み取り専用・別ウィンドウは対象外）。
 - M3追加5（2026-11-02）: Enterで確定されなかったため修正（クラスハンドラをPreviewKeyDownにし、Enterで次の欄へフォーカスを移して LostFocus を走らせる方式に変更。実機確認待ち）。
-- 次にやること: 新規チャットで「今回はM4」。開始時に確認すること＝①常時表示する設定の見直し（複数デバイスの選び方の画面）②複数デバイス同時録音（ミックス／別ファイル）。M5で入れる予定: wav・ogg・opus、圧縮率の設定欄、プリセット、タグ。未確認の既知事項: `_rec_` 仮ファイルの残り（再発したらファイル名を連絡）、`.aac` の長さ表示は仕様上ずれる（m4a推奨）。
+- **M4で入れたもの（2026-11-02）**:
+  - 音の流れ: デバイスごとに `DeviceInput`（つなぐ・外れたら1秒ごとにつなぎ直す・既定に追従）→ `DeviceStream`（float変換・ゲイン・周波数変換・壁時計への時間合わせ）→ `MixedSource`（20msごとに全デバイスを混ぜて、壁時計より0.2秒遅れで流す。1台のときも同じ経路）→ 従来の `RecordingSession`。`SilenceFiller` は大きな欠落（1秒超）だけを補う設定（`toleranceSec:1.0, idleMarginSec:1.5`）にした。
+  - クロックずれ補正: 時間軸が壁時計より0.04秒以上ずれたら±0.1%の伸縮（3次補間 `StreamResampler`）で少しずつ合わせ、0.01秒以内で止める。0.08秒を超えて遅れたら無音で埋め直し、0.5秒以上進んだら届いたブロックを捨てる。
+  - 別ファイル: 仮名は `_rec_<日時>_No<n>_T<track>_D<デバイス番号>.<ext>`（`FileNamer.TempName` の `lane`）。復旧は名前に `-Dev<n>` を入れる（`Recovery`）。
+  - 手動分割は音声を実際に書いた位置（`SilenceFiller.Position`）で分ける。
+  - 画面: 入力デバイス欄（`UI/DeviceList`）、中段に波形（`UI/WaveView`）。`MainWindow.Recording.cs` は `RecordingGroup` を使う。
+  - 未実装で据え置き: FFmpegの死亡検知と自動再開（§5-5）、「戻るまで待機」「戻ったら別ファイルに分割」（M7）、ミックスのパン・デバイスごとの形式。
+- 次にやること: 新規チャットで「今回はM5」。開始時に確認すること＝①プリセットに含める項目 ②圧縮率の設定欄の置き場所（常時表示か折りたたみか）。M5で入れる予定: wav・ogg・opus、圧縮率の設定欄、プリセット、タグ、ini全項目、ディスク残量、スリープ防止、終了時警告、ダークモード。M4の実機確認で出た不具合は先に直す。未確認の既知事項: `_rec_` 仮ファイルの残り（再発したらファイル名を連絡）、`.aac` の長さ表示は仕様上ずれる（m4a推奨）、M3追加5のEnter確定の実機確認。
 - ファイル一覧とインターフェース（M2で変更・追加のもの＋据え置き）:
   - `.github/workflows/build.yml` … windows-latest。publish → FFmpeg取得 → `libmp3lame`/`aac`/`flac` 検査 → `dist/LokuOnX/` を組む → artifact（フォルダ）→ タグ時のみZIP作成とRelease添付
   - `src/LokuOnX.csproj`、`src/app.manifest`、`src/App.xaml(.cs)`、`src/Core/AppInfo.cs`、`AppPaths.cs`、`InstanceGuard.cs`、`PeakMeter.cs` … M1のまま
   - `src/Core/IAudioSource.cs` … `AudioDeviceInfo(Key,Label,IsLoopback,SampleRate,Channels)`、`AudioFormatInfo(SampleRate,Channels,BitsPerSample,IsFloat)`、`IAudioSource`、`IAudioDeviceProvider`（`List()`/`DefaultCaptureKey()`/`Create(key)`）。Key は `capture:{ID}` または `render:{ID}`
-  - `src/Core/Win/WasapiDeviceProvider.cs`、`WasapiSource.cs` … NAudio(WASAPI)実装（Windows専用）。`Stop()` はUIスレッドで直接呼ばず `Task.Run` 経由
+  - `src/Core/Win/WasapiDeviceProvider.cs`、`WasapiSource.cs` … NAudio(WASAPI)実装（Windows専用）。`Stop()` はUIスレッドで直接呼ばず `Task.Run` 経由。M4で `IAudioDeviceProvider` に `DefaultRenderKey()`/`Signature()` を追加、一覧の先頭に擬似デバイス（`AudioKeys.CaptureDefault`/`RenderDefault`）
+  - （M4）`src/Core/AudioKeys.cs`（`IsDefault`/`IsLoopback`/`Resolve`）、`DeviceInput.cs`（`Start()`/`Stop()`/`Stream`/`Notice`/`Failed`）、`DeviceStream.cs`（`Push`/`MixInto`/`SetGainDb`/`TakePeak`）、`MixedSource.cs`（`MixedSource(provider,MixInput[],devices,autoResume)`、`IAudioSource`、`SetGain`/`TakeDevicePeaks`）、`RecordingGroup.cs`（`Create(provider,settings,inputs,devices,ffmpegPath,now)`、`Start`/`Pause`/`Resume`/`Split`/`Stop`/`SetGain`/`TakePeak`/`TakeDevicePeaks`/`OutputText`/`Results`/`Seconds`/`Failure`、`Error`/`Notice`）、`FloatRing.cs`、`PcmConvert.cs`、`StreamResampler.cs`、`Settings.Devices.cs`（`Inputs`/`SeparateFiles`/`AutoResume`/`InputSetting`）
+  - （M4）`src/UI/DeviceList.xaml(.cs)`（`Init`/`Reload`/`Inputs`/`NameLabel`/`SetRecording`/`SetLevels`、`Changed`/`GainChanged`）、`src/UI/WaveView.cs`（`SetRows`/`Push`）
   - `src/Core/OutputFormat.cs` … `OutputFormat(Key,Label,Ext,Muxer,Lossy,MaxSampleRate,MaxChannels)`、`All`、`Get(key)`
   - `src/Core/EncodeOptions.cs` … `EncodeOptions(Format,BitrateKbps,SampleRate,Channels)`、`Fmt`、`Resolve(deviceRate,deviceCh)`、`Bitrates`/`SampleRates`
   - `src/Core/FfmpegArgs.cs` … `Build(options,inputFormat,outputPath)`
