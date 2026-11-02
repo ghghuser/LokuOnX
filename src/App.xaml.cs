@@ -18,7 +18,7 @@ public partial class App : Application
         };
 
         // メイン画面の入力欄は、Enter で確定する（欄から離れたときと同じ処理が走る）
-        EventManager.RegisterClassHandler(typeof(TextBox), UIElement.KeyDownEvent, new KeyEventHandler(OnTextBoxKeyDown));
+        EventManager.RegisterClassHandler(typeof(TextBox), UIElement.PreviewKeyDownEvent, new KeyEventHandler(OnTextBoxKeyDown));
 
         // 同じフォルダのexeだけを多重起動とみなす（別フォルダのコピーは警告なしで起動）
         var first = InstanceGuard.TryAcquire(AppPaths.Dir);
@@ -42,7 +42,8 @@ public partial class App : Application
     {
         if (e.Key != Key.Enter || sender is not TextBox tb || tb.IsReadOnly || tb.AcceptsReturn) return;
         if (Window.GetWindow(tb) is not UI.MainWindow window) return;
-        window.Focus();   // 欄からフォーカスが外れ、LostFocus の処理（設定への反映）が走る
+        // 次の欄へフォーカスを移す（Tab と同じ）。欄から離れたときの LostFocus の処理（設定への反映）が走る
+        tb.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
         e.Handled = true;
     }
 }
