@@ -180,7 +180,7 @@ LokuOnX/
 §2、§3、§4、§5の対策方針。アプリ名は **LokuOnX（仮）**、表示名は `AppInfo.Name` の1か所で管理、名前空間は `Recorder` のまま（改名で全ファイルを触らないため）。UIは日本語（Yu Gothic UI、なければ Meiryo UI）。
 
 ## 11. 現在の状態（毎回更新する）
-- 状態: **M3 実装済み・Actionsビルド成功（コミット 60875c4）。実機確認待ち。** M2は実機確認OK（指摘6点は反映済み）。Claude側にはLinux上の .NET SDK が入れられないため、Actions が唯一のビルド確認（`gh run view` と `gh api repos/.../check-runs/<job>/annotations` でエラーを読む）。※旧版の `settings.ini` はそのまま読める。`SplitMinutes` が無ければ 0（分割なし）。
+- 状態: **M3 実機確認OK・完了（2026-11-02。最終コミットのActionsビルド成功）。** 次は M4。Claude側にはLinux上の .NET SDK が入れられないため、Actions が唯一のビルド確認（`gh run view` と `gh api repos/.../check-runs/<job>/annotations` でエラーを読む）。※旧版の `settings.ini` はそのまま読める（`SplitMinutes` は `SplitSeconds` へ読み替え）。
 - 初版の指摘（M0で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い。M1で対応: スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
 - M0（完了）: 単一ファイル発行で動作確認済み（`app/` 方式は不要）。FFmpegのURLは n8.1 → 404 なら master へ自動切替。Releases の ZIP 添付は**未確認**（タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。初回Release作成時に確認）。
 - M1（実機確認OK）: デバイス一覧（🎤マイク＋🔊出力のループバック）、WASAPI録音、FFmpeg直接エンコード、開始/停止、音量メーター、現在設定サマリー行（1行・自動スクロール・ホバー全文）、同じフォルダのみの多重起動警告、`settings.ini`。録音中にウィンドウを閉じると確認して停止・保存してから終了。
@@ -209,7 +209,7 @@ LokuOnX/
 - M3追加3（2026-11-02）: 自動分割の入力を時:分:秒に変更（`Core/SplitTime`、`Settings.SplitSeconds`、`UI/TimeBox`。数字だけ入力すると右詰めで時分秒、コロン1つは分:秒）。▲▼は幅13・6pt。入力欄の幅は自動分割＝00:00:00が入る幅（86）、No/Track＝5桁が入る幅（68）。
 - M3追加4（2026-11-02）: 自動分割欄の幅を70に（No/Trackも70に統一）。メイン画面の入力欄はすべて Enter で確定（`App.OnTextBoxKeyDown`：Enterでウィンドウへフォーカスを移し、LostFocus の処理を走らせる。複数行・読み取り専用・別ウィンドウは対象外）。
 - M3追加5（2026-11-02）: Enterで確定されなかったため修正（クラスハンドラをPreviewKeyDownにし、Enterで次の欄へフォーカスを移して LostFocus を走らせる方式に変更。実機確認待ち）。
-- 次にやること: M3の実機確認（付録B）→ 新規チャットで「今回はM4」（開始時に、常時表示する設定の相談と、複数デバイス同時録音の確認を行う）。
+- 次にやること: 新規チャットで「今回はM4」。開始時に確認すること＝①常時表示する設定の見直し（複数デバイスの選び方の画面）②複数デバイス同時録音（ミックス／別ファイル）。M5で入れる予定: wav・ogg・opus、圧縮率の設定欄、プリセット、タグ。未確認の既知事項: `_rec_` 仮ファイルの残り（再発したらファイル名を連絡）、`.aac` の長さ表示は仕様上ずれる（m4a推奨）。
 - ファイル一覧とインターフェース（M2で変更・追加のもの＋据え置き）:
   - `.github/workflows/build.yml` … windows-latest。publish → FFmpeg取得 → `libmp3lame`/`aac`/`flac` 検査 → `dist/LokuOnX/` を組む → artifact（フォルダ）→ タグ時のみZIP作成とRelease添付
   - `src/LokuOnX.csproj`、`src/app.manifest`、`src/App.xaml(.cs)`、`src/Core/AppInfo.cs`、`AppPaths.cs`、`InstanceGuard.cs`、`PeakMeter.cs` … M1のまま
