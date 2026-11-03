@@ -1,0 +1,52 @@
+<UserControl x:Class="Recorder.UI.FileListPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 操作ボタン -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,4" LastChildFill="True">
+            <TextBlock Text="ファイル一覧" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,14,0"/>
+            <Button x:Name="RefreshButton" Content="更新" Padding="12,3" Click="Refresh_Click"
+                    ToolTip="保存先フォルダ（日付フォルダの中も）を読み直します"/>
+            <Button x:Name="ExplorerButton" Content="エクスプローラーで開く" Padding="12,3" Margin="6,0,0,0" Click="Explorer_Click"/>
+            <Button x:Name="RenameButton" Content="名前の変更" Padding="12,3" Margin="6,0,0,0" Click="Rename_Click"
+                    ToolTip="F2 キーでも開けます"/>
+            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="12,3" Margin="6,0,0,0" Click="Delete_Click"
+                    ToolTip="Delete キーでも実行できます（複数選択可）"/>
+            <TextBlock x:Name="CountText" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.75"/>
+        </DockPanel>
+
+        <ListView x:Name="List" Grid.Row="1" MinHeight="110" SelectionMode="Extended"
+                  SelectionChanged="List_SelectionChanged" MouseDoubleClick="List_DoubleClick"
+                  PreviewKeyDown="List_KeyDown"
+                  GridViewColumnHeader.Click="Header_Click">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="再生" Click="Play_Click"/>
+                    <MenuItem Header="エクスプローラーで開く" Click="Explorer_Click"/>
+                    <MenuItem Header="名前の変更" InputGestureText="F2" Click="Rename_Click"/>
+                    <MenuItem Header="ごみ箱へ削除" InputGestureText="Delete" Click="Delete_Click"/>
+                    <Separator/>
+                    <MenuItem Header="更新" Click="Refresh_Click"/>
+                </ContextMenu>
+            </ListView.ContextMenu>
+            <ListView.View>
+                <GridView AllowsColumnReorder="False">
+                    <GridViewColumn Header="ファイル名" Width="520" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="長さ" Width="90" DisplayMemberBinding="{Binding LengthText}"/>
+                    <GridViewColumn Header="サイズ" Width="90" DisplayMemberBinding="{Binding SizeText}"/>
+                    <GridViewColumn Header="作成日時" Width="170" DisplayMemberBinding="{Binding CreatedText}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- 操作の失敗（名前の変更・削除・再生）は、音の鳴るポップアップではなく赤文字で -->
+        <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
+                   Visibility="Collapsed" Margin="0,4,0,0"/>
+    </Grid>
+</UserControl>

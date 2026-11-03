@@ -18,6 +18,9 @@ public partial class MainWindow : Window
     public MainWindow(Settings settings)
     {
         InitializeComponent();
+        // 画面が小さいパソコンでは、作業領域に収まる高さにする（M6で一覧を足したため既定の高さが大きい）
+        MinHeight = Math.Min(MinHeight, SystemParameters.WorkArea.Height);
+        Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         _settings = settings;
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
 
@@ -39,6 +42,11 @@ public partial class MainWindow : Window
         Presets.Acting += ClearErrors;
         Presets.Error += ShowError;
         Presets.Applied += ReloadFromSettings;
+        Files.Init(settings, () => _settings.Folder, AppPaths.Ffmpeg);
+        Player.Init(AppPaths.Ffmpeg);
+        Files.Selected += Player.Load;
+        Files.PlayRequested += f => { Player.Load(f); Player.Play(); };
+        Files.Releasing += Player.Release;
         ThemeManager.Attach(this, settings.Theme);
         _loading = false;
 
@@ -48,7 +56,18 @@ public partial class MainWindow : Window
 
         UpdateInfo();
         StartTimer();
-        Loaded += async (_, _) => await RecoverAsync();
+        Loaded += async (_, _) =>
+        {
+            Files.Refresh();
+            await RecoverAsync();
+            Files.Refresh();   // 復旧で名前が付いたファイルも出す
+        };
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        Player.Shutdown();
+        base.OnClosed(e);
     }
 
     private void LoadDevices()
@@ -128,8 +147,10 @@ public partial class MainWindow : Window
     {
         var text = FolderBox.Text.Trim();
         if (text.Length == 0) { FolderBox.Text = _settings.Folder; return; }
+        var changed = !string.Equals(_settings.Folder, text, StringComparison.Ordinal);
         _settings.Folder = text;
         UpdateInfo();
+        if (changed) Files.Refresh();   // 保存先が変わったら、一覧も読み直す
     }
 
     private void Browse_Click(object sender, RoutedEventArgs e)
@@ -139,6 +160,7 @@ public partial class MainWindow : Window
         FolderBox.Text = dlg.FolderName;
         _settings.Folder = dlg.FolderName;
         UpdateInfo();
+        Files.Refresh();
     }
 
     private void Refresh_Click(object sender, RoutedEventArgs e)

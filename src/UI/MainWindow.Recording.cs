@@ -145,6 +145,7 @@ public partial class MainWindow
         }
         if (warnings.Count > 0) StatusText.Text += "\n注意: " + string.Join(" / ", warnings);
         if (_closeAfterStop) Close();
+        else Files.Refresh();   // できたファイルを一覧へ
     }
 
     private static string SavedText(IReadOnlyList<FinalizeResult> results, IReadOnlyList<double> seconds)

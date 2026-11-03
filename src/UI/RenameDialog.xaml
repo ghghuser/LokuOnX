@@ -1,0 +1,22 @@
+<Window x:Class="Recorder.UI.RenameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="名前の変更" Width="620" SizeToContent="Height"
+        Background="{DynamicResource WindowBg}" Foreground="{DynamicResource WindowFg}"
+        FontFamily="Yu Gothic UI, Meiryo UI" FontSize="14"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize">
+    <StackPanel Margin="18">
+        <TextBlock Text="新しい名前（拡張子はそのまま）" Margin="0,0,0,6"/>
+        <DockPanel Margin="0,0,0,6">
+            <TextBlock x:Name="ExtText" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0"/>
+            <TextBox x:Name="NameBox" VerticalContentAlignment="Center" Padding="2,3"/>
+        </DockPanel>
+        <TextBlock x:Name="ErrorText" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
+                   Visibility="Collapsed" Margin="0,0,0,6"/>
+        <TextBlock Text="使えない文字（: \ / * ? &quot; &lt; &gt; |）は全角の文字に置き換わります。" Opacity="0.7" Margin="0,0,0,14"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="変更" Width="90" Padding="0,5" IsDefault="True" Click="Ok_Click"/>
+            <Button Content="キャンセル" Width="90" Padding="0,5" Margin="8,0,0,0" IsCancel="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

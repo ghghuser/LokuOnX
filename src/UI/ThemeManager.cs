@@ -22,7 +22,7 @@ public static class ThemeManager
         if (app == null) return;
         foreach (var d in Current) app.Resources.MergedDictionaries.Remove(d);
         Current.Clear();
-        foreach (var name in dark ? new[] { "Dark", "DarkControls" } : new[] { "Light" })
+        foreach (var name in dark ? new[] { "Dark", "DarkControls", "DarkList" } : new[] { "Light" })
         {
             try
             {
