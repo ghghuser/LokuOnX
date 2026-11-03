@@ -5,7 +5,10 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>コンボボックスの選択肢（値と表示名）。</summary>
-public sealed record Choice(int Value, string Label);
+public sealed record Choice(int Value, string Label)
+{
+    public override string ToString() => Label;
+}
 
 /// <summary>音質（ビットレート・サンプリング周波数・チャンネル・圧縮率）。メジャーな設定なので折りたたみの外に常時表示する。値は Settings に即保存。</summary>
 public partial class QualityBar : UserControl

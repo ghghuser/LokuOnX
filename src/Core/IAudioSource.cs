@@ -6,6 +6,9 @@ public sealed record AudioDeviceInfo(string Key, string Label, bool IsLoopback, 
 {
     /// <summary>一覧に出す名前。Windowsの既定のデバイスには末尾に ＊（全角）を付ける（ファイル名の {Device} には付けない）。</summary>
     public string DisplayLabel => IsDefault ? Label + " ＊" : Label;
+
+    /// <summary>ダーク用のコンボボックスなど、表示名を指定できない場面でも名前が出るようにする。</summary>
+    public override string ToString() => DisplayLabel;
 }
 
 /// <summary>音声データの形式（PCM）。</summary>

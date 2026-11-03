@@ -11,6 +11,9 @@ public sealed partial class Settings
 
     public bool ReadOnly { get; }
 
+    /// <summary>プリセットのJSONを入れるフォルダ（exeと同じ場所の Presets。PROJECT.md §3-6）。</summary>
+    private readonly string _presetDir;
+
     /// <summary>直近の保存エラー（なければ null）。</summary>
     public string? SaveError { get; private set; }
 
@@ -18,12 +21,14 @@ public sealed partial class Settings
     {
         _ini = new IniFile(path);
         ReadOnly = readOnly;
+        _presetDir = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)) ?? "", "Presets");
         if (!_ini.Existed && !readOnly)
         {
             _ini.Set(Section, "Format", "flac");
             _ini.Set(Section, "NextNo", "1");
             Save();
         }
+        MigratePresets();   // M5 の初版は ini に入れていた。Presets フォルダのファイルへ移す
         EnsureTemplates();   // 旧版の ini にはテンプレートが無いので、足りなければ初期テンプレートを登録
     }
 

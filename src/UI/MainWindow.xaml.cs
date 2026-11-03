@@ -34,7 +34,6 @@ public partial class MainWindow : Window
         Quality.Changed += UpdateInfo;
         Detail.Init(settings, () => Devices.NameLabel);
         Detail.Changed += UpdateInfo;
-        Detail.ThemeChanged += mode => ThemeManager.Apply(mode);
         Presets.Init(settings);
         Presets.Prepare = CommitInputs;
         Presets.Acting += ClearErrors;
@@ -113,6 +112,9 @@ public partial class MainWindow : Window
         Presets.Reload(null);
         UpdateInfo();
     }
+
+    private void Settings_Click(object sender, RoutedEventArgs e) =>
+        new SettingsWindow(_settings) { Owner = this }.ShowDialog();
 
     // ---- 設定の変更 ----
     private void FormatBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

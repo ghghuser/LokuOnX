@@ -30,4 +30,6 @@ public sealed record OutputFormat(string Key, string Label, string Ext, string M
 
     /// <summary>この形式でビットレートを指定できるか（wav・flac は不可）。</summary>
     public bool UsesBitrate => Lossy;
+
+    public override string ToString() => Label;
 }

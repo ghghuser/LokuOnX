@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:Recorder.UI"
-        Icon="pack://application:,,,/app.ico"
+        Icon="pack://application:,,,/LokuOnX.ico"
         Title="LokuOnX"
         Width="1200" Height="880"
         MinWidth="1000" MinHeight="760"
@@ -35,7 +35,10 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="プリセット" VerticalAlignment="Center"/>
-            <ui:PresetBar x:Name="Presets" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,4"/>
+            <ui:PresetBar x:Name="Presets" Grid.Row="0" Grid.Column="1" Margin="0,0,8,4"/>
+            <Button x:Name="SettingsButton" Grid.Row="0" Grid.Column="2" Content="⚙" FontFamily="Segoe UI Symbol"
+                    FontSize="17" Width="34" Height="28" Padding="0" VerticalAlignment="Top" Margin="0,0,0,4"
+                    ToolTip="設定とヘルプ（画面の色・スリープ防止・バージョン情報）" Click="Settings_Click"/>
 
             <TextBlock Grid.Row="1" Text="入力デバイス" VerticalAlignment="Top" Margin="0,4,0,0"/>
             <ui:DeviceList x:Name="Devices" Grid.Row="1" Grid.Column="1" Margin="0,0,8,2"/>

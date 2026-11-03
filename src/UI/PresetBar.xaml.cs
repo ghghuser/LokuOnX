@@ -63,6 +63,7 @@ public partial class PresetBar : UserControl
         if (name.Length == 0) { Error?.Invoke("プリセット名を入力してください。"); return; }
         Prepare?.Invoke();
         _s.SavePreset(_s.CapturePreset(name));
+        if (_s.SaveError != null) { Error?.Invoke("プリセットを保存できませんでした: " + _s.SaveError); return; }
         _s.CurrentPreset = name;
         Reload(name);
         Applied?.Invoke();

@@ -14,20 +14,9 @@ public partial class DetailPanel : UserControl
     /// <summary>設定が変わった（常時表示のファイル名の例の更新用）。</summary>
     public event Action? Changed;
 
-    /// <summary>画面の色を変えた（"auto" / "light" / "dark"）。</summary>
-    public event Action<string>? ThemeChanged;
-
-    private sealed record ThemeChoice(string Key, string Label);
-
-    private static readonly ThemeChoice[] Themes =
-    {
-        new("auto", "自動（Windowsに合わせる）"), new("light", "ライト"), new("dark", "ダーク"),
-    };
-
     public DetailPanel()
     {
         InitializeComponent();
-        ThemeBox.ItemsSource = Themes;
     }
 
     public void Init(Settings settings, Func<string> deviceLabel)
@@ -53,8 +42,6 @@ public partial class DetailPanel : UserControl
         DateFolderCheck.IsChecked = _s.DateFolder;
         DateFormatBox.Text = _s.DateFolderFormat;
         DateFormatBox.IsEnabled = _s.DateFolder;
-        SleepCheck.IsChecked = _s.PreventSleep;
-        ThemeBox.SelectedValue = _s.Theme;
         Tags.Reload();
         ReloadTemplates(null);
         _loading = was;
@@ -249,19 +236,6 @@ public partial class DetailPanel : UserControl
         _s.DateFolder = DateFolderCheck.IsChecked == true;
         DateFormatBox.IsEnabled = _s.DateFolder;
         Notify();
-    }
-
-    private void Sleep_Changed(object sender, RoutedEventArgs e)
-    {
-        if (_loading || _s == null) return;
-        _s.PreventSleep = SleepCheck.IsChecked == true;
-    }
-
-    private void Theme_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || _s == null || ThemeBox.SelectedValue is not string key) return;
-        _s.Theme = key;
-        ThemeChanged?.Invoke(key);
     }
 
     private void DateFormat_LostFocus(object sender, RoutedEventArgs e) => CommitDateFormat();

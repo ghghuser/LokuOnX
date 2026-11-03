@@ -9,7 +9,7 @@
     <RootNamespace>Recorder</RootNamespace>
     <AssemblyName>LokuOnX</AssemblyName>
     <Version>0.0.1</Version>
-    <ApplicationIcon>..\assets\icon\app.ico</ApplicationIcon>
+    <ApplicationIcon>..\assets\icon\LokuOnX.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="..\assets\icon\app.ico" Link="app.ico" />
+    <Resource Include="..\assets\icon\LokuOnX.ico" Link="LokuOnX.ico" />
   </ItemGroup>
 
   <ItemGroup>

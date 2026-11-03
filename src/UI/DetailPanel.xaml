@@ -36,7 +36,7 @@
         </WrapPanel>
 
         <!-- 折りたたみ: 日付フォルダ・タグ -->
-        <Expander Header="日付フォルダ・タグ・その他">
+        <Expander Header="日付フォルダ・タグ">
             <StackPanel Margin="16,6,0,4">
                 <WrapPanel Margin="0,0,0,8">
                     <CheckBox x:Name="DateFolderCheck" Content="日付フォルダを作る" VerticalAlignment="Center"
@@ -49,14 +49,6 @@
                 </WrapPanel>
                 <TextBlock Text="タグ" FontWeight="SemiBold" Margin="0,0,0,4"/>
                 <ui:TagPanel x:Name="Tags" Margin="0,0,0,10"/>
-                <TextBlock Text="その他" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <WrapPanel>
-                    <CheckBox x:Name="SleepCheck" Content="録音中はスリープさせない" VerticalAlignment="Center"
-                              Margin="0,0,24,0" Checked="Sleep_Changed" Unchecked="Sleep_Changed"/>
-                    <TextBlock Text="画面の色" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <ComboBox x:Name="ThemeBox" Width="150" DisplayMemberPath="Label" SelectedValuePath="Key"
-                              ToolTip="自動＝Windowsの設定に合わせます" SelectionChanged="Theme_Changed"/>
-                </WrapPanel>
             </StackPanel>
         </Expander>
     </StackPanel>

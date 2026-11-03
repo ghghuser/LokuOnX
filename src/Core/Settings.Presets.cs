@@ -1,55 +1,80 @@
+using System.Text;
+
 namespace Recorder.Core;
 
-/// <summary>Settings のうち、プリセットに関する部分（PROJECT.md §3-6）。ini の [Presets]（Count, Name&lt;i&gt;, Json&lt;i&gt;）に保存。</summary>
+/// <summary>
+/// Settings のうち、プリセットに関する部分（PROJECT.md §3-6）。
+/// プリセットは exe と同じ場所の Presets フォルダに「名前.json」で1件ずつ保存する（そのままバックアップ・共有できる）。
+/// </summary>
 public sealed partial class Settings
 {
-    private const string PresetSection = "Presets";
-
-    /// <summary>保存されているプリセット。壊れた JSON のものは飛ばす。</summary>
+    /// <summary>保存されているプリセット（名前順）。読めないファイルは飛ばす。</summary>
     public IReadOnlyList<PresetData> Presets
     {
         get
         {
-            int.TryParse(_ini.Get(PresetSection, "Count", "0"), out var count);
             var list = new List<PresetData>();
-            for (int i = 0; i < count; i++)
+            try
             {
-                var json = _ini.Get(PresetSection, $"Json{i}", "");
-                if (json.Length == 0) continue;
-                var parsed = PresetJson.Parse(json, out _);
-                if (parsed is { Count: > 0 }) list.Add(parsed[0]);
+                if (!Directory.Exists(_presetDir)) return list;
+                foreach (var file in Directory.EnumerateFiles(_presetDir, "*.json"))
+                {
+                    try
+                    {
+                        var parsed = PresetJson.Parse(File.ReadAllText(file, Encoding.UTF8), out _);
+                        if (parsed is { Count: > 0 }) list.Add(parsed[0]);
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+                }
             }
-            return list;
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            return list.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
         }
     }
 
-    private void WritePresets(IReadOnlyList<PresetData> list)
-    {
-        int.TryParse(_ini.Get(PresetSection, "Count", "0"), out var old);
-        for (int i = 0; i < list.Count; i++)
-        {
-            _ini.Set(PresetSection, $"Name{i}", list[i].Name);
-            _ini.Set(PresetSection, $"Json{i}", PresetJson.ToLine(list[i]));
-        }
-        for (int i = list.Count; i < old; i++)
-        {
-            _ini.Remove(PresetSection, $"Name{i}");
-            _ini.Remove(PresetSection, $"Json{i}");
-        }
-        _ini.Set(PresetSection, "Count", list.Count.ToString());
-        Save();
-    }
+    private string PresetFile(string name) => Path.Combine(_presetDir, FileNamer.Sanitize(name) + ".json");
 
-    /// <summary>同じ名前があれば上書き、なければ追加。</summary>
+    /// <summary>同じ名前があれば上書き、なければ追加。2つ目の起動（ReadOnly）では書かない。</summary>
     public void SavePreset(PresetData p)
     {
-        var list = Presets.ToList();
-        var i = list.FindIndex(x => x.Name == p.Name);
-        if (i >= 0) list[i] = p; else list.Add(p);
-        WritePresets(list);
+        if (ReadOnly) return;
+        try
+        {
+            Directory.CreateDirectory(_presetDir);
+            var path = PresetFile(p.Name);
+            var tmp = path + ".tmp";
+            File.WriteAllText(tmp, PresetJson.ToFile(p), new UTF8Encoding(false));
+            File.Move(tmp, path, overwrite: true);
+            SaveError = null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            SaveError = ex.Message;
+        }
     }
 
-    public void DeletePreset(string name) => WritePresets(Presets.Where(p => p.Name != name).ToList());
+    public void DeletePreset(string name)
+    {
+        if (ReadOnly) return;
+        try { File.Delete(PresetFile(name)); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { SaveError = ex.Message; }
+    }
+
+    /// <summary>M5初版で ini の [Presets] に入れていたものを、Presets フォルダのファイルへ移す。</summary>
+    private void MigratePresets()
+    {
+        if (ReadOnly || _ini.Get("Presets", "Count", "") == "") return;
+        int.TryParse(_ini.Get("Presets", "Count", "0"), out var count);
+        for (int i = 0; i < count; i++)
+        {
+            var parsed = PresetJson.Parse(_ini.Get("Presets", $"Json{i}", ""), out _);
+            if (parsed is { Count: > 0 } && !File.Exists(PresetFile(parsed[0].Name))) SavePreset(parsed[0]);
+            _ini.Remove("Presets", $"Name{i}");
+            _ini.Remove("Presets", $"Json{i}");
+        }
+        _ini.Remove("Presets", "Count");
+        Save();
+    }
 
     /// <summary>いまの設定をプリセットにまとめる。</summary>
     public PresetData CapturePreset(string name) => new()
