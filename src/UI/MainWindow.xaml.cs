@@ -28,7 +28,7 @@ public partial class MainWindow : Window
         SplitBox.Text = SplitTime.Format(settings.SplitSeconds);
         LoadDevices();
         Devices.Init(settings, _devices, DefaultCaptureKey());
-        Devices.Changed += UpdateInfo;
+        Devices.Changed += () => { Devices.ClearError(); UpdateInfo(); };
         Devices.GainChanged += (index, db) => _session?.SetGain(index, db);
         Quality.Init(settings);
         Quality.Changed += UpdateInfo;

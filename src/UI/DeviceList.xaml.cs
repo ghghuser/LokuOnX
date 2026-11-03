@@ -102,7 +102,7 @@ public partial class DeviceList : UserControl
     /// <summary>録音に使う行（デバイスが選ばれていて、チェックが入っているもの）。</summary>
     private List<Row> Active() => _rows.Where(r => r.Key.Length > 0 && r.Use.IsChecked == true).ToList();
 
-    /// <summary>設定へ保存する全行（「なし」・無効の行も含む）。</summary>
+    /// <summary>設定へ保存する全行（「未選択」・無効の行も含む）。</summary>
     private List<InputSetting> AllRows() =>
         _rows.Select(r => new InputSetting(r.Key, r.Gain.Value, r.Use.IsChecked == true)).ToList();
 
@@ -153,7 +153,7 @@ public partial class DeviceList : UserControl
         row.Gain.LargeChange = 3;
         row.Gain.Value = Math.Clamp(gainDb, Settings.MinGainDb, Settings.MaxGainDb);
         row.Gain.VerticalAlignment = VerticalAlignment.Center;
-        row.Gain.ToolTip = "ゲイン（音量調整）。いちばん左＝ミュート。ダブルクリックで 0 dB に戻ります。録音中も変えられます";
+        row.Gain.ToolTip = "ゲイン（音量調整）。左端＝ミュート。ダブルクリックで 0 dB に戻ります。録音中も調整可能。";
         Grid.SetColumn(row.Gain, 2);
 
         row.GainText.Text = GainLabel(row.Gain.Value);
@@ -171,7 +171,11 @@ public partial class DeviceList : UserControl
         Grid.SetColumn(row.Level, 4);
 
         row.Remove.Content = "✕";
-        row.Remove.Width = 24;
+        row.Remove.Width = 18;
+        row.Remove.Height = 18;
+        row.Remove.Padding = new Thickness(0);
+        row.Remove.FontSize = 10;
+        row.Remove.VerticalAlignment = VerticalAlignment.Center;
         row.Remove.Margin = new Thickness(6, 0, 0, 0);
         row.Remove.ToolTip = "このデバイスを外す";
         Grid.SetColumn(row.Remove, 5);
@@ -225,7 +229,7 @@ public partial class DeviceList : UserControl
 
     private List<AudioDeviceInfo> ItemsFor(string key)
     {
-        var items = new List<AudioDeviceInfo> { new("", "（なし）", false, 0, 0) };
+        var items = new List<AudioDeviceInfo> { new("", "（未選択）", false, 0, 0) };
         items.AddRange(_devices);
         if (key.Length > 0 && !items.Any(d => d.Key == key))
             items.Add(new AudioDeviceInfo(key, "（接続されていないデバイス）", AudioKeys.IsLoopback(key), 0, 0));
@@ -243,7 +247,7 @@ public partial class DeviceList : UserControl
     private void Add_Click(object sender, RoutedEventArgs e)
     {
         if (_rows.Count >= Settings.MaxInputs) return;
-        AddRow("", 0);   // 追加した行は「なし」から始める（選ぶまで録音に使われない）
+        AddRow("", 0);   // 追加した行は「未選択」から始める（選ぶまで録音に使われない）
         _touched = true;
         UpdateLayout2();
         SaveNow();
@@ -273,8 +277,21 @@ public partial class DeviceList : UserControl
     {
         foreach (var r in _rows) r.Remove.Visibility = _rows.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         AddButton.IsEnabled = !_recording && _rows.Count < Settings.MaxInputs;
-        var multi = Active().Count > 1 ? Visibility.Visible : Visibility.Collapsed;
-        MixRadio.Visibility = SeparateRadio.Visibility = multi;
+        // ミックス／別ファイルの切替は常に表示し、有効なデバイスが2台未満のとき（と録音中）はグレーアウトする
+        MixRadio.IsEnabled = SeparateRadio.IsEnabled = !_recording && Active().Count > 1;
+    }
+
+    /// <summary>デバイス欄のすぐ下に、赤文字でエラーを出す（ポップアップは出さない）。</summary>
+    public void ShowError(string message)
+    {
+        ErrorText.Text = message;
+        ErrorText.Visibility = Visibility.Visible;
+    }
+
+    public void ClearError()
+    {
+        ErrorText.Text = "";
+        ErrorText.Visibility = Visibility.Collapsed;
     }
 
     private void SaveNow()
@@ -296,7 +313,6 @@ public partial class DeviceList : UserControl
             r.Remove.IsEnabled = !recording;
             if (!recording) r.Level.Value = 0;
         }
-        MixRadio.IsEnabled = SeparateRadio.IsEnabled = !recording;
         UpdateLayout2();
     }
 

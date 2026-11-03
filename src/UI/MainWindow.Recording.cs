@@ -31,10 +31,20 @@ public partial class MainWindow
     {
         if (_session != null) return;
         var inputs = Devices.Inputs;
-        if (inputs.Count == 0) { ShowError("入力デバイスを選んでください。"); return; }
+        ClearErrors();
+        if (inputs.Count == 0)
+        {
+            Devices.ShowError("入力デバイスが選ばれていません。「（未選択）」ではなくデバイスを選び、左のチェックを入れてください。");
+            return;
+        }
+        if (HasDuplicateDevice(inputs))
+        {
+            Devices.ShowError("同じデバイスが重複しています（「既定のデバイス（変更に追従）」と、その実際のデバイスも同じ扱いです）。どちらかを外してください。");
+            return;
+        }
         if (!File.Exists(AppPaths.Ffmpeg))
         {
-            ShowError($"FFmpeg が見つかりません。\n{AppPaths.Ffmpeg}");
+            ShowError($"FFmpeg が見つかりません: {AppPaths.Ffmpeg}");
             return;
         }
 
@@ -55,7 +65,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             group?.Dispose();
-            ShowError("録音を開始できませんでした。\n" + ex.Message);
+            ShowError("録音を開始できませんでした。" + ex.Message);
             return;
         }
         Wave.SetRows(inputs.Select(i => _devices.FirstOrDefault(d => d.Key == i.Key)?.Label ?? "（不明）").ToList());
@@ -121,7 +131,7 @@ public partial class MainWindow
         if (failure != null)
         {
             StatusText.Text = "録音が失敗しました（途中までのファイル: " + path + "）";
-            ShowError("録音中にエラーが発生しました。\n" + failure);
+            ShowError("録音中にエラーが発生しました。" + failure);
         }
         else
         {
@@ -185,8 +195,30 @@ public partial class MainWindow
 
     private static string Clock(TimeSpan t) => $"{(int)t.TotalHours}：{t.Minutes:00}：{t.Seconds:00}";
 
-    private void ShowError(string message) =>
-        MessageBox.Show(this, message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
+    /// <summary>エラーは音の鳴るポップアップではなく、画面内に赤文字で出す。</summary>
+    private void ShowError(string message)
+    {
+        ErrorText.Text = message;
+        ErrorText.Visibility = Visibility.Visible;
+    }
+
+    private void ClearErrors()
+    {
+        ErrorText.Text = "";
+        ErrorText.Visibility = Visibility.Collapsed;
+        Devices.ClearError();
+    }
+
+    /// <summary>「既定のデバイス」は実際のデバイスに置き換えて、同じデバイスが2回選ばれていないか調べる。</summary>
+    private bool HasDuplicateDevice(IReadOnlyList<InputSetting> inputs)
+    {
+        string Real(string key)
+        {
+            try { return _provider.Resolve(key) ?? key; }
+            catch (Exception) { return key; }
+        }
+        return inputs.Select(i => Real(i.Key)).Distinct().Count() != inputs.Count;
+    }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {

@@ -5,12 +5,14 @@
         <StackPanel x:Name="RowsPanel"/>
         <WrapPanel x:Name="FooterPanel">
             <Button x:Name="AddButton" Content="＋ デバイスを追加" Padding="12,2" Margin="0,0,18,4"
-                    ToolTip="複数のデバイスを同時に録音します（例: マイク＋PC音）"
+                    ToolTip="複数のデバイスを同時に録音します（例: マイク＋PC音）。録音中は変更できません"
                     Click="Add_Click"/>
             <RadioButton x:Name="MixRadio" Content="ミックスして1ファイル" GroupName="DeviceMode"
                          Margin="0,0,16,4" VerticalAlignment="Center" Checked="Mode_Checked"/>
             <RadioButton x:Name="SeparateRadio" Content="デバイスごとに別ファイル" GroupName="DeviceMode"
                          Margin="0,0,0,4" VerticalAlignment="Center" Checked="Mode_Checked"/>
         </WrapPanel>
+        <TextBlock x:Name="ErrorText" Foreground="#D33" TextWrapping="Wrap" Visibility="Collapsed"
+                   Margin="0,0,0,4"/>
     </StackPanel>
 </UserControl>

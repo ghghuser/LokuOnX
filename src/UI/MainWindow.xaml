@@ -115,8 +115,12 @@
         </StackPanel>
 
         <!-- 下段: 状態表示（ファイル一覧とプレイヤーは M6） -->
-        <TextBox x:Name="StatusText" Grid.Row="4" Margin="0,10,0,0" IsReadOnly="True"
-                 BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
-                 Text="待機中"/>
+        <StackPanel Grid.Row="4" Margin="0,10,0,0">
+            <TextBlock x:Name="ErrorText" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="Collapsed" Margin="0,0,0,4"/>
+            <TextBox x:Name="StatusText" IsReadOnly="True"
+                     BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
+                     Text="待機中"/>
+        </StackPanel>
     </Grid>
 </Window>
