@@ -4,10 +4,11 @@
     <WrapPanel>
         <ComboBox x:Name="PresetBox" Width="220" IsEditable="True" Margin="0,0,8,2"
                   ToolTip="選ぶとその設定になります。名前を書いて「保存」すると、いまの設定が新しいプリセットになります（保存先と番号は含みません）"
-                  SelectionChanged="Preset_Selected"/>
+                  SelectionChanged="Preset_Selected" DropDownOpened="Preset_DropDownOpened"/>
         <Button Content="保存" Padding="12,3" Margin="0,0,6,2" Click="Save_Click"/>
         <Button Content="削除" Padding="12,3" Margin="0,0,6,2" Click="Delete_Click"/>
-        <Button Content="JSONに書き出し..." Padding="12,3" Margin="0,0,6,2" Click="Export_Click"/>
-        <Button Content="JSONを読み込み..." Padding="12,3" Margin="0,0,0,2" Click="Import_Click"/>
+        <Button Content="Presetsフォルダを開く" Padding="12,3" Margin="0,0,0,2"
+                ToolTip="プリセットのJSONが入っているフォルダを開きます。ファイルを入れる・コピーする・消すだけで、プリセットを追加・共有・削除できます"
+                Click="OpenFolder_Click"/>
     </WrapPanel>
 </UserControl>

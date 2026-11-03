@@ -32,6 +32,9 @@ public sealed partial class Settings
         }
     }
 
+    /// <summary>プリセットのJSONを入れるフォルダ（画面の「Presetsフォルダを開く」で開く）。</summary>
+    public string PresetFolder => _presetDir;
+
     private string PresetFile(string name) => Path.Combine(_presetDir, FileNamer.Sanitize(name) + ".json");
 
     /// <summary>同じ名前があれば上書き、なければ追加。2つ目の起動（ReadOnly）では書かない。</summary>

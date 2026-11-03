@@ -1,7 +1,6 @@
-using System.Text;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Win32;
 using Recorder.Core;
 
 namespace Recorder.UI;
@@ -84,44 +83,27 @@ public partial class PresetBar : UserControl
         Applied?.Invoke();
     }
 
-    private void Export_Click(object sender, RoutedEventArgs e)
+    /// <summary>プルダウンを開くとき、フォルダに入れた・消したファイルを反映する。</summary>
+    private void Preset_DropDownOpened(object? sender, EventArgs e)
     {
         if (_s == null) return;
-        Acting?.Invoke();
-        Prepare?.Invoke();
-        var name = PresetBox.Text.Trim();
-        if (name.Length == 0) name = _s.CurrentPreset;
-        var dlg = new SaveFileDialog
-        {
-            Filter = "プリセット (*.json)|*.json", DefaultExt = ".json",
-            FileName = FileNamer.Sanitize(name) + ".json",
-        };
-        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-        try { File.WriteAllText(dlg.FileName, PresetJson.ToFile(_s.CapturePreset(name)), new UTF8Encoding(false)); }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            Error?.Invoke("書き出せませんでした: " + ex.Message);
-        }
+        var text = PresetBox.Text;
+        Reload(text);
+        PresetBox.Text = text;
     }
 
-    private void Import_Click(object sender, RoutedEventArgs e)
+    private void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
         if (_s == null) return;
         Acting?.Invoke();
-        var dlg = new OpenFileDialog { Filter = "プリセット (*.json)|*.json|すべてのファイル|*.*" };
-        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-        string text;
-        try { text = File.ReadAllText(dlg.FileName, Encoding.UTF8); }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        try
         {
-            Error?.Invoke("読み込めませんでした: " + ex.Message);
-            return;
+            Directory.CreateDirectory(_s.PresetFolder);
+            Process.Start(new ProcessStartInfo(_s.PresetFolder) { UseShellExecute = true });
         }
-        var list = PresetJson.Parse(text, out var err);
-        if (list == null) { Error?.Invoke(err ?? "読み込めませんでした。"); return; }
-        foreach (var p in list) _s.SavePreset(p);
-        _s.ApplyPreset(list[0]);
-        Reload(list[0].Name);
-        Applied?.Invoke();
+        catch (Exception ex)
+        {
+            Error?.Invoke("フォルダを開けませんでした: " + ex.Message);
+        }
     }
 }
