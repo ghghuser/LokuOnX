@@ -59,8 +59,19 @@ public partial class DeviceList : UserControl
     {
         _s = settings;
         _devices = devices.ToList();
+        Rebuild(defaultKey);
+    }
+
+    /// <summary>設定（settings.ini）の内容で行を作り直す。起動時と、プリセットを読み込んだとき。</summary>
+    public void Rebuild(string? defaultKey)
+    {
+        if (_s == null) return;
         _loading = true;
-        var inputs = settings.Inputs.ToList();
+        _touched = false;
+        _saveTimer.Stop();
+        RowsPanel.Children.Clear();
+        _rows.Clear();
+        var inputs = _s.Inputs.ToList();
         if (inputs.Count == 0)
         {
             var key = defaultKey != null && _devices.Any(d => d.Key == defaultKey)
@@ -78,8 +89,8 @@ public partial class DeviceList : UserControl
             _touched = true;
         }
         foreach (var i in inputs) AddRow(i.Key, i.GainDb, i.Enabled);
-        MixRadio.IsChecked = !settings.SeparateFiles;
-        SeparateRadio.IsChecked = settings.SeparateFiles;
+        MixRadio.IsChecked = !_s.SeparateFiles;
+        SeparateRadio.IsChecked = _s.SeparateFiles;
         _loading = false;
         UpdateLayout2();
     }

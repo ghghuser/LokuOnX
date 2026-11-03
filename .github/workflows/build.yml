@@ -46,11 +46,11 @@ jobs:
           "FFMPEG_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "FFMPEG_ROOT=$($exe.Directory.Parent.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
-      - name: Check FFmpeg encoders (libmp3lame / aac / flac)
+      - name: Check FFmpeg encoders (libmp3lame / aac / flac / libvorbis / libopus / pcm_s16le)
         shell: pwsh
         run: |
           $out = & $env:FFMPEG_EXE -hide_banner -encoders 2>&1 | Out-String
-          foreach ($name in 'libmp3lame', 'aac', 'flac') {
+          foreach ($name in 'libmp3lame', 'aac', 'flac', 'libvorbis', 'libopus', 'pcm_s16le') {
             if ($out -notmatch "(?m)^\s*A\S*\s+$name\s") {
               Write-Host $out
               throw "error: FFmpeg encoder '$name' is missing"

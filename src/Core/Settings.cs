@@ -48,14 +48,14 @@ public sealed partial class Settings
     /// <summary>最後に選んだデバイスの Key。</summary>
     public string Device { get => Get("Device", ""); set => Set("Device", value); }
 
-    /// <summary>"flac" / "mp3" / "m4a" / "aac"（OutputFormat.Key）。既定 flac。</summary>
+    /// <summary>"flac" / "mp3" / "m4a" / "aac" / "wav" / "ogg" / "opus"（OutputFormat.Key）。既定 flac。</summary>
     public string Format
     {
         get => OutputFormat.Get(Get("Format", "flac")).Key;
         set => Set("Format", value);
     }
 
-    /// <summary>mp3 / aac のビットレート(kbps)。既定192。flac では使わない。</summary>
+    /// <summary>mp3 / aac / ogg / opus のビットレート(kbps)。既定192。flac・wav では使わない。</summary>
     public int BitrateKbps
     {
         get => int.TryParse(Get("Bitrate", "192"), out var n) && EncodeOptions.Bitrates.Contains(n) ? n : 192;
@@ -76,8 +76,8 @@ public sealed partial class Settings
         set => Set("Channels", value.ToString());
     }
 
-    /// <summary>形式と音質をまとめたもの。</summary>
-    public EncodeOptions Encode => new(Format, BitrateKbps, SampleRate, Channels);
+    /// <summary>形式・音質・圧縮率・タグをまとめたもの。</summary>
+    public EncodeOptions Encode => new(Format, BitrateKbps, SampleRate, Channels, Compression, Tags);
 
     public string Folder
     {

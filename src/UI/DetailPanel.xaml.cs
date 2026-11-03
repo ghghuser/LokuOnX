@@ -14,9 +14,20 @@ public partial class DetailPanel : UserControl
     /// <summary>設定が変わった（常時表示のファイル名の例の更新用）。</summary>
     public event Action? Changed;
 
+    /// <summary>画面の色を変えた（"auto" / "light" / "dark"）。</summary>
+    public event Action<string>? ThemeChanged;
+
+    private sealed record ThemeChoice(string Key, string Label);
+
+    private static readonly ThemeChoice[] Themes =
+    {
+        new("auto", "自動（Windowsに合わせる）"), new("light", "ライト"), new("dark", "ダーク"),
+    };
+
     public DetailPanel()
     {
         InitializeComponent();
+        ThemeBox.ItemsSource = Themes;
     }
 
     public void Init(Settings settings, Func<string> deviceLabel)
@@ -26,6 +37,7 @@ public partial class DetailPanel : UserControl
         _loading = true;
         ReloadTemplates(null);
         _loading = false;
+        Tags.Init(settings);
         Reload();
     }
 
@@ -41,6 +53,10 @@ public partial class DetailPanel : UserControl
         DateFolderCheck.IsChecked = _s.DateFolder;
         DateFormatBox.Text = _s.DateFolderFormat;
         DateFormatBox.IsEnabled = _s.DateFolder;
+        SleepCheck.IsChecked = _s.PreventSleep;
+        ThemeBox.SelectedValue = _s.Theme;
+        Tags.Reload();
+        ReloadTemplates(null);
         _loading = was;
         Refresh();
     }
@@ -58,7 +74,7 @@ public partial class DetailPanel : UserControl
     /// <summary>例の表示用。36：25 録音した場合の値。</summary>
     private NameContext SampleContext(DateTime now) =>
         new(now, _s!.NextNo, _s.TrackStart, TimeSpan.Zero, TimeSpan.FromSeconds(2185),
-            FileNamer.CleanDevice(_deviceLabel()), RecordingPlan.PresetName, _s.Encode.Fmt.Ext);
+            FileNamer.CleanDevice(_deviceLabel()), _s.CurrentPreset, _s.Encode.Fmt.Ext);
 
     private void UpdateExample()
     {
@@ -202,6 +218,7 @@ public partial class DetailPanel : UserControl
         if (TryNumber(NoBox, out var n)) _s.NextNo = n;
         if (TryNumber(TrackBox, out var t)) _s.TrackStart = t;
         CommitDateFormat();
+        Tags.Commit();
         NoBox.Text = _s.NextNo.ToString();
         TrackBox.Text = _s.TrackStart.ToString();
     }
@@ -232,6 +249,19 @@ public partial class DetailPanel : UserControl
         _s.DateFolder = DateFolderCheck.IsChecked == true;
         DateFormatBox.IsEnabled = _s.DateFolder;
         Notify();
+    }
+
+    private void Sleep_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading || _s == null) return;
+        _s.PreventSleep = SleepCheck.IsChecked == true;
+    }
+
+    private void Theme_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || _s == null || ThemeBox.SelectedValue is not string key) return;
+        _s.Theme = key;
+        ThemeChanged?.Invoke(key);
     }
 
     private void DateFormat_LostFocus(object sender, RoutedEventArgs e) => CommitDateFormat();

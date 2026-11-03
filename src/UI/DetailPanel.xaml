@@ -36,7 +36,7 @@
         </WrapPanel>
 
         <!-- 折りたたみ: 日付フォルダ・タグ -->
-        <Expander Header="日付フォルダ・タグ">
+        <Expander Header="日付フォルダ・タグ・その他">
             <StackPanel Margin="16,6,0,4">
                 <WrapPanel Margin="0,0,0,8">
                     <CheckBox x:Name="DateFolderCheck" Content="日付フォルダを作る" VerticalAlignment="Center"
@@ -47,7 +47,16 @@
                     <Button Content="？" Width="28" Margin="6,0,0,0"
                             ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="DateFormatHelp_Click"/>
                 </WrapPanel>
-                <TextBlock Opacity="0.7" Text="タグ（タイトル・アーティスト等）は M5 で追加します。"/>
+                <TextBlock Text="タグ" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <ui:TagPanel x:Name="Tags" Margin="0,0,0,10"/>
+                <TextBlock Text="その他" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <WrapPanel>
+                    <CheckBox x:Name="SleepCheck" Content="録音中はスリープさせない" VerticalAlignment="Center"
+                              Margin="0,0,24,0" Checked="Sleep_Changed" Unchecked="Sleep_Changed"/>
+                    <TextBlock Text="画面の色" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <ComboBox x:Name="ThemeBox" Width="150" DisplayMemberPath="Label" SelectedValuePath="Key"
+                              ToolTip="自動＝Windowsの設定に合わせます" SelectionChanged="Theme_Changed"/>
+                </WrapPanel>
             </StackPanel>
         </Expander>
     </StackPanel>

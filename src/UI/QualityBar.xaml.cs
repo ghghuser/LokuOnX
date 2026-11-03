@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using Recorder.Core;
 
@@ -6,7 +7,7 @@ namespace Recorder.UI;
 /// <summary>コンボボックスの選択肢（値と表示名）。</summary>
 public sealed record Choice(int Value, string Label);
 
-/// <summary>音質（ビットレート・サンプリング周波数・チャンネル）。メジャーな設定なので折りたたみの外に常時表示する。値は Settings に即保存。</summary>
+/// <summary>音質（ビットレート・サンプリング周波数・チャンネル・圧縮率）。メジャーな設定なので折りたたみの外に常時表示する。値は Settings に即保存。</summary>
 public partial class QualityBar : UserControl
 {
     private static readonly Choice[] RateChoices =
@@ -19,6 +20,7 @@ public partial class QualityBar : UserControl
 
     private Settings? _s;
     private bool _loading;
+    private string _compFormat = "";
 
     /// <summary>設定が変わった（ファイル名の例の更新用）。</summary>
     public event Action? Changed;
@@ -48,10 +50,44 @@ public partial class QualityBar : UserControl
         Refresh();
     }
 
-    /// <summary>形式が変わったときに、ビットレートの有効/無効を更新する。</summary>
+    /// <summary>形式が変わったときに、ビットレートの有効/無効と、圧縮率の欄（形式ごとの選択肢）を更新する。</summary>
     public void Refresh()
     {
-        if (_s != null) BitrateBox.IsEnabled = _s.Encode.Fmt.Lossy;
+        if (_s == null) return;
+        var fmt = _s.Encode.Fmt;
+        var spec = fmt.Compression;
+        CompPanel.Visibility = spec == null ? Visibility.Collapsed : Visibility.Visible;
+        if (spec != null && _compFormat != fmt.Key)
+        {
+            var was = _loading;
+            _loading = true;
+            CompLabel.Text = spec.Label;
+            CompBox.ToolTip = spec.Tooltip;
+            var list = new List<Choice>();
+            if (spec.NoneLabel != null) list.Add(new Choice(-1, spec.NoneLabel));
+            for (int v = spec.Min; v <= spec.Max; v++)
+                list.Add(new Choice(v, v == spec.Default ? $"{v}（既定）" : v.ToString()));
+            CompBox.ItemsSource = list;
+            _compFormat = fmt.Key;
+            _loading = was;
+        }
+        if (spec != null)
+        {
+            var was = _loading;
+            _loading = true;
+            CompBox.SelectedValue = _s.Compression;
+            _loading = was;
+        }
+        // ogg は「Vorbis品質」を選んだらビットレートは使われない
+        BitrateBox.IsEnabled = fmt.UsesBitrate && !(fmt.Key == "ogg" && _s.Compression >= 0);
+    }
+
+    private void Comp_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || _s == null || CompBox.SelectedValue is not int v) return;
+        _s.Compression = v;
+        Refresh();
+        Changed?.Invoke();
     }
 
     private void Bitrate_Changed(object sender, SelectionChangedEventArgs e)

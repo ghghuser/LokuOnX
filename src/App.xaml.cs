@@ -35,6 +35,7 @@ public partial class App : Application
         }
 
         var settings = new Settings(AppPaths.SettingsIni, readOnly: !first);
+        UI.ThemeManager.Apply(settings.Theme);   // 画面の色（自動／ライト／ダーク）。ウィンドウを作る前に
         new UI.MainWindow(settings).Show();
     }
 

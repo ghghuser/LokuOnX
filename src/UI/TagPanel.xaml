@@ -1,0 +1,35 @@
+<UserControl x:Class="Recorder.UI.TagPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="タイトル" VerticalAlignment="Center" Margin="0,0,6,6"/>
+            <TextBox x:Name="TitleBox" Grid.Column="1" Margin="0,0,14,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
+            <TextBlock Grid.Column="2" Text="アーティスト" VerticalAlignment="Center" Margin="0,0,6,6"/>
+            <TextBox x:Name="ArtistBox" Grid.Column="3" Margin="0,0,14,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
+            <TextBlock Grid.Column="4" Text="アルバム" VerticalAlignment="Center" Margin="0,0,6,6"/>
+            <TextBox x:Name="AlbumBox" Grid.Column="5" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
+            <TextBlock Grid.Row="1" Text="ジャンル" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="GenreBox" Grid.Row="1" Grid.Column="1" Margin="0,0,14,0" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="年" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="YearBox" Grid.Row="1" Grid.Column="3" Margin="0,0,14,0" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
+            <TextBlock Grid.Row="1" Grid.Column="4" Text="コメント" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="CommentBox" Grid.Row="1" Grid.Column="5" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
+        </Grid>
+        <CheckBox x:Name="TrackCheck" Margin="0,8,0,0" Content="トラック番号タグを付ける（分割した録音の全ファイルに付きます）"
+                  ToolTip=".aac（ADTS）はタグを持てないため付きません。m4a・mp3・flac・wav・ogg・opus に付きます"
+                  Checked="Track_Changed" Unchecked="Track_Changed"/>
+    </StackPanel>
+</UserControl>

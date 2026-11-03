@@ -23,7 +23,7 @@ public static class VariableHelp
         new VarInfo("{Length}", "このファイルの長さ（End − Start）"),
         new VarInfo("{Device}", "入力デバイスの名前"),
         new VarInfo("{Preset}", "プリセット名"),
-        new VarInfo("{ext}", "拡張子（flac / mp3 / m4a / aac）"),
+        new VarInfo("{ext}", "拡張子（flac / mp3 / m4a / aac / wav / ogg / opus）"),
         new VarInfo("{Start:min}", "開始時間を分だけで表す（例 125：30）"),
         new VarInfo("{End:min}", "終了時間を分だけで表す"),
         new VarInfo("{Length:min}", "長さを分だけで表す"),

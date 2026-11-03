@@ -9,11 +9,12 @@ public sealed record FinalizeResult(string Path, string? Warning);
 /// <summary>
 /// 録音を閉じた後に、仮名のファイルを最終名へ確定する（PROJECT.md §3-4）。
 /// m4a は録音中が断片化MP4なので、ここで通常のm4aへ整える。整えるのに失敗しても断片化のまま残す（再生可能）。
+/// wav は異常終了すると長さ情報（ヘッダー）が壊れるので、復旧（repair = true）のときだけ作り直す。
 /// </summary>
 public static class FileFinalizer
 {
     public static FinalizeResult Run(string tempPath, string folder, string fileName,
-        EncodeOptions options, string ffmpegPath)
+        EncodeOptions options, string ffmpegPath, bool repair = false)
     {
         if (!File.Exists(tempPath))
             return new FinalizeResult(tempPath, "録音ファイルが見つかりませんでした。");
@@ -30,15 +31,18 @@ public static class FileFinalizer
         }
 
         string? warning = null;
-        if (options.Format == "m4a")
+        if (options.Format == "m4a" || (repair && options.Format == "wav"))
         {
-            var err = Remux(ffmpegPath, tempPath, dest);
+            var fmt = options.Fmt;
+            var err = Remux(ffmpegPath, tempPath, dest, fmt.Muxer, fmt.Key == "m4a");
             if (err == null)
             {
                 TryDelete(tempPath);
                 return new FinalizeResult(dest, null);
             }
-            warning = "m4aの整形に失敗したため、断片化MP4のまま保存しました（再生はできます）: " + err;
+            warning = options.Format == "wav"
+                ? "wavのヘッダーを作り直せなかったため、そのまま保存しました（長さが正しく表示されない場合があります）: " + err
+                : "m4aの整形に失敗したため、断片化MP4のまま保存しました（再生はできます）: " + err;
             TryDelete(dest);
         }
 
@@ -53,8 +57,8 @@ public static class FileFinalizer
         }
     }
 
-    /// <summary>断片化MP4を通常のm4aへ作り直す（再エンコードなし）。成功なら null、失敗なら理由。</summary>
-    private static string? Remux(string ffmpeg, string src, string dst)
+    /// <summary>ファイルを再エンコードなしで作り直す（m4a は通常のm4aへ、wav はヘッダーを正しく）。成功なら null、失敗なら理由。</summary>
+    private static string? Remux(string ffmpeg, string src, string dst, string muxer, bool faststart)
     {
         var psi = new ProcessStartInfo(ffmpeg)
         {
@@ -63,9 +67,11 @@ public static class FileFinalizer
             CreateNoWindow = true,
             StandardErrorEncoding = Encoding.UTF8,
         };
-        foreach (var a in new[] { "-hide_banner", "-loglevel", "error", "-y", "-i", src,
-                     "-c", "copy", "-movflags", "+faststart", "-f", "mp4", dst })
-            psi.ArgumentList.Add(a);
+        var args = new List<string> { "-hide_banner", "-loglevel", "error", "-y", "-i", src, "-c", "copy" };
+        if (faststart) args.AddRange(new[] { "-movflags", "+faststart" });
+        else if (muxer == "wav") args.AddRange(new[] { "-rf64", "auto" });
+        args.AddRange(new[] { "-f", muxer, dst });
+        foreach (var a in args) psi.ArgumentList.Add(a);
         try
         {
             using var p = Process.Start(psi);

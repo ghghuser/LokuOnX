@@ -34,6 +34,13 @@ public partial class MainWindow : Window
         Quality.Changed += UpdateInfo;
         Detail.Init(settings, () => Devices.NameLabel);
         Detail.Changed += UpdateInfo;
+        Detail.ThemeChanged += mode => ThemeManager.Apply(mode);
+        Presets.Init(settings);
+        Presets.Prepare = CommitInputs;
+        Presets.Acting += ClearErrors;
+        Presets.Error += ShowError;
+        Presets.Applied += ReloadFromSettings;
+        ThemeManager.Attach(this, settings.Theme);
         _loading = false;
 
         // デバイスの抜き差し・既定の変更を、録音していないときは自動で一覧へ反映する
@@ -83,6 +90,28 @@ public partial class MainWindow : Window
     {
         Detail.Refresh();
         Quality.Refresh();
+    }
+
+    /// <summary>入力途中の欄（保存先・自動分割・パターン・番号・タグ）を設定へ反映する（録音開始・プリセット保存の直前）。</summary>
+    private void CommitInputs()
+    {
+        FolderBox_LostFocus(this, new RoutedEventArgs());
+        Split_LostFocus(this, new RoutedEventArgs());
+        Detail.CommitAll();
+    }
+
+    /// <summary>プリセットを読み込んだあと、画面の各欄を設定の値で読み直す。</summary>
+    private void ReloadFromSettings()
+    {
+        _loading = true;
+        FormatBox.SelectedValue = _settings.Format;
+        SplitBox.Text = SplitTime.Format(_settings.SplitSeconds);
+        Quality.Reload();
+        Detail.Reload();
+        _loading = false;
+        Devices.Rebuild(DefaultCaptureKey());
+        Presets.Reload(null);
+        UpdateInfo();
     }
 
     // ---- 設定の変更 ----

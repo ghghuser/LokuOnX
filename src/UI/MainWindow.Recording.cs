@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Recorder.Core;
+using Recorder.Core.Win;
 
 namespace Recorder.UI;
 
@@ -16,6 +17,7 @@ public partial class MainWindow
     private DateTime _clipUntil = DateTime.MinValue;
     private bool _closeAfterStop;
     private string _notice = "";
+    private DateTime _nextDiskCheck = DateTime.MinValue;
 
     private void StartTimer()
     {
@@ -51,9 +53,12 @@ public partial class MainWindow
         RecordingGroup? group = null;
         try
         {
-            FolderBox_LostFocus(sender, e);
-            Split_LostFocus(sender, e);
-            Detail.CommitAll();
+            CommitInputs();
+            if (DiskSpace.FreeBytes(_settings.Folder) is { } free && free < DiskSpace.StopBytes)
+            {
+                ShowError($"保存先のドライブの空きが {DiskSpace.Text(free)} しかないため、録音を始められません。空き容量を増やすか、保存先を変えてください。");
+                return;
+            }
             var no = _settings.NextNo;
             group = RecordingGroup.Create(_provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now);
             group.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
@@ -70,6 +75,7 @@ public partial class MainWindow
         }
         Wave.SetRows(inputs.Select(i => _devices.FirstOrDefault(d => d.Key == i.Key)?.Label ?? "（不明）").ToList());
         _notice = "";
+        _nextDiskCheck = DateTime.MinValue;   // 開始直後に1回、あとは30秒ごとに空き容量を調べる
         SetRecording(true);
         Detail.Reload();   // {No} が進んだので画面へ反映
         UpdateInfo();
@@ -161,7 +167,8 @@ public partial class MainWindow
         PauseButton.Content = "一時停止";
         FormatBox.IsEnabled = FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
         Devices.SetRecording(recording);
-        Quality.IsEnabled = Detail.IsEnabled = !recording;
+        Quality.IsEnabled = Detail.IsEnabled = Presets.IsEnabled = !recording;
+        SleepGuard.Prevent(recording && _settings.PreventSleep);
         RefreshButton.IsEnabled = BrowseButton.IsEnabled = !recording;
         if (!recording) StateText.Text = "待機中";
     }
@@ -174,6 +181,12 @@ public partial class MainWindow
         {
             Meter.Value = Math.Max(0, Meter.Value - 0.05);
             return;
+        }
+        if (DateTime.Now >= _nextDiskCheck)
+        {
+            _nextDiskCheck = DateTime.Now.AddSeconds(30);
+            CheckDisk();
+            if (_session == null) return;
         }
         var t = s.Elapsed;
         // 大きい表示 = いまのファイルを始めてから。分割したあとは、横に（連続 ○）で録音全体の時間も出す
@@ -191,6 +204,16 @@ public partial class MainWindow
         var clip = DateTime.Now < _clipUntil;
         Meter.Foreground = clip ? RedBrush : GreenBrush;
         PeakText.Text = clip ? "クリップ!" : "";
+    }
+
+    /// <summary>保存先の空き容量。1GB未満で赤文字の警告、100MB未満なら安全のため録音を止めて保存する。</summary>
+    private void CheckDisk()
+    {
+        if (DiskSpace.FreeBytes(_settings.Folder) is not { } free) return;
+        if (free < DiskSpace.StopBytes)
+            _ = StopAsync($"保存先の空き容量が {DiskSpace.Text(free)} になったため、データを守るために録音を止めて保存しました。");
+        else if (free < DiskSpace.WarnBytes)
+            ShowError($"保存先のドライブの空きが少なくなっています（残り {DiskSpace.Text(free)}）。空きがなくなる前に録音を止めて、不要なファイルを整理してください。");
     }
 
     private static string Clock(TimeSpan t) => $"{(int)t.TotalHours}：{t.Minutes:00}：{t.Seconds:00}";

@@ -4,6 +4,7 @@
     <UserControl.Resources>
         <!-- 無効（グレーアウト）のときは、文字も丸印もかなり薄くする -->
         <Style TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
                     <Setter Property="Opacity" Value="0.35"/>

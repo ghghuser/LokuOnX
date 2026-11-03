@@ -30,7 +30,7 @@ public sealed class RecordingPlan
     {
         var options = s.Encode;
         var ctx = new NameContext(now, s.NextNo, s.TrackStart, TimeSpan.Zero, TimeSpan.Zero,
-            FileNamer.CleanDevice(deviceLabel), PresetName, options.Fmt.Ext);
+            FileNamer.CleanDevice(deviceLabel), s.CurrentPreset, options.Fmt.Ext);
         var folder = FileNamer.Folder(s.Folder, s.DateFolder, s.DateFolderFormat, ctx);
         return new RecordingPlan(ctx, addDevice ? FileNamer.WithDevice(s.Pattern) : s.Pattern, folder, options, lane);
     }
@@ -39,12 +39,16 @@ public sealed class RecordingPlan
     public static string PreviewFolder(Settings s, DateTime now)
     {
         var ctx = new NameContext(now, s.NextNo, s.TrackStart, TimeSpan.Zero, TimeSpan.Zero,
-            "", PresetName, s.Encode.Fmt.Ext);
+            "", s.CurrentPreset, s.Encode.Fmt.Ext);
         return FileNamer.Folder(s.Folder, s.DateFolder, s.DateFolderFormat, ctx);
     }
 
     /// <summary>index番目（0始まり）のトラックの {Track} の値。</summary>
     public int TrackNumber(int index) => _ctx.Track + index;
+
+    /// <summary>index番目のトラックを書き出すときの設定。タグのトラック番号がONなら、その番号を入れる。</summary>
+    public EncodeOptions OptionsFor(int index) =>
+        Options.Tags is { TrackNumber: true } ? Options with { TrackNumber = TrackNumber(index) } : Options;
 
     /// <summary>録音を始めた時刻。1つ目のファイルの {Date}/{Time} に使う（2つ目以降は分割した時刻）。</summary>
     public DateTime StartTime => _ctx.Time;

@@ -85,7 +85,7 @@ public sealed partial class RecordingSession : IDisposable
     private Track NewTrack(int index, TimeSpan start, DateTime time)
     {
         var path = _plan.TempPathFor(index, time);
-        var encoder = new FfmpegEncoder(_ffmpeg, path, _plan.Options, _source.Format);
+        var encoder = new FfmpegEncoder(_ffmpeg, path, _plan.OptionsFor(index), _source.Format);
         var track = new Track(index, path, encoder, start, time);
         encoder.Failed += msg =>
         {
