@@ -5,5 +5,5 @@
     <SolidColorBrush x:Key="WindowFg" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="NewFileFg" Color="#1565C0"/>
     <SolidColorBrush x:Key="OldFileFg" Color="{x:Static SystemColors.ControlTextColor}"/>
-    <SolidColorBrush x:Key="MarkFg" Color="#1565C0"/>
+    <SolidColorBrush x:Key="MarkFg" Color="#5F6368"/>
 </ResourceDictionary>

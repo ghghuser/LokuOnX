@@ -43,7 +43,7 @@ public sealed class LibraryFile : INotifyPropertyChanged
     public bool IsNew => !IsRecording && Created >= SessionStart;
 
     /// <summary>行頭の印（●）。起動後に作られたファイルと、録音中の行に付く。</summary>
-    public string Mark => IsRecording || IsNew ? "●" : "";
+    public string Mark => IsRecording ? "●" : IsNew ? "*" : "";
 
     public TimeSpan? Length
     {

@@ -41,6 +41,11 @@ public partial class DeviceList : UserControl
     /// <summary>デバイスの選択・追加・削除・ミックス/別ファイルの切替があった。</summary>
     public event Action? Changed;
 
+    /// <summary>「デバイス再取得」ボタン（デバイス一覧を読み直す）。</summary>
+    public event Action? RefreshRequested;
+
+    private void Refresh_Click(object sender, RoutedEventArgs e) => RefreshRequested?.Invoke();
+
     /// <summary>ゲインが変わった（デバイスの順番, dB）。録音中も使える。</summary>
     public event Action<int, double>? GainChanged;
 
@@ -288,6 +293,7 @@ public partial class DeviceList : UserControl
     {
         foreach (var r in _rows) r.Remove.Visibility = _rows.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         AddButton.IsEnabled = !_recording && _rows.Count < Settings.MaxInputs;
+        RefreshButton.IsEnabled = !_recording;
         // ミックス／別ファイルの切替は常に表示し、有効なデバイスが2台未満のとき（と録音中）はグレーアウトする
         MixRadio.IsEnabled = SeparateRadio.IsEnabled = !_recording && Active().Count > 1;
     }

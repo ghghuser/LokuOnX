@@ -1,15 +1,12 @@
 <UserControl x:Class="Recorder.UI.QualityBar"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <WrapPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
-            <TextBlock Text="ビットレート" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="BitrateBox" Width="100"
-                      DisplayMemberPath="Label" SelectedValuePath="Value"
-                      ToolTip="mp3 / aac / ogg / opus のとき有効（flac・wav は無劣化のため指定なし）"
-                      SelectionChanged="Bitrate_Changed"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
+    <StackPanel>
+        <!-- 1行目: 形式・サンプリング周波数・チャンネル -->
+        <WrapPanel Margin="0,0,0,4">
+            <ComboBox x:Name="FormatBox" Width="140" Margin="0,0,18,2" DisplayMemberPath="Label" SelectedValuePath="Key"
+                      SelectionChanged="Format_Changed"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
             <TextBlock Text="サンプリング周波数" VerticalAlignment="Center" Margin="0,0,6,0"/>
             <ComboBox x:Name="RateBox" Width="190"
                       DisplayMemberPath="Label" SelectedValuePath="Value"
@@ -22,12 +19,23 @@
                       DisplayMemberPath="Label" SelectedValuePath="Value"
                       SelectionChanged="Channel_Changed"/>
         </StackPanel>
-        <!-- 圧縮率: 設定のある形式（flac・mp3・ogg・opus）だけ表示する -->
+        </WrapPanel>
+        <!-- 2行目（形式の下）: ビットレート・圧縮レベル／LAME品質／Vorbis品質 -->
+        <WrapPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
+            <TextBlock Text="ビットレート" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="BitrateBox" Width="100"
+                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                      ToolTip="mp3 / aac / ogg / opus のとき有効（flac・wav は無劣化のため指定なし）"
+                      SelectionChanged="Bitrate_Changed"/>
+        </StackPanel>
+            <!-- 圧縮率: 設定のある形式（flac・mp3・ogg・opus）だけ表示する -->
         <StackPanel x:Name="CompPanel" Orientation="Horizontal" Margin="0,0,0,2">
             <TextBlock x:Name="CompLabel" Text="圧縮レベル" VerticalAlignment="Center" Margin="0,0,6,0"/>
             <ComboBox x:Name="CompBox" Width="150"
                       DisplayMemberPath="Label" SelectedValuePath="Value"
                       SelectionChanged="Comp_Changed"/>
         </StackPanel>
-    </WrapPanel>
+        </WrapPanel>
+    </StackPanel>
 </UserControl>

@@ -50,6 +50,13 @@ public partial class FileListPanel : UserControl
         InitializeComponent();
     }
 
+    /// <summary>一覧の下に置く部品（プレイヤー）。</summary>
+    public object? Footer
+    {
+        get => Slot.Content;
+        set => Slot.Content = value;
+    }
+
     public void Init(Settings settings, string ffmpegPath)
     {
         _settings = settings;

@@ -11,23 +11,75 @@
     <SolidColorBrush x:Key="DisabledFg" Color="#7A7D82"/>
     <SolidColorBrush x:Key="NewFileFg" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="OldFileFg" Color="#B3B7BD"/>
-    <SolidColorBrush x:Key="MarkFg" Color="#6EA8FE"/>
+    <SolidColorBrush x:Key="MarkFg" Color="#9AA0A6"/>
+    <!-- パステルイエロー（チェック・スライダー・選択行の線・フォーカス） -->
+    <SolidColorBrush x:Key="Pastel" Color="#F3DD8A"/>
+    <SolidColorBrush x:Key="PastelDim" Color="#6B5F2E"/>
+    <SolidColorBrush x:Key="PastelText" Color="#3A3320"/>
+    <SolidColorBrush x:Key="SelectOutline" Color="#D5D8DD"/>
 
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource PanelBg}"/>
         <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}"/>
         <Setter Property="CaretBrush" Value="{DynamicResource WindowFg}"/>
-        <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource PastelDim}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Padding="{TemplateBinding Padding}"
+                                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Pastel}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
+    <!-- 丸みのあるチェックボックス（チェック時はパステルイエロー） -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
-        <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{DynamicResource DisabledFg}"/>
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal" Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="Box" Width="19" Height="19" CornerRadius="6" BorderThickness="1.5"
+                                BorderBrush="{DynamicResource PanelBorder}" Background="Transparent" VerticalAlignment="Center">
+                            <Path x:Name="Tick" Data="M4,9.5 L8,13.5 L15,5.5" Stroke="{DynamicResource PastelText}" StrokeThickness="2.2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Visibility="Collapsed" Margin="-1,-1,0,0"/>
+                        </Border>
+                        <ContentPresenter x:Name="Content" Margin="8,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource Pastel}"/>
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Pastel}"/>
+                            <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Pastel}"/>
+                        </Trigger>
+                        <Trigger Property="HasContent" Value="False">
+                            <Setter TargetName="Content" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledFg}"/>
+                            <Setter TargetName="Box" Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- DeviceList が RadioButton の Style を持っているので、ここでは色だけ（そちらが優先される部分は Opacity のみ） -->

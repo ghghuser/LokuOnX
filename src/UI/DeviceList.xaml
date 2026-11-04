@@ -14,15 +14,23 @@
     </UserControl.Resources>
     <StackPanel>
         <StackPanel x:Name="RowsPanel"/>
-        <WrapPanel x:Name="FooterPanel">
-            <Button x:Name="AddButton" Content="＋ デバイスを追加" Padding="12,2" Margin="0,0,18,4"
-                    ToolTip="複数のデバイスを同時に録音します（例: マイク＋PC音）。録音中は変更できません"
-                    Click="Add_Click"/>
-            <RadioButton x:Name="MixRadio" Content="ミックスして1ファイルで出力" GroupName="DeviceMode"
-                         Margin="0,0,16,4" VerticalAlignment="Center" Checked="Mode_Checked"/>
-            <RadioButton x:Name="SeparateRadio" Content="デバイスごとに別ファイルで出力" GroupName="DeviceMode"
-                         Margin="0,0,0,4" VerticalAlignment="Center" Checked="Mode_Checked"/>
-        </WrapPanel>
+        <StackPanel x:Name="FooterPanel">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <Button x:Name="AddButton" Content="＋ デバイスを追加" Padding="12,2" Margin="0,0,8,0"
+                        ToolTip="複数のデバイスを同時に録音します（例: マイク＋PC音）。録音中は変更できません"
+                        Click="Add_Click"/>
+                <Button x:Name="RefreshButton" Content="デバイス再取得" Padding="12,2"
+                        ToolTip="接続されているデバイスの一覧を読み直します（3秒ごとの自動更新もあります）"
+                        Click="Refresh_Click"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <TextBlock Text="複数のとき：" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <RadioButton x:Name="MixRadio" Content="ミックスして1ファイルで出力" GroupName="DeviceMode"
+                             Margin="0,0,16,0" VerticalAlignment="Center" Checked="Mode_Checked"/>
+                <RadioButton x:Name="SeparateRadio" Content="デバイスごとに別ファイルで出力" GroupName="DeviceMode"
+                             VerticalAlignment="Center" Checked="Mode_Checked"/>
+            </StackPanel>
+        </StackPanel>
         <TextBlock x:Name="ErrorText" Foreground="#D33" TextWrapping="Wrap" Visibility="Collapsed"
                    Margin="0,0,0,4"/>
     </StackPanel>

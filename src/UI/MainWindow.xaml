@@ -11,14 +11,38 @@
         FontSize="14"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="640"/>
             <ColumnDefinition Width="16"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
+        <!-- 最上段: プリセット ｜ 状態表示（保存しました など） ｜ 設定の歯車 -->
+        <Grid Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="プリセット" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ui:PresetBar x:Name="Presets"/>
+            </StackPanel>
+            <TextBox x:Name="StatusText" Grid.Column="1" IsReadOnly="True" Margin="14,0,10,0" MaxHeight="48"
+                     VerticalAlignment="Center" BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
+                     Opacity="0.9" Text="待機中"
+                     ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <Button x:Name="SettingsButton" Grid.Column="2" Content="⚙" FontFamily="Segoe UI Symbol"
+                    FontSize="17" Width="34" Height="28" Padding="0" VerticalAlignment="Center"
+                    ToolTip="設定とヘルプ（画面の色・スリープ防止・バージョン情報）" Click="Settings_Click"/>
+        </Grid>
+
         <!-- 左: 設定（縦に長いときはスクロール） -->
-        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
         <!-- 上段: メジャーな設定（常時表示） -->
         <Grid>
@@ -35,22 +59,11 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="プリセット" VerticalAlignment="Center"/>
-            <ui:PresetBar x:Name="Presets" Grid.Row="0" Grid.Column="1" Margin="0,0,8,4"/>
-
             <TextBlock Grid.Row="1" Text="入力デバイス" VerticalAlignment="Top" Margin="0,4,0,0"/>
             <ui:DeviceList x:Name="Devices" Grid.Row="1" Grid.Column="1" Margin="0,0,8,2"/>
-            <Button x:Name="RefreshButton" Grid.Row="1" Grid.Column="2" Content="一覧を更新"
-                    VerticalAlignment="Top" Margin="0,0,0,6" Padding="12,3" Click="Refresh_Click"/>
 
             <TextBlock Grid.Row="2" Text="形式・音質" VerticalAlignment="Top" Margin="0,4,0,0"/>
-            <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,0,8,4" LastChildFill="True">
-                <ComboBox x:Name="FormatBox" Width="140" Margin="0,0,18,0" DockPanel.Dock="Left"
-                          VerticalAlignment="Top"
-                          DisplayMemberPath="Label" SelectedValuePath="Key"
-                          SelectionChanged="FormatBox_SelectionChanged"/>
-                <ui:QualityBar x:Name="Quality" VerticalAlignment="Center"/>
-            </DockPanel>
+            <ui:QualityBar x:Name="Quality" Grid.Row="2" Grid.Column="1" Margin="0,0,8,4"/>
 
             <TextBlock Grid.Row="3" Text="保存先" VerticalAlignment="Center"/>
             <TextBox x:Name="FolderBox" Grid.Row="3" Grid.Column="1" Margin="0,0,8,6"
@@ -80,14 +93,13 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 右: 録音時間・録音ボタン・状態、録音履歴（ファイル一覧）、プレイヤー。右上に設定の歯車 -->
-        <Grid Grid.Column="2">
+        <!-- 右: 録音時間・録音ボタン、録音履歴（ファイル一覧）、プレイヤー、ファイル操作 -->
+        <Grid Grid.Row="1" Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
         <!-- 中段: 経過時間・メーター・波形 -->
         <Border Margin="0,0,0,10" BorderBrush="#40808080" BorderThickness="1" CornerRadius="4" Padding="14,10">
@@ -123,33 +135,25 @@
             </Grid>
         </Border>
 
-            <Button x:Name="SettingsButton" Grid.Row="0" Content="⚙" FontFamily="Segoe UI Symbol"
-                    FontSize="17" Width="34" Height="28" Padding="0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                    Margin="0,6,6,0" Panel.ZIndex="2"
-                    ToolTip="設定とヘルプ（画面の色・スリープ防止・バージョン情報）" Click="Settings_Click"/>
-        <!-- 録音ボタン -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,2">
-            <Button x:Name="StartButton" Content="● 録音開始" Padding="22,8" FontWeight="SemiBold"
-                    Click="Start_Click"/>
-            <Button x:Name="PauseButton" Content="一時停止" Padding="22,8" Margin="8,0,0,0"
-                    IsEnabled="False" Click="Pause_Click"/>
-            <Button x:Name="SplitButton" Content="分割" Padding="22,8" Margin="8,0,0,0"
-                    IsEnabled="False" ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click"/>
-            <Button x:Name="StopButton" Content="■ 停止" Padding="22,8" Margin="8,0,0,0"
-                    IsEnabled="False" Click="Stop_Click"/>
-        </StackPanel>
+            <!-- 録音ボタン（開始と停止は1つのトグルボタン） -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,2">
+                <Button x:Name="StartButton" Content="● 録音開始" Width="150" Padding="0,8" FontWeight="SemiBold"
+                        ToolTip="押すと録音を始めます。録音中は「■ 停止」になり、もう一度押すと停止して保存します"
+                        Click="Start_Click"/>
+                <Button x:Name="PauseButton" Content="一時停止" Width="110" Padding="0,8" Margin="8,0,0,0"
+                        IsEnabled="False" Click="Pause_Click"/>
+                <Button x:Name="SplitButton" Content="分割" Width="90" Padding="0,8" Margin="8,0,0,0"
+                        IsEnabled="False" ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click"/>
+            </StackPanel>
 
-        <!-- 下段: 状態表示 -->
-        <StackPanel Grid.Row="2" Margin="0,8,0,6">
-            <TextBlock x:Name="ErrorText" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
-                       Visibility="Collapsed" Margin="0,0,0,4"/>
-            <TextBox x:Name="StatusText" IsReadOnly="True"
-                     BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
-                     Text="待機中"/>
-        </StackPanel>
+            <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="Collapsed" Margin="0,6,0,0"/>
 
-            <ui:FileListPanel x:Name="Files" Grid.Row="3"/>
-            <ui:PlayerPanel x:Name="Player" Grid.Row="4" Margin="0,8,0,0"/>
+            <ui:FileListPanel x:Name="Files" Grid.Row="3" Margin="0,8,0,0">
+                <ui:FileListPanel.Footer>
+                    <ui:PlayerPanel x:Name="Player"/>
+                </ui:FileListPanel.Footer>
+            </ui:FileListPanel>
         </Grid>
     </Grid>
 </Window>

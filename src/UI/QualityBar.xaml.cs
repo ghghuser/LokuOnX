@@ -34,6 +34,7 @@ public partial class QualityBar : UserControl
     {
         _s = settings;
         _loading = true;
+        FormatBox.ItemsSource = OutputFormat.All;
         BitrateBox.ItemsSource = EncodeOptions.Bitrates.Select(b => new Choice(b, $"{b} kbps")).ToList();
         RateBox.ItemsSource = RateChoices;
         ChannelBox.ItemsSource = ChannelChoices;
@@ -46,6 +47,7 @@ public partial class QualityBar : UserControl
         if (_s == null) return;
         var was = _loading;
         _loading = true;
+        FormatBox.SelectedValue = _s.Format;
         BitrateBox.SelectedValue = _s.BitrateKbps;
         RateBox.SelectedValue = _s.SampleRate;
         ChannelBox.SelectedValue = _s.Channels;
@@ -83,6 +85,14 @@ public partial class QualityBar : UserControl
         }
         // ogg は「Vorbis品質」を選んだらビットレートは使われない
         BitrateBox.IsEnabled = fmt.UsesBitrate && !(fmt.Key == "ogg" && _s.Compression >= 0);
+    }
+
+    private void Format_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || _s == null || FormatBox.SelectedValue is not string f) return;
+        _s.Format = f;
+        Refresh();
+        Changed?.Invoke();
     }
 
     private void Comp_Changed(object sender, SelectionChangedEventArgs e)

@@ -4,7 +4,7 @@
 
     <ControlTemplate x:Key="DarkButtonTemplate" TargetType="ButtonBase">
         <Border x:Name="Bd" Background="{DynamicResource PanelBg}" BorderBrush="{DynamicResource PanelBorder}"
-                BorderThickness="1" Padding="{TemplateBinding Padding}">
+                BorderThickness="1" CornerRadius="4" Padding="{TemplateBinding Padding}">
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <ControlTemplate.Triggers>
@@ -31,7 +31,7 @@
     </Style>
 
     <ControlTemplate x:Key="DarkComboToggle" TargetType="ToggleButton">
-        <Border x:Name="Bd" Background="{DynamicResource PanelBg}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="1">
+        <Border x:Name="Bd" Background="{DynamicResource PanelBg}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="1" CornerRadius="4">
             <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
                   Data="M0,0 L4,4 L8,0 Z" Fill="{DynamicResource WindowFg}"/>
         </Border>
@@ -48,7 +48,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBoxItem">
-                    <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="Bd" Background="Transparent" CornerRadius="3" Padding="{TemplateBinding Padding}">
                         <ContentPresenter/>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -56,7 +56,7 @@
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PanelHover}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Accent}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PastelDim}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -82,7 +82,7 @@
                                AllowsTransparency="True" Focusable="False">
                             <Border MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}"
                                     Background="{DynamicResource PopupBg}" BorderBrush="{DynamicResource PanelBorder}"
-                                    BorderThickness="1">
+                                    BorderThickness="1" CornerRadius="4">
                                 <ScrollViewer>
                                     <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                 </ScrollViewer>
@@ -96,6 +96,45 @@
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 丸いつまみ（パステルイエロー）のスライダー。左側（つまみまで）を塗る -->
+    <ControlTemplate x:Key="SliderFillTemplate" TargetType="RepeatButton">
+        <Border Height="4" CornerRadius="2" Background="{DynamicResource Pastel}" VerticalAlignment="Center"/>
+    </ControlTemplate>
+    <ControlTemplate x:Key="SliderEmptyTemplate" TargetType="RepeatButton">
+        <Border Background="Transparent" Height="20"/>
+    </ControlTemplate>
+    <ControlTemplate x:Key="SliderThumbTemplate" TargetType="Thumb">
+        <Ellipse Width="16" Height="16" Fill="{DynamicResource Pastel}" Stroke="{DynamicResource WindowBg}" StrokeThickness="0"/>
+    </ControlTemplate>
+
+    <Style TargetType="Slider">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid x:Name="Root" Height="20" Background="Transparent" SnapsToDevicePixels="True">
+                        <Border Height="4" CornerRadius="2" Background="{DynamicResource PanelBorder}" VerticalAlignment="Center"/>
+                        <Track x:Name="PART_Track">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="Slider.DecreaseLarge" Focusable="False" Template="{StaticResource SliderFillTemplate}"/>
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="Slider.IncreaseLarge" Focusable="False" Template="{StaticResource SliderEmptyTemplate}"/>
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Width="16" Height="16" Focusable="False" Template="{StaticResource SliderThumbTemplate}"/>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

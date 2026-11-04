@@ -13,16 +13,23 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListViewItem">
-                    <Border x:Name="Bd" Background="Transparent" Padding="0,2" SnapsToDevicePixels="True">
-                        <GridViewRowPresenter Content="{TemplateBinding Content}"
-                                              Columns="{Binding Path=View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}"/>
+                    <!-- 選択中の行: 青い塗りではなく、丸い枠で囲み、先頭にパステルイエローの線 -->
+                    <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="1"
+                            CornerRadius="5" Margin="0,1" Padding="0,3" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Rectangle x:Name="Bar" Width="3" HorizontalAlignment="Left" Margin="3,1,0,1"
+                                       RadiusX="1.5" RadiusY="1.5" Fill="{DynamicResource Pastel}" Visibility="Hidden"/>
+                            <GridViewRowPresenter Margin="10,0,0,0" Content="{TemplateBinding Content}"
+                                                  Columns="{Binding Path=View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PanelHover}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Accent}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SelectOutline}"/>
+                            <Setter TargetName="Bar" Property="Visibility" Value="Visible"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -37,7 +44,7 @@
                 <ControlTemplate TargetType="GridViewColumnHeader">
                     <Grid SnapsToDevicePixels="True">
                         <Border x:Name="Bd" Background="{DynamicResource PanelBg}" BorderBrush="{DynamicResource PanelBorder}"
-                                BorderThickness="0,0,1,1" Padding="6,3">
+                                BorderThickness="0,0,1,1" Padding="14,3,6,3">
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         </Border>
                         <Thumb x:Name="PART_HeaderGripper" HorizontalAlignment="Right" Width="8" Margin="0,0,-4,0"

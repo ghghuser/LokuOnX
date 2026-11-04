@@ -29,9 +29,13 @@ public partial class MainWindow
         RecoveryPrompt.RunAsync(this, _settings, () => _session != null, text => StatusText.Text = text);
 
     // ---- 開始 ----
-    private void Start_Click(object sender, RoutedEventArgs e)
+    private async void Start_Click(object sender, RoutedEventArgs e)
     {
-        if (_session != null) return;
+        if (_session != null)   // 録音中は、同じボタンが「停止」になる
+        {
+            await StopAsync(null);
+            return;
+        }
         var inputs = Devices.Inputs;
         ClearErrors();
         if (inputs.Count == 0)
@@ -118,14 +122,12 @@ public partial class MainWindow
     }
 
     // ---- 停止 ----
-    private async void Stop_Click(object sender, RoutedEventArgs e) => await StopAsync(null);
-
     private async Task StopAsync(string? error)
     {
         var s = _session;
         if (s == null) return;
         _session = null;
-        StopButton.IsEnabled = PauseButton.IsEnabled = SplitButton.IsEnabled = false;
+        StartButton.IsEnabled = PauseButton.IsEnabled = SplitButton.IsEnabled = false;
         StatusText.Text = "保存中...";
         await Task.Run(() =>
         {
@@ -169,14 +171,16 @@ public partial class MainWindow
 
     private void SetRecording(bool recording)
     {
-        StartButton.IsEnabled = !recording;
-        StopButton.IsEnabled = PauseButton.IsEnabled = SplitButton.IsEnabled = recording;
+        // 開始と停止は1つのトグルボタン（録音中は「■ 停止」）
+        StartButton.IsEnabled = true;
+        StartButton.Content = recording ? "■ 停止" : "● 録音開始";
+        PauseButton.IsEnabled = SplitButton.IsEnabled = recording;
         PauseButton.Content = "一時停止";
-        FormatBox.IsEnabled = FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
+        FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
         Devices.SetRecording(recording);
         Quality.IsEnabled = Detail.IsEnabled = Presets.IsEnabled = !recording;
         SleepGuard.Prevent(recording && _settings.PreventSleep);
-        RefreshButton.IsEnabled = BrowseButton.IsEnabled = !recording;
+        BrowseButton.IsEnabled = !recording;
         if (!recording)
         {
             StateText.Text = "待機中";
@@ -207,7 +211,7 @@ public partial class MainWindow
         TotalPanel.Visibility = s.SplitCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         TotalText.Text = Clock(t);
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
-        Files.SetRecording($"{(s.Paused ? "一時停止中" : "録音中")}… トラック {s.CurrentTrackNumber}");
+        Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
         Devices.SetLevels(devicePeaks);
         if (!s.Paused) Wave.Push(devicePeaks);

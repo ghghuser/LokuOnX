@@ -26,13 +26,12 @@ public partial class MainWindow : Window
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
 
         _loading = true;
-        FormatBox.ItemsSource = OutputFormat.All;
-        FormatBox.SelectedValue = settings.Format;
         FolderBox.Text = settings.Folder;
         SplitBox.Text = SplitTime.Format(settings.SplitSeconds);
         LoadDevices();
         Devices.Init(settings, _devices, DefaultCaptureKey());
         Devices.Changed += () => { Devices.ClearError(); UpdateInfo(); };
+        Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
         Devices.GainChanged += (index, db) => _session?.SetGain(index, db);
         Quality.Init(settings);
         Quality.Changed += UpdateInfo;
@@ -124,7 +123,6 @@ public partial class MainWindow : Window
     private void ReloadFromSettings()
     {
         _loading = true;
-        FormatBox.SelectedValue = _settings.Format;
         SplitBox.Text = SplitTime.Format(_settings.SplitSeconds);
         Quality.Reload();
         Detail.Reload();
@@ -138,13 +136,6 @@ public partial class MainWindow : Window
         new SettingsWindow(_settings) { Owner = this }.ShowDialog();
 
     // ---- 設定の変更 ----
-    private void FormatBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (_loading || FormatBox.SelectedValue is not string f) return;
-        _settings.Format = f;
-        UpdateInfo();
-    }
-
     private void FolderBox_LostFocus(object sender, RoutedEventArgs e)
     {
         var text = FolderBox.Text.Trim();

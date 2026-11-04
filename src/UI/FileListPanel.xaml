@@ -18,7 +18,7 @@
                     <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsRecording}" Value="True">
-                    <Setter Property="Foreground" Value="#E03B3B"/>
+                    <Setter Property="Foreground" Value="#C94A86"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -27,7 +27,7 @@
             <Setter Property="Foreground" Value="{DynamicResource MarkFg}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsRecording}" Value="True">
-                    <Setter Property="Foreground" Value="#E03B3B"/>
+                    <Setter Property="Foreground" Value="#C94A86"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -36,6 +36,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -46,14 +48,7 @@
                       SelectionChanged="Source_Changed"
                       ToolTip="「録音履歴」＝録音したファイルを、空にするまで残します。フォルダを選ぶと、その中身を表示します（最近の保存先10件まで）"/>
             <TextBlock x:Name="CountText" VerticalAlignment="Center" Margin="0,0,10,4" Opacity="0.8"/>
-            <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,6,4" Click="Refresh_Click"/>
-            <Button x:Name="ExplorerButton" Content="エクスプローラーで開く" Padding="10,3" Margin="0,0,6,4" Click="Explorer_Click"/>
-            <Button x:Name="RenameButton" Content="名前の変更" Padding="10,3" Margin="0,0,6,4" Click="Rename_Click"
-                    ToolTip="F2 キーでも開けます"/>
-            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="10,3" Margin="0,0,6,4" Click="Delete_Click"
-                    ToolTip="Delete キーでも実行できます（複数選択可）"/>
-            <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,0,4" Click="Clear_Click"
-                    ToolTip="録音履歴の一覧を空にします（ファイルは消えません）"/>
+            <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,0,4" Click="Refresh_Click"/>
         </WrapPanel>
 
         <ListView x:Name="List" Grid.Row="1" MinHeight="110" SelectionMode="Extended"
@@ -108,6 +103,20 @@
         <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
                    Visibility="Collapsed" Margin="0,4,0,0"/>
         <TextBlock x:Name="HintText" Grid.Row="2" Opacity="0.65" Margin="0,4,0,0" TextWrapping="Wrap"
-                   Text="● ＝ 起動後に作られたファイル（白に近い文字）。再生中は、別のファイルを選んでも止まりません"/>
+                   Text="＊ ＝ 起動後に作られたファイル（白に近い文字）。再生中は、別のファイルを選んでも止まりません"/>
+
+        <!-- プレイヤー（MainWindow から Footer で入れる） -->
+        <ContentPresenter x:Name="Slot" Grid.Row="3" Margin="0,8,0,0"/>
+
+        <!-- ファイル操作（プレイヤーの下） -->
+        <WrapPanel Grid.Row="4" Margin="0,8,0,0">
+            <Button x:Name="ExplorerButton" Content="エクスプローラーで開く" Padding="10,3" Margin="0,0,6,0" Click="Explorer_Click"/>
+            <Button x:Name="RenameButton" Content="名前の変更" Padding="10,3" Margin="0,0,6,0" Click="Rename_Click"
+                    ToolTip="F2 キーでも開けます"/>
+            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="10,3" Margin="0,0,6,0" Click="Delete_Click"
+                    ToolTip="Delete キーでも実行できます（複数選択可）"/>
+            <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,0,0" Click="Clear_Click"
+                    ToolTip="録音履歴の一覧を空にします（ファイルは消えません）"/>
+        </WrapPanel>
     </Grid>
 </UserControl>
