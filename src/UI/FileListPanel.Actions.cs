@@ -94,6 +94,32 @@ public partial class FileListPanel
         Refresh();
     }
 
+    // ---- 任意のフォルダを一覧に表示する（最近の10件に入る） ----
+    /// <summary>フォルダの中身を一覧に表示する。フォルダは「最近の保存先」（10件まで）に入り、プルダウンで選べるようになる。</summary>
+    public void ShowFolder(string folder)
+    {
+        ClearError();
+        folder = folder.Trim();
+        if (folder.Length == 0 || !Directory.Exists(folder))
+        {
+            ShowError("フォルダが見つかりません: " + folder);
+            return;
+        }
+        _settings.AddRecentFolder(folder);
+        ReloadSources(_settings.RecentFolders.FirstOrDefault());
+        Refresh();
+    }
+
+    private void ShowSaveFolder_Click(object sender, RoutedEventArgs e) => ShowFolder(_settings.Folder);
+
+    private void PickFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var start = IsHistory ? _settings.Folder : SourceKey;
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "一覧に表示するフォルダを選んでください" };
+        if (Directory.Exists(start)) dlg.InitialDirectory = start;
+        if (dlg.ShowDialog(Owner) == true) ShowFolder(dlg.FolderName);
+    }
+
     // ---- 履歴を空にする（ファイルは消さない。確認してから） ----
     private void Clear_Click(object sender, RoutedEventArgs e)
     {

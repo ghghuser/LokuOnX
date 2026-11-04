@@ -6,4 +6,19 @@
     <SolidColorBrush x:Key="NewFileFg" Color="#1565C0"/>
     <SolidColorBrush x:Key="OldFileFg" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="MarkFg" Color="#5F6368"/>
+    <SolidColorBrush x:Key="CardBg" Color="#0C000000"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#D0D0D0"/>
+    <SolidColorBrush x:Key="LaneBg" Color="#10000000"/>
+    <SolidColorBrush x:Key="LaneBorder" Color="#CFCFCF"/>
+    <SolidColorBrush x:Key="StartFg" Color="#1E5A36"/>
+    <SolidColorBrush x:Key="StopFg" Color="#1D4580"/>
+    <SolidColorBrush x:Key="RecDot" Color="#C94A86"/>
+    <!-- 無効（グレーアウト）のラジオボタンは、文字も丸印もかなり薄くする（ダークは DarkControls.xaml） -->
+    <Style TargetType="RadioButton">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.35"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 </ResourceDictionary>

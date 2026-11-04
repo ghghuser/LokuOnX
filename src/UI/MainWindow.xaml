@@ -4,14 +4,16 @@
         xmlns:ui="clr-namespace:Recorder.UI"
         Icon="pack://application:,,,/LokuOnX.ico"
         Title="LokuOnX"
-        Width="1280" Height="900"
-        MinWidth="1180" MinHeight="760"
+        Width="1280" Height="940"
+        MinWidth="1180" MinHeight="800"
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource WindowFg}"
         FontFamily="Yu Gothic UI, Meiryo UI"
         FontSize="14"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -21,7 +23,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- 最上段: プリセット ｜ 状態表示（保存しました など） ｜ 設定の歯車 -->
+        <!-- 最上段: プリセット ｜ ログ（保存しました など。常に2行分の高さ） ｜ 設定の歯車 -->
         <Grid Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -32,55 +34,106 @@
                 <TextBlock Text="プリセット" VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <ui:PresetBar x:Name="Presets"/>
             </StackPanel>
-            <TextBox x:Name="StatusText" Grid.Column="1" IsReadOnly="True" Margin="14,0,10,0" MaxHeight="48"
-                     VerticalAlignment="Center" BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
-                     Opacity="0.9" Text="待機中"
-                     ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <TextBlock x:Name="StatusText" Grid.Column="1" Margin="14,0,10,0" VerticalAlignment="Center"
+                       FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" Height="32"
+                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Opacity="0.85" Text="待機中"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
             <Button x:Name="SettingsButton" Grid.Column="2" Content="⚙" FontFamily="Segoe UI Symbol"
                     FontSize="17" Width="34" Height="28" Padding="0" VerticalAlignment="Center"
                     ToolTip="設定とヘルプ（画面の色・スリープ防止・バージョン情報）" Click="Settings_Click"/>
         </Grid>
 
-        <!-- 左: 設定（縦に長いときはスクロール） -->
-        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto">
+        <!-- 録音コンソール: 左＝時間・メーター・録音ボタン、右＝入力デバイスのストリップ（選択・波形・ゲイン・レベル） -->
+        <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,0,0,12" Padding="18,14" CornerRadius="10" BorderThickness="1"
+                Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40"
+                                   FontFamily="Bahnschrift, Consolas, Yu Gothic UI" Typography.NumeralAlignment="Tabular"/>
+                        <StackPanel x:Name="TotalPanel" Margin="16,0,0,4" VerticalAlignment="Bottom" Visibility="Collapsed"
+                                    ToolTip="録音を始めてからの連続録音時間（分割しても続きます）">
+                            <TextBlock Text="Total Time" FontSize="12" Opacity="0.75"/>
+                            <TextBlock x:Name="TotalText" FontSize="20" Opacity="0.9"
+                                       FontFamily="Bahnschrift, Consolas, Yu Gothic UI" Typography.NumeralAlignment="Tabular"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBlock x:Name="StateText" Text="待機中" Opacity="0.7" Margin="2,0,0,8"/>
+                    <Grid Margin="2,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="82"/>
+                        </Grid.ColumnDefinitions>
+                        <ProgressBar x:Name="Meter" Height="8" Minimum="0" Maximum="1" Foreground="#2E9E4F"
+                                     VerticalAlignment="Center" ToolTip="全体の音量（ミックス後）。赤＝クリップ"/>
+                        <TextBlock x:Name="PeakText" Grid.Column="1" Margin="10,0,0,0" FontSize="12"
+                                   Foreground="#D33" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- 録音ボタン（開始と停止は1つのトグルボタン） -->
+                    <Button x:Name="StartButton" Height="46" FontSize="16" FontWeight="SemiBold"
+                            ToolTip="押すと録音を始めます。録音中は「■ 停止」になり、もう一度押すと停止して保存します"
+                            Click="Start_Click"/>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="PauseButton" Content="一時停止" Height="34" IsEnabled="False" Click="Pause_Click"/>
+                        <Button x:Name="SplitButton" Grid.Column="2" Content="分割" Height="34" IsEnabled="False"
+                                ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click"/>
+                    </Grid>
+                </StackPanel>
+
+                <Rectangle Grid.Column="1" Width="1" Margin="18,2" Fill="{DynamicResource CardBorder}"/>
+
+                <ui:DeviceList x:Name="Devices" Grid.Column="2"/>
+            </Grid>
+        </Border>
+
+        <TextBlock x:Name="ErrorText" Grid.Row="2" Grid.ColumnSpan="3" Foreground="#D33" FontWeight="SemiBold"
+                   TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,8"/>
+
+        <!-- 左下: 設定（縦に長いときはスクロール） -->
+        <ScrollViewer Grid.Row="3" Grid.Column="0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-        <!-- 上段: メジャーな設定（常時表示） -->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="90"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="1" Text="入力デバイス" VerticalAlignment="Top" Margin="0,4,0,0"/>
-            <ui:DeviceList x:Name="Devices" Grid.Row="1" Grid.Column="1" Margin="0,0,8,2"/>
+                    <TextBlock Grid.Row="0" Text="形式・音質" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                    <ui:QualityBar x:Name="Quality" Grid.Row="0" Grid.Column="1" Margin="0,0,8,4"/>
 
-            <TextBlock Grid.Row="2" Text="形式・音質" VerticalAlignment="Top" Margin="0,4,0,0"/>
-            <ui:QualityBar x:Name="Quality" Grid.Row="2" Grid.Column="1" Margin="0,0,8,4"/>
+                    <TextBlock Grid.Row="1" Text="保存先" VerticalAlignment="Center"/>
+                    <TextBox x:Name="FolderBox" Grid.Row="1" Grid.Column="1" Margin="0,0,8,6"
+                             VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
+                    <Button x:Name="BrowseButton" Grid.Row="1" Grid.Column="2" Content="参照..."
+                            Margin="0,0,0,6" Padding="12,3" Click="Browse_Click"/>
 
-            <TextBlock Grid.Row="3" Text="保存先" VerticalAlignment="Center"/>
-            <TextBox x:Name="FolderBox" Grid.Row="3" Grid.Column="1" Margin="0,0,8,6"
-                     VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
-            <Button x:Name="BrowseButton" Grid.Row="3" Grid.Column="2" Content="参照..."
-                    Margin="0,0,0,6" Padding="12,3" Click="Browse_Click"/>
-
-            <TextBlock Grid.Row="4" Text="自動分割" VerticalAlignment="Center"/>
-            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,6">
-                <ui:TimeBox x:Name="SplitBox" Width="70"
-                         ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
-                         LostFocus="Split_LostFocus"/>
-                <TextBlock Text="(0＝無効。最長24時間)" VerticalAlignment="Center"
-                           Margin="8,0,0,0" Opacity="0.75"/>
-            </StackPanel>
-
-        </Grid>
+                    <TextBlock Grid.Row="2" Text="自動分割" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,6">
+                        <ui:TimeBox x:Name="SplitBox" Width="70"
+                                    ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
+                                    LostFocus="Split_LostFocus"/>
+                        <TextBlock Text="(0＝無効。最長24時間)" VerticalAlignment="Center"
+                                   Margin="8,0,0,0" Opacity="0.75"/>
+                    </StackPanel>
+                </Grid>
 
         <!-- ファイル名・番号（常時表示）と、折りたたみ（日付フォルダ・タグ） -->
         <StackPanel Margin="0,4,0,0">
@@ -93,63 +146,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 右: 録音時間・録音ボタン、録音履歴（ファイル一覧）、プレイヤー、ファイル操作 -->
-        <Grid Grid.Row="1" Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-        <!-- 中段: 経過時間・メーター・波形 -->
-        <Border Margin="0,0,0,10" BorderBrush="#40808080" BorderThickness="1" CornerRadius="4" Padding="14,10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40" FontWeight="SemiBold"/>
-                    <StackPanel x:Name="TotalPanel" Margin="18,0,0,3" VerticalAlignment="Bottom" Visibility="Collapsed"
-                                ToolTip="録音を始めてからの連続録音時間（分割しても続きます）">
-                        <TextBlock Text="Total Time" FontSize="12" Opacity="0.75"/>
-                        <TextBlock x:Name="TotalText" FontSize="20" Opacity="0.85"/>
-                    </StackPanel>
-                </StackPanel>
-                <TextBlock Grid.Row="1" x:Name="StateText" Text="待機中" HorizontalAlignment="Center" Opacity="0.75"/>
-                <Grid Grid.Row="2" Margin="0,12,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="90"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="音量" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ProgressBar x:Name="Meter" Grid.Column="1" Height="22" Minimum="0" Maximum="1"
-                                 Foreground="#2E9E4F"/>
-                    <TextBlock x:Name="PeakText" Grid.Column="2" Margin="10,0,0,0"
-                               Foreground="#D33" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                </Grid>
-                <ui:WaveView x:Name="Wave" Grid.Row="3" Margin="0,12,0,0" MinHeight="70" ClipToBounds="True"/>
-            </Grid>
-        </Border>
-
-            <!-- 録音ボタン（開始と停止は1つのトグルボタン） -->
-            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,2">
-                <Button x:Name="StartButton" Content="● 録音開始" Width="150" Padding="0,8" FontWeight="SemiBold"
-                        ToolTip="押すと録音を始めます。録音中は「■ 停止」になり、もう一度押すと停止して保存します"
-                        Click="Start_Click"/>
-                <Button x:Name="PauseButton" Content="一時停止" Width="110" Padding="0,8" Margin="8,0,0,0"
-                        IsEnabled="False" Click="Pause_Click"/>
-                <Button x:Name="SplitButton" Content="分割" Width="90" Padding="0,8" Margin="8,0,0,0"
-                        IsEnabled="False" ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click"/>
-            </StackPanel>
-
-            <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
-                       Visibility="Collapsed" Margin="0,6,0,0"/>
-
-            <ui:FileListPanel x:Name="Files" Grid.Row="3" Margin="0,8,0,0"/>
-        </Grid>
+        <!-- 右下: 録音履歴（ファイル一覧）・プレイヤー・ファイル操作 -->
+        <ui:FileListPanel x:Name="Files" Grid.Row="3" Grid.Column="2"/>
     </Grid>
 </Window>

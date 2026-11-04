@@ -70,9 +70,9 @@ public partial class FileListPanel : UserControl
     private List<LibraryFile> SelectedFiles => List.SelectedItems.Cast<LibraryFile>().Where(f => !f.IsRecording).ToList();
 
     /// <summary>プルダウン（録音履歴＋最近の保存先）を作り直す。いま選んでいる場所はできるだけ保つ。</summary>
-    public void ReloadSources()
+    public void ReloadSources(string? select = null)
     {
-        var keep = SourceKey;
+        var keep = select ?? SourceKey;
         _loadingSources = true;
         var sources = new List<Source> { new(HistoryKey, "録音履歴") };
         sources.AddRange(_settings.RecentFolders.Select(f => new Source(f, "📁 " + f)));

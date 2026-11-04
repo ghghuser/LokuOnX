@@ -48,7 +48,13 @@
                       SelectionChanged="Source_Changed"
                       ToolTip="「録音履歴」＝録音したファイルを、空にするまで残します。フォルダを選ぶと、その中身を表示します（最近の保存先10件まで）"/>
             <TextBlock x:Name="CountText" VerticalAlignment="Center" Margin="0,0,10,4" Opacity="0.8"/>
-            <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,0,4" Click="Refresh_Click"/>
+            <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,6,4" Click="Refresh_Click"/>
+            <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,10,4" Click="Clear_Click"
+                    ToolTip="録音履歴の一覧を空にします（ファイルは消えません）。録音履歴を表示しているときだけ使えます"/>
+            <Button x:Name="SaveFolderButton" Content="保存先を表示" Padding="10,3" Margin="0,0,6,4" Click="ShowSaveFolder_Click"
+                    ToolTip="いまの保存先フォルダの中身を一覧に表示します"/>
+            <Button x:Name="PickFolderButton" Content="フォルダを選んで表示…" Padding="10,3" Margin="0,0,0,4" Click="PickFolder_Click"
+                    ToolTip="好きなフォルダを選んで、その中身を一覧に表示します（最近の10件に入ります）"/>
         </WrapPanel>
 
         <ListView x:Name="List" Grid.Row="1" MinHeight="110" SelectionMode="Extended"
@@ -113,10 +119,8 @@
             <Button x:Name="ExplorerButton" Content="エクスプローラーで開く" Padding="10,3" Margin="0,0,6,0" Click="Explorer_Click"/>
             <Button x:Name="RenameButton" Content="名前の変更" Padding="10,3" Margin="0,0,6,0" Click="Rename_Click"
                     ToolTip="F2 キーでも開けます"/>
-            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="10,3" Margin="0,0,6,0" Click="Delete_Click"
+            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="10,3" Margin="0,0,0,0" Click="Delete_Click"
                     ToolTip="Delete キーでも実行できます（複数選択可）"/>
-            <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,0,0" Click="Clear_Click"
-                    ToolTip="録音履歴の一覧を空にします（ファイルは消えません）"/>
         </WrapPanel>
     </Grid>
 </UserControl>

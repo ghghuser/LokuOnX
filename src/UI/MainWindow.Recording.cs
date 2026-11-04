@@ -83,7 +83,7 @@ public partial class MainWindow
             ShowError("録音を開始できませんでした。" + ex.Message);
             return;
         }
-        Wave.SetRows(inputs.Select(i => _devices.FirstOrDefault(d => d.Key == i.Key)?.Label ?? "（不明）").ToList());
+        Devices.StartWave();
         _notice = "";
         _nextDiskCheck = DateTime.MinValue;   // 開始直後に1回、あとは30秒ごとに空き容量を調べる
         SetRecording(true);
@@ -169,11 +169,27 @@ public partial class MainWindow
         return $"{results.Count} 個のファイルを保存しました（合計 {mb}）:\n" + string.Join("\n", lines) + more;
     }
 
+    /// <summary>
+    /// 録音ボタンの表示（トグル）。「● 録音開始」は文字が白にうっすら緑・●だけ赤紫（録音中の行と同じ色）、
+    /// 「■ 停止」は白にうっすら青。色は画面の色（ライト／ダーク）に合わせて差し替わる。
+    /// </summary>
+    private void SetRecordButton(bool recording)
+    {
+        var label = new System.Windows.Controls.TextBlock();
+        var mark = new System.Windows.Documents.Run(recording ? "■ " : "● ");
+        var text = new System.Windows.Documents.Run(recording ? "停止" : "録音開始");
+        mark.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, recording ? "StopFg" : "RecDot");
+        text.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, recording ? "StopFg" : "StartFg");
+        label.Inlines.Add(mark);
+        label.Inlines.Add(text);
+        StartButton.Content = label;
+    }
+
     private void SetRecording(bool recording)
     {
         // 開始と停止は1つのトグルボタン（録音中は「■ 停止」）
         StartButton.IsEnabled = true;
-        StartButton.Content = recording ? "■ 停止" : "● 録音開始";
+        SetRecordButton(recording);
         PauseButton.IsEnabled = SplitButton.IsEnabled = recording;
         PauseButton.Content = "一時停止";
         FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
@@ -214,7 +230,7 @@ public partial class MainWindow
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
         Devices.SetLevels(devicePeaks);
-        if (!s.Paused) Wave.Push(devicePeaks);
+        if (!s.Paused) Devices.PushWave(devicePeaks);
         var peak = s.TakePeak();
         var level = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
         Meter.Value = Math.Max(level, Meter.Value - 0.03);

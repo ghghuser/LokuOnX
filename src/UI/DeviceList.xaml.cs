@@ -8,7 +8,8 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>
-/// 入力デバイスの選択欄。1行＝1デバイス（プルダウン・ゲイン・音量メーター・削除）。「＋デバイスを追加」で行を増やす。
+/// 入力デバイスのストリップ（録音コンソールの右側）。1行＝1デバイス（有効チェック・プルダウン・波形・ゲイン・レベルメーター・削除）。
+/// 「＋デバイスを追加」で行を増やす。波形は行ごとに1段（録音中に右から左へ流れる）。
 /// 2台以上のときだけ「ミックスして1ファイル／デバイスごとに別ファイル」の切替を出す。
 /// 選んだデバイスは、ユーザーが触ったときだけ settings.ini に保存する（触らなければ起動のたびに Windows の既定の入力）。
 /// </summary>
@@ -25,6 +26,8 @@ public partial class DeviceList : UserControl
         public readonly Slider Gain = new();
         public readonly TextBlock GainText = new();
         public readonly ProgressBar Level = new();
+        public readonly WaveView Wave = new();
+        public readonly Border Lane = new();
         public readonly Button Remove = new();
         public DateTime ClipUntil = DateTime.MinValue;
         public string Key = "";
@@ -143,23 +146,34 @@ public partial class DeviceList : UserControl
     {
         var row = new Row { Key = key };
         var g = row.Panel;
-        g.Margin = new Thickness(0, 0, 0, 4);
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(30) });
+        g.Margin = new Thickness(0, 0, 0, 6);
+        // 見出し（DeviceList.xaml）と同じ列幅: チェック・プルダウン・波形・ゲイン・ゲインの数値・レベル・削除
+        foreach (var w in new[] { 30.0, 250.0, -1, 116.0, 64.0, 66.0, 26.0 })
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = w < 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(w) });
 
         row.Use.IsChecked = enabled;
         row.Use.VerticalAlignment = VerticalAlignment.Center;
-        row.Use.Margin = new Thickness(0, 0, 8, 0);
+        row.Use.Margin = new Thickness(0, 0, 6, 0);
         row.Use.ToolTip = "チェックを外すと、このデバイスは録音しません（設定は残ります。録音中は変えられません）";
         Grid.SetColumn(row.Use, 0);
 
         row.Combo.DisplayMemberPath = "DisplayLabel";
-        row.Combo.Margin = new Thickness(0, 0, 8, 0);
+        row.Combo.Margin = new Thickness(0, 0, 10, 0);
+        row.Combo.VerticalAlignment = VerticalAlignment.Center;
         Grid.SetColumn(row.Combo, 1);
+
+        // 波形（この行のデバイスだけ。丸みのある暗い枠の中に出す）
+        row.Wave.ClipToBounds = true;
+        row.Lane.Child = row.Wave;
+        row.Lane.CornerRadius = new CornerRadius(5);
+        row.Lane.BorderThickness = new Thickness(1);
+        row.Lane.Height = 38;
+        row.Lane.Margin = new Thickness(0, 0, 12, 0);
+        row.Lane.ClipToBounds = true;
+        row.Lane.SetResourceReference(Border.BackgroundProperty, "LaneBg");
+        row.Lane.SetResourceReference(Border.BorderBrushProperty, "LaneBorder");
+        row.Lane.ToolTip = "このデバイスの波形（録音中、右から左へ流れます）";
+        Grid.SetColumn(row.Lane, 2);
 
         row.Gain.Minimum = Settings.MinGainDb;
         row.Gain.Maximum = Settings.MaxGainDb;
@@ -170,21 +184,23 @@ public partial class DeviceList : UserControl
         row.Gain.Value = Math.Clamp(gainDb, Settings.MinGainDb, Settings.MaxGainDb);
         row.Gain.VerticalAlignment = VerticalAlignment.Center;
         row.Gain.ToolTip = "ゲイン（音量調整）。左端＝ミュート。ダブルクリックで 0 dB に戻ります。録音中も調整可能。";
-        Grid.SetColumn(row.Gain, 2);
+        Grid.SetColumn(row.Gain, 3);
 
         row.GainText.Text = GainLabel(row.Gain.Value);
         row.GainText.VerticalAlignment = VerticalAlignment.Center;
         row.GainText.TextAlignment = TextAlignment.Right;
-        row.GainText.Margin = new Thickness(0, 0, 8, 0);
-        Grid.SetColumn(row.GainText, 3);
+        row.GainText.Margin = new Thickness(0, 0, 10, 0);
+        row.GainText.FontSize = 12;
+        Grid.SetColumn(row.GainText, 4);
 
         row.Level.Minimum = 0;
         row.Level.Maximum = 1;
-        row.Level.Height = 10;
+        row.Level.Height = 8;
+        row.Level.Margin = new Thickness(0, 0, 4, 0);
         row.Level.Foreground = GreenBrush;
         row.Level.VerticalAlignment = VerticalAlignment.Center;
         row.Level.ToolTip = "このデバイスの音量（ゲインを掛けたあと）。赤＝クリップ";
-        Grid.SetColumn(row.Level, 4);
+        Grid.SetColumn(row.Level, 5);
 
         row.Remove.Content = "✕";
         row.Remove.Width = 18;
@@ -194,10 +210,11 @@ public partial class DeviceList : UserControl
         row.Remove.VerticalAlignment = VerticalAlignment.Center;
         row.Remove.Margin = new Thickness(6, 0, 0, 0);
         row.Remove.ToolTip = "このデバイスを外す";
-        Grid.SetColumn(row.Remove, 5);
+        Grid.SetColumn(row.Remove, 6);
 
         g.Children.Add(row.Use);
         g.Children.Add(row.Combo);
+        g.Children.Add(row.Lane);
         g.Children.Add(row.Gain);
         g.Children.Add(row.GainText);
         g.Children.Add(row.Level);
@@ -331,6 +348,21 @@ public partial class DeviceList : UserControl
             if (!recording) r.Level.Value = 0;
         }
         UpdateLayout2();
+    }
+
+    /// <summary>録音を始めるとき。録音に使う行の波形を空にして、使わない行は何も出さない。</summary>
+    public void StartWave()
+    {
+        var active = Active();
+        foreach (var r in _rows) r.Wave.SetRows(active.Contains(r) ? new[] { "" } : Array.Empty<string>());
+    }
+
+    /// <summary>デバイスごとのピーク（上から順）を、行の波形へ1列ずつ足す（一時停止中は呼ばない）。</summary>
+    public void PushWave(float[] peaks)
+    {
+        var active = Active();
+        for (int i = 0; i < active.Count; i++)
+            active[i].Wave.Push(new[] { i < peaks.Length ? peaks[i] : 0f });
     }
 
     /// <summary>デバイスごとのピーク（上から順）を、行のメーターに出す。</summary>

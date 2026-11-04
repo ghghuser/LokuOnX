@@ -1,21 +1,39 @@
 <UserControl x:Class="Recorder.UI.DeviceList"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <UserControl.Resources>
-        <!-- 無効（グレーアウト）のときは、文字も丸印もかなり薄くする -->
-        <Style TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.35"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </UserControl.Resources>
-    <StackPanel>
-        <StackPanel x:Name="RowsPanel"/>
-        <StackPanel x:Name="FooterPanel">
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+    <!-- 録音コンソールの右側: 1行＝1デバイスの「ストリップ」（選択・波形・ゲイン・レベル）。行は DeviceList.xaml.cs が作る。
+         列の幅は DeviceList.xaml.cs の Cols と同じ（見出しと行をそろえる） -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 見出し -->
+        <Grid Grid.Row="0" Margin="0,0,0,6" TextElement.FontSize="11" TextElement.Foreground="{DynamicResource WindowFg}" Opacity="0.55">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="116"/>
+                <ColumnDefinition Width="64"/>
+                <ColumnDefinition Width="66"/>
+                <ColumnDefinition Width="26"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1" Text="入力デバイス" ToolTip="PC内部音（🔊）・マイク（🎤）。最大4台を同時に録音できます"/>
+            <TextBlock Grid.Column="2" Text="波形" Margin="2,0,0,0"/>
+            <TextBlock Grid.Column="3" Text="ゲイン" ToolTip="録音中も調整できます。ダブルクリックで 0 dB"/>
+            <TextBlock Grid.Column="5" Text="レベル"/>
+        </Grid>
+
+        <StackPanel x:Name="RowsPanel" Grid.Row="1"/>
+
+        <!-- 下段（コンソールの底にそろえる） -->
+        <StackPanel x:Name="FooterPanel" Grid.Row="3" Margin="0,4,0,0" VerticalAlignment="Bottom">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                 <Button x:Name="AddButton" Content="＋ デバイスを追加" Padding="12,2" Margin="0,0,8,0"
                         ToolTip="複数のデバイスを同時に録音します（例: マイク＋PC音）。録音中は変更できません"
                         Click="Add_Click"/>
@@ -23,15 +41,16 @@
                         ToolTip="接続されているデバイスの一覧を読み直します（3秒ごとの自動更新もあります）"
                         Click="Refresh_Click"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <TextBlock Text="複数のとき：" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <RadioButton x:Name="MixRadio" Content="ミックスして1ファイルで出力" GroupName="DeviceMode"
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="複入力時の保存方法：" VerticalAlignment="Center" Margin="0,0,10,0"
+                           ToolTip="2台以上のデバイスを同時に録音するときの保存のしかた"/>
+                <RadioButton x:Name="MixRadio" Content="ミックスして1ファイル" GroupName="DeviceMode"
                              Margin="0,0,16,0" VerticalAlignment="Center" Checked="Mode_Checked"/>
-                <RadioButton x:Name="SeparateRadio" Content="デバイスごとに別ファイルで出力" GroupName="DeviceMode"
+                <RadioButton x:Name="SeparateRadio" Content="デバイスごとに別ファイル" GroupName="DeviceMode"
                              VerticalAlignment="Center" Checked="Mode_Checked"/>
             </StackPanel>
         </StackPanel>
-        <TextBlock x:Name="ErrorText" Foreground="#D33" TextWrapping="Wrap" Visibility="Collapsed"
-                   Margin="0,0,0,4"/>
-    </StackPanel>
+        <TextBlock x:Name="ErrorText" Grid.Row="4" Foreground="#D33" TextWrapping="Wrap" Visibility="Collapsed"
+                   Margin="0,6,0,0"/>
+    </Grid>
 </UserControl>
