@@ -149,11 +149,7 @@
             <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
                        Visibility="Collapsed" Margin="0,6,0,0"/>
 
-            <ui:FileListPanel x:Name="Files" Grid.Row="3" Margin="0,8,0,0">
-                <ui:FileListPanel.Footer>
-                    <ui:PlayerPanel x:Name="Player"/>
-                </ui:FileListPanel.Footer>
-            </ui:FileListPanel>
+            <ui:FileListPanel x:Name="Files" Grid.Row="3" Margin="0,8,0,0"/>
         </Grid>
     </Grid>
 </Window>

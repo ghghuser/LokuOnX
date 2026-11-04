@@ -8,6 +8,7 @@ namespace Recorder.UI;
 /// <summary>メイン画面のうち、設定（デバイス・形式・保存先・分割間隔）と表示。録音の操作は MainWindow.Recording.cs。</summary>
 public partial class MainWindow : Window
 {
+    private readonly PlayerPanel Player = new();   // 一覧（FileListPanel）の下に Footer として入れる
     private readonly Settings _settings;
     private readonly IAudioDeviceProvider _provider = new WasapiDeviceProvider();
     private readonly DispatcherTimer _deviceTimer = new() { Interval = TimeSpan.FromSeconds(3) };
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
     public MainWindow(Settings settings)
     {
         InitializeComponent();
+        Files.Footer = Player;
         // 画面が小さいパソコンでは、作業領域に収まる高さにする（M6で一覧を足したため既定の高さが大きい）
         MinHeight = Math.Min(MinHeight, SystemParameters.WorkArea.Height);
         Height = Math.Min(Height, SystemParameters.WorkArea.Height);
