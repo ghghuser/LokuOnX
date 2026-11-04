@@ -5,6 +5,10 @@
         <StackPanel>
             <TextBlock x:Name="NameText" Text="一覧のファイルを選ぶと、ここで再生できます" TextTrimming="CharacterEllipsis" Margin="0,0,0,4"/>
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -23,11 +27,11 @@
                         ValueChanged="Pos_ValueChanged"
                         ToolTip="クリック／ドラッグで再生位置を移動します"/>
                 <TextBlock x:Name="TimeText" Grid.Column="2" Text="0：00：00 / 0：00：00" VerticalAlignment="Center"
-                           MinWidth="150" TextAlignment="Right"/>
+                           MinWidth="130" TextAlignment="Right"/>
 
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="16,0,0,0">
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBlock Text="速度" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Slider x:Name="SpeedSlider" Width="130" VerticalAlignment="Center" Minimum="0.5" Maximum="2"
+                    <Slider x:Name="SpeedSlider" Width="200" VerticalAlignment="Center" Minimum="0.5" Maximum="2"
                             Value="1" TickFrequency="0.05" IsSnapToTickEnabled="True" SmallChange="0.05" LargeChange="0.25"
                             ValueChanged="Speed_ValueChanged"
                             ToolTip="0.5〜2倍。音の高さは変わりません"/>

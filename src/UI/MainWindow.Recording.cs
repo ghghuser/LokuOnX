@@ -87,6 +87,7 @@ public partial class MainWindow
         if (_session == null) return;
         _notice = message;
         ShowRecordingStatus();
+        if (message.StartsWith("保存しました", StringComparison.Ordinal)) Files.Refresh();   // 分割で閉じたファイルを一覧へ
     }));
 
     private void ShowRecordingStatus()
@@ -171,7 +172,12 @@ public partial class MainWindow
         Quality.IsEnabled = Detail.IsEnabled = Presets.IsEnabled = !recording;
         SleepGuard.Prevent(recording && _settings.PreventSleep);
         RefreshButton.IsEnabled = BrowseButton.IsEnabled = !recording;
-        if (!recording) StateText.Text = "待機中";
+        if (!recording)
+        {
+            StateText.Text = "待機中";
+            TotalPanel.Visibility = Visibility.Collapsed;
+            Files.SetRecording(null);
+        }
     }
 
     // ---- 表示の更新（50msごと） ----
@@ -193,8 +199,10 @@ public partial class MainWindow
         // 大きい表示 = いまのファイルを始めてから。分割したあとは、横に（連続 ○）で録音全体の時間も出す
         var f = s.TrackElapsed;
         TimeText.Text = Clock(f);
-        TotalText.Text = s.SplitCount > 0 ? "（連続 " + Clock(t) + "）" : "";
+        TotalPanel.Visibility = s.SplitCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+        TotalText.Text = Clock(t);
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
+        Files.SetRecording($"● {(s.Paused ? "一時停止中" : "録音中")}… トラック {s.CurrentTrackNumber} ― 停止か分割をすると、ここに追加されます");
         var devicePeaks = s.TakeDevicePeaks();
         Devices.SetLevels(devicePeaks);
         if (!s.Paused) Wave.Push(devicePeaks);

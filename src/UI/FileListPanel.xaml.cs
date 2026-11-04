@@ -73,7 +73,7 @@ public partial class FileListPanel : UserControl
         foreach (var f in files.Where(f => keep.Contains(f.Path, StringComparer.OrdinalIgnoreCase)))
             List.SelectedItems.Add(f);
         _restoring = false;
-        CountText.Text = files.Count == 0 ? "ファイルはありません" : $"{files.Count} 個";
+        CountText.Text = files.Count == 0 ? "ファイル一覧（なし）" : $"ファイル一覧（{files.Count} 個）";
         RaiseSelected();
         _ = LoadLengthsAsync(files.Where(f => f.Length == null).Take(AutoLengthLimit).ToList(), cts.Token);
     }
@@ -160,8 +160,16 @@ public partial class FileListPanel : UserControl
             gv.Columns[i].Header = Titles[i] + (SortKeys[i] == _sortKey ? (_sortDesc ? " ▼" : " ▲") : "");
     }
 
+    /// <summary>録音中は一覧の一番上に表示を出す。null で消す。</summary>
+    public void SetRecording(string? text)
+    {
+        RecordingBanner.Visibility = text == null ? Visibility.Collapsed : Visibility.Visible;
+        if (text != null && RecordingText.Text != text) RecordingText.Text = text;
+    }
+
     private void ShowError(string message)
     {
+        HintText.Visibility = Visibility.Collapsed;
         ErrorText.Text = message;
         ErrorText.Visibility = Visibility.Visible;
     }
@@ -170,5 +178,6 @@ public partial class FileListPanel : UserControl
     {
         ErrorText.Text = "";
         ErrorText.Visibility = Visibility.Collapsed;
+        HintText.Visibility = Visibility.Visible;
     }
 }

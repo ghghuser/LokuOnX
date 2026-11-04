@@ -16,10 +16,14 @@ public sealed class LibraryFile : INotifyPropertyChanged
         Created = created;
     }
 
+    /// <summary>このアプリを起動した時刻。これ以後に作られたファイルを「起動後のファイル」として目立たせる。</summary>
+    public static readonly DateTime SessionStart = System.Diagnostics.Process.GetCurrentProcess().StartTime;
+
     public string Path { get; }
     public string Name { get; }
     public long Size { get; }
     public DateTime Created { get; }
+    public bool IsNew => Created >= SessionStart;
 
     public TimeSpan? Length
     {
@@ -37,9 +41,9 @@ public sealed class LibraryFile : INotifyPropertyChanged
     /// <summary>並べ替え用（未取得は -1）。</summary>
     public double LengthSeconds => _length?.TotalSeconds ?? -1;
 
-    public string LengthText => _length is { } t ? Clock(t) : "…";
+    public string LengthText => _length is { } t ? Clock(t) : "読込中";
     public string SizeText => SizeFormat(Size);
-    public string CreatedText => Created.ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture);
+    public string CreatedText => Created.ToString("yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture);
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

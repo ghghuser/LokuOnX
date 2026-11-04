@@ -9,6 +9,7 @@
     <SolidColorBrush x:Key="PanelBorder" Color="#5F6368"/>
     <SolidColorBrush x:Key="Accent" Color="#4C8DFF"/>
     <SolidColorBrush x:Key="DisabledFg" Color="#7A7D82"/>
+    <SolidColorBrush x:Key="NewFileFg" Color="#6EA8FE"/>
 
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource PanelBg}"/>
