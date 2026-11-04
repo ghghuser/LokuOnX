@@ -147,6 +147,7 @@ public sealed partial class RecordingSession
             // 名前の確定は1つずつ（同名の取り合いを避ける）
             lock (FinalizeLock)
                 t.Result = _plan.FinishTrack(t.TempPath, t.Index, t.Time, t.Start, t.End, _ffmpeg);
+            if (t.Failure == null && File.Exists(t.Result.Path)) Saved?.Invoke(t.Result.Path);
             if (announce && t.Failure == null)
             {
                 var msg = "保存しました: " + t.Result.Path + $"（音声 {SecondsOf(t):0.00}秒）";

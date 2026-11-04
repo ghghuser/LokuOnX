@@ -21,6 +21,7 @@ public partial class MainWindow : Window
         // 画面が小さいパソコンでは、作業領域に収まる高さにする（M6で一覧を足したため既定の高さが大きい）
         MinHeight = Math.Min(MinHeight, SystemParameters.WorkArea.Height);
         Height = Math.Min(Height, SystemParameters.WorkArea.Height);
+        Width = Math.Min(Width, SystemParameters.WorkArea.Width);
         _settings = settings;
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
 
@@ -42,10 +43,11 @@ public partial class MainWindow : Window
         Presets.Acting += ClearErrors;
         Presets.Error += ShowError;
         Presets.Applied += ReloadFromSettings;
-        Files.Init(settings, () => _settings.Folder, AppPaths.Ffmpeg);
+        if (settings.RecentFolders.Count == 0) settings.AddRecentFolder(settings.Folder);
+        Files.Init(settings, AppPaths.Ffmpeg);
         Player.Init(AppPaths.Ffmpeg);
         Files.Selected += Player.Load;
-        Files.PlayRequested += f => { Player.Load(f); Player.Play(); };
+        Files.PlayRequested += Player.PlayFile;
         Files.Releasing += Player.Release;
         ThemeManager.Attach(this, settings.Theme);
         _loading = false;
@@ -150,7 +152,7 @@ public partial class MainWindow : Window
         var changed = !string.Equals(_settings.Folder, text, StringComparison.Ordinal);
         _settings.Folder = text;
         UpdateInfo();
-        if (changed) Files.Refresh();   // 保存先が変わったら、一覧も読み直す
+        if (changed && Directory.Exists(text)) AddRecentFolder(text);
     }
 
     private void Browse_Click(object sender, RoutedEventArgs e)
@@ -160,7 +162,14 @@ public partial class MainWindow : Window
         FolderBox.Text = dlg.FolderName;
         _settings.Folder = dlg.FolderName;
         UpdateInfo();
-        Files.Refresh();
+        AddRecentFolder(dlg.FolderName);
+    }
+
+    /// <summary>最近使った保存先（10件）へ入れて、一覧のプルダウンを更新する。</summary>
+    private void AddRecentFolder(string folder)
+    {
+        _settings.AddRecentFolder(folder);
+        Files.ReloadSources();
     }
 
     private void Refresh_Click(object sender, RoutedEventArgs e)

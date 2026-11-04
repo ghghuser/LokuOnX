@@ -60,6 +60,9 @@ public sealed partial class RecordingSession : IDisposable
     /// <summary>録音は続くが知らせたいこと（分割で保存した・前のファイルの書き出し失敗など。別スレッドから）。</summary>
     public event Action<string>? Notice;
 
+    /// <summary>ファイルを閉じて最終名が決まったとき（別スレッドから。分割・停止のどちらでも）。引数は最終のパス。</summary>
+    public event Action<string>? Saved;
+
     public RecordingSession(IAudioSource source, string ffmpegPath, RecordingPlan plan, TimeSpan splitInterval)
     {
         _source = source;

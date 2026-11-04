@@ -54,6 +54,7 @@ public partial class MainWindow
         try
         {
             CommitInputs();
+            AddRecentFolder(_settings.Folder);
             if (DiskSpace.FreeBytes(_settings.Folder) is { } free && free < DiskSpace.StopBytes)
             {
                 ShowError($"保存先のドライブの空きが {DiskSpace.Text(free)} しかないため、録音を始められません。空き容量を増やすか、保存先を変えてください。");
@@ -63,6 +64,11 @@ public partial class MainWindow
             group = RecordingGroup.Create(_provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now);
             group.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
             group.Notice += OnNotice;
+            group.Saved += path => Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _settings.AddHistory(path);   // 録音履歴へ（空にするまで残る）
+                Files.Refresh();
+            }));
             group.Start();
             _session = group;
             if (!_settings.ReadOnly) _settings.NextNo = no + 1;
@@ -87,7 +93,6 @@ public partial class MainWindow
         if (_session == null) return;
         _notice = message;
         ShowRecordingStatus();
-        if (message.StartsWith("保存しました", StringComparison.Ordinal)) Files.Refresh();   // 分割で閉じたファイルを一覧へ
     }));
 
     private void ShowRecordingStatus()
@@ -146,7 +151,7 @@ public partial class MainWindow
         }
         if (warnings.Count > 0) StatusText.Text += "\n注意: " + string.Join(" / ", warnings);
         if (_closeAfterStop) Close();
-        else Files.Refresh();   // できたファイルを一覧へ
+        else Files.Refresh();
     }
 
     private static string SavedText(IReadOnlyList<FinalizeResult> results, IReadOnlyList<double> seconds)
@@ -202,7 +207,7 @@ public partial class MainWindow
         TotalPanel.Visibility = s.SplitCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         TotalText.Text = Clock(t);
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
-        Files.SetRecording($"● {(s.Paused ? "一時停止中" : "録音中")}… トラック {s.CurrentTrackNumber} ― 停止か分割をすると、ここに追加されます");
+        Files.SetRecording($"{(s.Paused ? "一時停止中" : "録音中")}… トラック {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
         Devices.SetLevels(devicePeaks);
         if (!s.Paused) Wave.Push(devicePeaks);

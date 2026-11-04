@@ -50,9 +50,13 @@ public partial class PlayerPanel : UserControl
     private double Length => _file?.Length?.TotalSeconds ?? 0;
 
     // ---- 一覧からの操作 ----
-    /// <summary>再生するファイルを選ぶ（再生はしない）。同じファイルなら再生を邪魔しない。</summary>
+    /// <summary>
+    /// 一覧で選んだファイルを、再生の対象にする（再生はしない）。
+    /// 再生中は、別のファイルを選んでも止めない（次を再生する／停止するまで続ける）。
+    /// </summary>
     public void Load(LibraryFile file)
     {
+        if (Playing) return;
         var same = _file != null && string.Equals(_file.Path, file.Path, StringComparison.OrdinalIgnoreCase);
         if (!same)
         {
@@ -61,6 +65,20 @@ public partial class PlayerPanel : UserControl
         }
         SetFile(file);
         SetState();
+    }
+
+    /// <summary>ダブルクリックなどで「このファイルを再生」。再生中でも、これに切り替える（同じファイルを再生中なら何もしない）。</summary>
+    public void PlayFile(LibraryFile file)
+    {
+        var same = _file != null && string.Equals(_file.Path, file.Path, StringComparison.OrdinalIgnoreCase);
+        if (same && Playing) return;
+        if (!same)
+        {
+            _player?.Stop();
+            _pos = 0;
+        }
+        SetFile(file);
+        Play();
     }
 
     /// <summary>名前の変更・削除の前に、そのファイルの再生を止めて手放す。</summary>
@@ -170,9 +188,12 @@ public partial class PlayerPanel : UserControl
         _file = file;
         if (_file != null) _file.PropertyChanged += OnFileChanged;
         ClearError();
-        NameText.Text = file?.Name ?? "一覧のファイルを選ぶと、ここで再生できます";
+        UpdateName();
         SetSlider(_pos);
     }
+
+    private void UpdateName() =>
+        NameText.Text = _file == null ? "一覧のファイルを選ぶと、ここで再生できます" : (Playing ? "▶ 再生中: " : "") + _file.Name;
 
     private void OnFileChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -187,6 +208,7 @@ public partial class PlayerPanel : UserControl
         StopButton.IsEnabled = Playing;
         PosSlider.IsEnabled = has && Length > 0;
         _tick.IsEnabled = Playing;
+        UpdateName();
     }
 
     private void SetSlider(double pos)

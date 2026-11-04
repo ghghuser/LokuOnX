@@ -18,6 +18,9 @@ public sealed class RecordingGroup : IDisposable
     /// <summary>録音は続くが知らせたいこと（分割で保存した・デバイスの切断と復帰など。別スレッドから）。</summary>
     public event Action<string>? Notice;
 
+    /// <summary>ファイルが保存された（別スレッドから）。録音履歴へ入れるために使う。</summary>
+    public event Action<string>? Saved;
+
     private RecordingGroup(List<RecordingSession> sessions, List<MixedSource> sources, bool separate)
     {
         _sessions = sessions;
@@ -27,6 +30,7 @@ public sealed class RecordingGroup : IDisposable
         {
             x.Error += m => Error?.Invoke(m);
             x.Notice += m => Notice?.Invoke(m);
+            x.Saved += p => Saved?.Invoke(p);
         }
         foreach (var x in sources) x.Notice += m => Notice?.Invoke(m);
     }

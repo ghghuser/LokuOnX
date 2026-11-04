@@ -19,7 +19,7 @@ public partial class FileListPanel
     private void Play_Click(object sender, RoutedEventArgs e)
     {
         ClearError();
-        if (List.SelectedItem is LibraryFile f) PlayRequested?.Invoke(f);
+        if (SelectedFiles.FirstOrDefault() is { } f) PlayRequested?.Invoke(f);
         else ShowError("再生するファイルを選んでください。");
     }
 
@@ -67,6 +67,7 @@ public partial class FileListPanel
         Releasing?.Invoke(new[] { path });   // 再生中のファイルは名前を変えられないので、止めて手放す
         var error = FileOps.Rename(path, target);
         if (error != null) ShowError(error);
+        else _settings.ReplaceInHistory(path, target);
         Refresh(error == null ? target : path);
     }
 
@@ -89,6 +90,19 @@ public partial class FileListPanel
         Releasing?.Invoke(paths);
         var failed = await Task.Run(() => RecycleBin.Send(paths));
         if (failed.Count > 0) ShowError("ごみ箱へ移せなかったファイル: " + string.Join(" / ", failed));
+        _settings.RemoveFromHistory(paths.Where(p => !File.Exists(p)));
+        Refresh();
+    }
+
+    // ---- 履歴を空にする（ファイルは消さない。確認してから） ----
+    private void Clear_Click(object sender, RoutedEventArgs e)
+    {
+        ClearError();
+        if (!IsHistory) return;
+        var answer = MessageBox.Show(Owner!, "録音履歴の一覧を空にします（ファイルは消えません）。よろしいですか？",
+            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+        if (answer != MessageBoxResult.Yes) return;
+        _settings.ClearHistory();
         Refresh();
     }
 }

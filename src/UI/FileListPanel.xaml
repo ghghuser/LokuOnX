@@ -2,8 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>
-        <!-- 起動後に作られたファイルは文字色を変える（選択中の行は選択色と重なるので変えない） -->
+        <!-- 文字色: 起動後に作られたファイル＝白に近い色、それ以前＝わずかに薄いグレー（ダーク）。選択中の行は通常色、録音中の行は赤 -->
         <Style x:Key="RowText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource OldFileFg}"/>
             <Style.Triggers>
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
@@ -13,36 +14,49 @@
                     <Setter Property="Foreground" Value="{DynamicResource NewFileFg}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </MultiDataTrigger>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListViewItem}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsRecording}" Value="True">
+                    <Setter Property="Foreground" Value="#E03B3B"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="MarkText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource MarkFg}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRecording}" Value="True">
+                    <Setter Property="Foreground" Value="#E03B3B"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 見出しと操作ボタン（幅が足りなければ折り返す） -->
+        <!-- 表示する場所（録音履歴／最近の保存先10件）と操作ボタン。幅が足りなければ折り返す -->
         <WrapPanel Grid.Row="0" Margin="0,0,0,4">
-            <TextBlock x:Name="CountText" Text="ファイル一覧" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,4"/>
-            <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,6,4" Click="Refresh_Click"
-                    ToolTip="保存先フォルダ（日付フォルダの中も）を読み直します"/>
+            <TextBlock Text="表示" VerticalAlignment="Center" Margin="0,0,6,4"/>
+            <ComboBox x:Name="SourceBox" Width="250" Margin="0,0,10,4" DisplayMemberPath="Label"
+                      SelectionChanged="Source_Changed"
+                      ToolTip="「録音履歴」＝録音したファイルを、空にするまで残します。フォルダを選ぶと、その中身を表示します（最近の保存先10件まで）"/>
+            <TextBlock x:Name="CountText" VerticalAlignment="Center" Margin="0,0,10,4" Opacity="0.8"/>
+            <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,6,4" Click="Refresh_Click"/>
             <Button x:Name="ExplorerButton" Content="エクスプローラーで開く" Padding="10,3" Margin="0,0,6,4" Click="Explorer_Click"/>
             <Button x:Name="RenameButton" Content="名前の変更" Padding="10,3" Margin="0,0,6,4" Click="Rename_Click"
                     ToolTip="F2 キーでも開けます"/>
-            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="10,3" Margin="0,0,0,4" Click="Delete_Click"
+            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="10,3" Margin="0,0,6,4" Click="Delete_Click"
                     ToolTip="Delete キーでも実行できます（複数選択可）"/>
+            <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,0,4" Click="Clear_Click"
+                    ToolTip="録音履歴の一覧を空にします（ファイルは消えません）"/>
         </WrapPanel>
 
-        <!-- 録音中は、これからできるファイルがあることを一覧の一番上に出す -->
-        <Border x:Name="RecordingBanner" Grid.Row="1" Visibility="Collapsed" Margin="0,0,0,4" Padding="8,5"
-                BorderBrush="#D33" BorderThickness="1" CornerRadius="3">
-            <TextBlock x:Name="RecordingText" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"/>
-        </Border>
-
-        <ListView x:Name="List" Grid.Row="2" MinHeight="110" SelectionMode="Extended"
+        <ListView x:Name="List" Grid.Row="1" MinHeight="110" SelectionMode="Extended"
                   SelectionChanged="List_SelectionChanged" MouseDoubleClick="List_DoubleClick"
                   PreviewKeyDown="List_KeyDown"
                   GridViewColumnHeader.Click="Header_Click">
@@ -58,9 +72,18 @@
             </ListView.ContextMenu>
             <ListView.View>
                 <GridView AllowsColumnReorder="False">
-                    <GridViewColumn Header="ファイル名" Width="250">
+                    <GridViewColumn Header="ファイル名" Width="260">
                         <GridViewColumn.CellTemplate>
-                            <DataTemplate><TextBlock Text="{Binding Name}" Style="{StaticResource RowText}" TextTrimming="CharacterEllipsis"/></DataTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Mark}" Style="{StaticResource MarkText}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" Style="{StaticResource RowText}" TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+                            </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="長さ" Width="80">
@@ -82,9 +105,9 @@
             </ListView.View>
         </ListView>
 
-        <TextBlock x:Name="ErrorText" Grid.Row="3" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
+        <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
                    Visibility="Collapsed" Margin="0,4,0,0"/>
-        <TextBlock x:Name="HintText" Grid.Row="3" Opacity="0.65" Margin="0,4,0,0" TextWrapping="Wrap"
-                   Text="起動後に作られたファイルは色付きで表示されます"/>
+        <TextBlock x:Name="HintText" Grid.Row="2" Opacity="0.65" Margin="0,4,0,0" TextWrapping="Wrap"
+                   Text="● ＝ 起動後に作られたファイル（白に近い文字）。再生中は、別のファイルを選んでも止まりません"/>
     </Grid>
 </UserControl>
