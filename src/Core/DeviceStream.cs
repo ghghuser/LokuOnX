@@ -146,6 +146,20 @@ public sealed class DeviceStream
         float g0 = _gain, g1 = _gainTarget;
         _gain = g1;
         float peak = _peak;
+        if (g0 == g1)
+        {
+            // ゲインが変化中でないとき（ほとんどの間）は、フレームごとの補間計算を省く
+            int total = frames * _ch;
+            for (int i = 0; i < total; i++)
+            {
+                float v = f[i] * g1;
+                f[i] = v;
+                float a = Math.Abs(v);
+                if (a > peak) peak = a;
+            }
+            _peak = peak;
+            return;
+        }
         for (int n = 0; n < frames; n++)
         {
             float g = g0 == g1 ? g1 : g0 + (g1 - g0) * n / frames;

@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Recorder.Core;
 
 /// <summary>PCMバイト列 → float（-1〜1）への変換とチャンネル数の合わせ込み。WPF や Windows API には依存しない。</summary>
@@ -18,6 +20,21 @@ public static class PcmConvert
         int frameBytes = inCh * bps;
         frames = count / frameBytes;
         var result = new float[frames * outCh];
+        if (inCh == outCh && frames > 0)
+        {
+            // よくある形式（float32／16bit整数・チャンネル数そのまま）は、1サンプルずつの分岐なしで一括変換する
+            if (f.IsFloat && f.BitsPerSample == 32)
+            {
+                Buffer.BlockCopy(buf, 0, result, 0, frames * frameBytes);
+                return result;
+            }
+            if (!f.IsFloat && f.BitsPerSample == 16)
+            {
+                var src = MemoryMarshal.Cast<byte, short>(buf.AsSpan(0, frames * frameBytes));
+                for (int i = 0; i < src.Length; i++) result[i] = src[i] / 32768f;
+                return result;
+            }
+        }
         var tmp = new float[inCh];
         for (int n = 0; n < frames; n++)
         {
