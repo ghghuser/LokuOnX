@@ -8,8 +8,8 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>
-/// 入力デバイスのストリップ（録音コンソールの右側）。1行＝1デバイス（有効チェック・プルダウン・波形・ゲイン・レベルメーター・削除）。
-/// 「＋デバイスを追加」で行を増やす。波形は行ごとに1段（録音中に右から左へ流れる）。
+/// 入力デバイスのストリップ（録音コンソールの右側）。1行＝1デバイス（有効チェック・プルダウン・波形・ゲイン・レベルメーター）。
+/// 行は最初から最大4つ並べる（デバイスを選んだ行だけ録音に使う）。波形は行ごとに1段（録音中に右から左へ流れる）。
 /// 2台以上のときだけ「ミックスして1ファイル／デバイスごとに別ファイル」の切替を出す。
 /// 選んだデバイスは、ユーザーが触ったときだけ settings.ini に保存する（触らなければ起動のたびに Windows の既定の入力）。
 /// </summary>
@@ -28,7 +28,6 @@ public partial class DeviceList : UserControl
         public readonly ProgressBar Level = new();
         public readonly WaveView Wave = new();
         public readonly Border Lane = new();
-        public readonly Button Remove = new();
         public DateTime ClipUntil = DateTime.MinValue;
         public string Key = "";
     }
@@ -96,7 +95,8 @@ public partial class DeviceList : UserControl
         {
             _touched = true;
         }
-        foreach (var i in inputs) AddRow(i.Key, i.GainDb, i.Enabled);
+        foreach (var i in inputs.Take(Settings.MaxInputs)) AddRow(i.Key, i.GainDb, i.Enabled);
+        while (_rows.Count < Settings.MaxInputs) AddRow("", 0);   // 空き行（デバイスを選ぶまで録音に使われない）
         MixRadio.IsChecked = !_s.SeparateFiles;
         SeparateRadio.IsChecked = _s.SeparateFiles;
         _loading = false;
@@ -147,8 +147,8 @@ public partial class DeviceList : UserControl
         var row = new Row { Key = key };
         var g = row.Panel;
         g.Margin = new Thickness(0, 0, 0, 6);
-        // 見出し（DeviceList.xaml）と同じ列幅: チェック・プルダウン・波形・ゲイン・ゲインの数値・レベル・削除
-        foreach (var w in new[] { 30.0, 250.0, -1, 116.0, 64.0, 66.0, 26.0 })
+        // 見出し（DeviceList.xaml）と同じ列幅: チェック・プルダウン・波形・ゲイン・ゲインの数値・レベル
+        foreach (var w in new[] { 30.0, 250.0, -1, 116.0, 64.0, 66.0 })
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = w < 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(w) });
 
         row.Use.IsChecked = enabled;
@@ -202,23 +202,12 @@ public partial class DeviceList : UserControl
         row.Level.ToolTip = "このデバイスの音量（ゲインを掛けたあと）。赤＝クリップ";
         Grid.SetColumn(row.Level, 5);
 
-        row.Remove.Content = "✕";
-        row.Remove.Width = 18;
-        row.Remove.Height = 18;
-        row.Remove.Padding = new Thickness(0);
-        row.Remove.FontSize = 10;
-        row.Remove.VerticalAlignment = VerticalAlignment.Center;
-        row.Remove.Margin = new Thickness(6, 0, 0, 0);
-        row.Remove.ToolTip = "このデバイスを外す";
-        Grid.SetColumn(row.Remove, 6);
-
         g.Children.Add(row.Use);
         g.Children.Add(row.Combo);
         g.Children.Add(row.Lane);
         g.Children.Add(row.Gain);
         g.Children.Add(row.GainText);
         g.Children.Add(row.Level);
-        g.Children.Add(row.Remove);
 
         Bind(row);
         row.Combo.SelectionChanged += (_, _) =>
@@ -249,7 +238,6 @@ public partial class DeviceList : UserControl
             _saveTimer.Start();
         };
         row.Gain.MouseDoubleClick += (_, _) => row.Gain.Value = 0;
-        row.Remove.Click += (_, _) => RemoveRow(row);
 
         _rows.Add(row);
         RowsPanel.Children.Add(g);
@@ -276,28 +264,7 @@ public partial class DeviceList : UserControl
         row.Combo.SelectedItem = items.FirstOrDefault(d => d.Key == row.Key);
     }
 
-    // ---- 追加・削除・切替 ----
-    private void Add_Click(object sender, RoutedEventArgs e)
-    {
-        if (_rows.Count >= Settings.MaxInputs) return;
-        AddRow("", 0);   // 追加した行は「未選択」から始める（選ぶまで録音に使われない）
-        _touched = true;
-        UpdateLayout2();
-        SaveNow();
-        Changed?.Invoke();
-    }
-
-    private void RemoveRow(Row row)
-    {
-        if (_rows.Count <= 1 || _recording) return;
-        RowsPanel.Children.Remove(row.Panel);
-        _rows.Remove(row);
-        _touched = true;
-        UpdateLayout2();
-        SaveNow();
-        Changed?.Invoke();
-    }
-
+    // ---- 切替 ----
     private void Mode_Checked(object sender, RoutedEventArgs e)
     {
         if (_loading || _s == null) return;
@@ -308,8 +275,12 @@ public partial class DeviceList : UserControl
     /// <summary>行数に応じて、削除ボタン・追加ボタン・モード切替の表示を整える。</summary>
     private void UpdateLayout2()
     {
-        foreach (var r in _rows) r.Remove.Visibility = _rows.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
-        AddButton.IsEnabled = !_recording && _rows.Count < Settings.MaxInputs;
+        // デバイスを選んでいない行は、ゲイン・波形・レベルを薄くして「空き」とわかるようにする
+        foreach (var r in _rows)
+        {
+            var o = r.Key.Length > 0 ? 1.0 : 0.4;
+            r.Lane.Opacity = r.Gain.Opacity = r.GainText.Opacity = r.Level.Opacity = o;
+        }
         RefreshButton.IsEnabled = !_recording;
         // ミックス／別ファイルの切替は常に表示し、有効なデバイスが2台未満のとき（と録音中）はグレーアウトする
         MixRadio.IsEnabled = SeparateRadio.IsEnabled = !_recording && Active().Count > 1;
@@ -336,7 +307,7 @@ public partial class DeviceList : UserControl
     }
 
     // ---- 録音中の表示 ----
-    /// <summary>録音中は、デバイスの選択・追加・削除・モード切替を止める（ゲインは変えられる）。</summary>
+    /// <summary>録音中は、デバイスの選択・モード切替を止める（ゲインは変えられる）。</summary>
     public void SetRecording(bool recording)
     {
         _recording = recording;
@@ -344,7 +315,6 @@ public partial class DeviceList : UserControl
         {
             r.Combo.IsEnabled = !recording;
             r.Use.IsEnabled = !recording;
-            r.Remove.IsEnabled = !recording;
             if (!recording) r.Level.Value = 0;
         }
         UpdateLayout2();
