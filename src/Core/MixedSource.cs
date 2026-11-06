@@ -38,6 +38,15 @@ public sealed class MixedSource : IAudioSource
 
     public int DeviceCount => _inputs.Count;
 
+    /// <summary>いまつながっているデバイスの数。</summary>
+    public int ConnectedCount => _inputs.Count(i => i.IsConnected);
+
+    /// <summary>録音中にデバイスが使えなくなった（別スレッドから。M7）。</summary>
+    public event Action? DeviceLost;
+
+    /// <summary>外れていたデバイスにつなぎ直した（別スレッドから。M7）。</summary>
+    public event Action? DeviceReturned;
+
     /// <param name="all">デバイス一覧（共通のサンプリング周波数・チャンネル数を決めるのに使う）。</param>
     public MixedSource(IAudioDeviceProvider provider, IReadOnlyList<MixInput> inputs,
         IReadOnlyList<AudioDeviceInfo> all, bool autoResume)
@@ -62,6 +71,8 @@ public sealed class MixedSource : IAudioSource
             var input = new DeviceInput(provider, i.Key, i.Label, stream, autoResume);
             input.Notice += m => Notice?.Invoke(m);
             input.Failed += m => Stopped?.Invoke(new InvalidOperationException(m));
+            input.Lost += () => DeviceLost?.Invoke();
+            input.Returned += () => DeviceReturned?.Invoke();
             _inputs.Add(input);
         }
     }

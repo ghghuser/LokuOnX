@@ -1,0 +1,31 @@
+<UserControl x:Class="Recorder.UI.HotkeyPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <TextBlock Text="ホットキー" FontWeight="SemiBold" Margin="0,0,0,4"/>
+        <CheckBox x:Name="OnCheck" Content="ホットキーを使う（どのアプリを使っていても効きます）" Margin="0,0,0,6"
+                  Checked="On_Changed" Unchecked="On_Changed"/>
+        <WrapPanel Margin="0,0,0,4">
+            <TextBlock Text="録音の開始・停止" Width="130" VerticalAlignment="Center"/>
+            <TextBox x:Name="StartBox" Tag="start" Width="170" IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalContentAlignment="Center"
+                     ToolTip="欄をクリックして、割り当てたいキーを押します（Ctrl・Alt・Shift・Win のどれかと一緒に）。Delete か BackSpace で未設定にします"
+                     PreviewKeyDown="Key_PreviewKeyDown" GotKeyboardFocus="Box_Focus" LostKeyboardFocus="Box_Focus"/>
+            <Button Content="解除" Tag="start" Padding="10,2" Margin="6,0,0,0" Click="Clear_Click"/>
+        </WrapPanel>
+        <WrapPanel Margin="0,0,0,4">
+            <TextBlock Text="一時停止・再開" Width="130" VerticalAlignment="Center"/>
+            <TextBox x:Name="PauseBox" Tag="pause" Width="170" IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalContentAlignment="Center"
+                     ToolTip="欄をクリックして、割り当てたいキーを押します（Ctrl・Alt・Shift・Win のどれかと一緒に）。Delete か BackSpace で未設定にします"
+                     PreviewKeyDown="Key_PreviewKeyDown" GotKeyboardFocus="Box_Focus" LostKeyboardFocus="Box_Focus"/>
+            <Button Content="解除" Tag="pause" Padding="10,2" Margin="6,0,0,0" Click="Clear_Click"/>
+        </WrapPanel>
+        <WrapPanel Margin="0,0,0,4">
+            <TextBlock Text="分割" Width="130" VerticalAlignment="Center"/>
+            <TextBox x:Name="SplitBox" Tag="split" Width="170" IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalContentAlignment="Center"
+                     ToolTip="欄をクリックして、割り当てたいキーを押します（Ctrl・Alt・Shift・Win のどれかと一緒に）。Delete か BackSpace で未設定にします"
+                     PreviewKeyDown="Key_PreviewKeyDown" GotKeyboardFocus="Box_Focus" LostKeyboardFocus="Box_Focus"/>
+            <Button Content="解除" Tag="split" Padding="10,2" Margin="6,0,0,0" Click="Clear_Click"/>
+        </WrapPanel>
+        <TextBlock x:Name="MessageText" TextWrapping="Wrap" Margin="0,2,0,12" Visibility="Collapsed"/>
+    </StackPanel>
+</UserControl>

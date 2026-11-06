@@ -139,7 +139,11 @@
         <StackPanel Margin="0,4,0,0">
             <ui:DetailPanel x:Name="Detail"/>
             <Expander x:Name="ExpOption" Header="オプション">
-                <TextBlock Margin="16,6,0,6" Opacity="0.7" Text="オプションは M7 以降で追加します（無音検出など）。"/>
+                <StackPanel Margin="16,8,0,4">
+                    <ui:OptionPanel x:Name="Options"/>
+                    <ui:HotkeyPanel x:Name="Hotkeys"/>
+                    <ui:SchedulePanel x:Name="Plans"/>
+                </StackPanel>
             </Expander>
         </StackPanel>
 

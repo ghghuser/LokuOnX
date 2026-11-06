@@ -60,6 +60,6 @@ public sealed partial class Settings
         set => Set("SeparateFiles", value ? "1" : "0");
     }
 
-    /// <summary>デバイスが外れたとき、戻ったら自動で再開するか（既定ON）。OFFなら録音を止める。UIは M7。</summary>
+    /// <summary>デバイスが外れたとき、戻ったら自動で再開するか（既定ON）。OFFなら録音を止める。</summary>
     public bool AutoResume => Get("AutoResume", "1") != "0";
 }

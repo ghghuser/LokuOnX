@@ -11,6 +11,10 @@ public sealed class RecordingGroup : IDisposable
     private readonly List<RecordingSession> _sessions;
     private readonly List<MixedSource> _sources;
     private readonly bool _separate;
+    private readonly bool _waitForDevice;     // M7: すべてのデバイスが外れたら、戻るまで一時停止する
+    private readonly bool _splitOnReturn;     // M7: デバイスが戻ったら別ファイルに分割する
+    private readonly object _waitLock = new();
+    private bool _autoPaused;                 // 外れたために自動で一時停止している（手動の一時停止は戻っても再開しない）
 
     /// <summary>入力側・エンコード側のどちらかが失敗したとき（別スレッドから）。</summary>
     public event Action<string>? Error;
@@ -21,18 +25,64 @@ public sealed class RecordingGroup : IDisposable
     /// <summary>ファイルが保存された（別スレッドから）。録音履歴へ入れるために使う。</summary>
     public event Action<string>? Saved;
 
-    private RecordingGroup(List<RecordingSession> sessions, List<MixedSource> sources, bool separate)
+    private RecordingGroup(List<RecordingSession> sessions, List<MixedSource> sources, bool separate,
+        bool waitForDevice, bool splitOnReturn)
     {
         _sessions = sessions;
         _sources = sources;
         _separate = separate;
+        _waitForDevice = waitForDevice;
+        _splitOnReturn = splitOnReturn;
         foreach (var x in sessions)
         {
             x.Error += m => Error?.Invoke(m);
             x.Notice += m => Notice?.Invoke(m);
             x.Saved += p => Saved?.Invoke(p);
         }
-        foreach (var x in sources) x.Notice += m => Notice?.Invoke(m);
+        foreach (var x in sources)
+        {
+            x.Notice += m => Notice?.Invoke(m);
+            x.DeviceLost += OnDeviceLost;
+            x.DeviceReturned += OnDeviceReturned;
+        }
+    }
+
+    /// <summary>デバイスが外れた（別スレッドから）。「戻るまで待機」がONで、全デバイスが外れたら一時停止する。</summary>
+    private void OnDeviceLost()
+    {
+        if (!_waitForDevice) return;
+        lock (_waitLock)
+        {
+            if (_autoPaused || Paused) return;
+            if (_sources.Any(x => x.ConnectedCount > 0)) return;   // まだ録れているデバイスがあれば続ける
+            _autoPaused = true;
+            Pause();
+        }
+        Notice?.Invoke("デバイスが外れたため一時停止しました。戻ったら自動で再開します。");
+    }
+
+    /// <summary>デバイスが戻った（別スレッドから）。自動の一時停止なら再開し、「戻ったら別ファイルに分割」がONなら分割する。</summary>
+    private void OnDeviceReturned()
+    {
+        bool resumed = false;
+        lock (_waitLock)
+        {
+            if (_autoPaused)
+            {
+                _autoPaused = false;
+                Resume();
+                resumed = true;
+            }
+        }
+        if (resumed) Notice?.Invoke("デバイスが戻ったので録音を再開しました。");
+        if (_splitOnReturn)
+        {
+            Task.Run(() =>
+            {
+                try { Split(); }
+                catch (Exception) { }
+            });
+        }
     }
 
     /// <summary>画面で選ばれているデバイス（inputs）と設定から録音を組み立てる（まだ開始しない）。保存先フォルダも作る。</summary>
@@ -80,7 +130,7 @@ public sealed class RecordingGroup : IDisposable
             foreach (var x in sources) x.Dispose();
             throw;
         }
-        return new RecordingGroup(sessions, sources, separate);
+        return new RecordingGroup(sessions, sources, separate, s.WaitForDevice, s.SplitOnReturn);
     }
 
     private RecordingSession First => _sessions[0];

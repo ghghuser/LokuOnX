@@ -29,6 +29,15 @@ public sealed class DeviceInput : IDisposable
     /// <summary>自動再開がOFFのとき、デバイスが止まったことを知らせる（別スレッドから）。</summary>
     public event Action<string>? Failed;
 
+    /// <summary>録音中につながっていたデバイスが使えなくなった（別スレッドから。ロックの外で呼ぶ。M7）。</summary>
+    public event Action? Lost;
+
+    /// <summary>外れていたデバイスにつなぎ直した（別スレッドから。ロックの外で呼ぶ。M7）。</summary>
+    public event Action? Returned;
+
+    /// <summary>いまデバイスにつながっているか。</summary>
+    public bool IsConnected => Volatile.Read(ref _src) != null;
+
     public DeviceInput(IAudioDeviceProvider provider, string key, string label, DeviceStream stream, bool autoResume)
     {
         _provider = provider;
@@ -106,6 +115,7 @@ public sealed class DeviceInput : IDisposable
     private void Poll()
     {
         if (!Monitor.TryEnter(_lock)) return;
+        bool lost = false, returned = false;
         try
         {
             if (_stopping) return;
@@ -120,6 +130,7 @@ public sealed class DeviceInput : IDisposable
                 if (!_reportedLost)
                 {
                     _reportedLost = true;
+                    lost = true;
                     Notice?.Invoke("デバイスが使えなくなりました。無音で録音を続け、戻ったら自動で再開します: " + Label);
                 }
             }
@@ -132,12 +143,11 @@ public sealed class DeviceInput : IDisposable
                     if (Connect(wanted)) Notice?.Invoke("既定のデバイスが変わったので切り替えました: " + Label);
                     else _reportedLost = false;   // つながらなければ、次の周期でつなぎ直す
                 }
-                return;
             }
-            if (wanted == null || !_autoResume) return;
-            if (Connect(wanted))
+            else if (wanted != null && _autoResume && Connect(wanted))
             {
                 _reportedLost = false;
+                returned = true;
                 Notice?.Invoke("デバイスにつなぎ直しました: " + Label);
             }
         }
@@ -149,6 +159,9 @@ public sealed class DeviceInput : IDisposable
         {
             Monitor.Exit(_lock);
         }
+        // 通知はロックの外で（受け取った側が一時停止・再開・分割を呼んでも詰まらないように）
+        if (lost) Lost?.Invoke();
+        if (returned) Returned?.Invoke();
     }
 
     /// <summary>監視をやめてデバイスを閉じる。UIスレッドで直接呼ばず Task.Run 経由で呼ぶこと。</summary>

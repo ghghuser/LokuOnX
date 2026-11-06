@@ -28,70 +28,6 @@ public partial class MainWindow
     private Task RecoverAsync() =>
         RecoveryPrompt.RunAsync(this, _settings, () => _session != null, text => StatusText.Text = text);
 
-    // ---- 開始 ----
-    private async void Start_Click(object sender, RoutedEventArgs e)
-    {
-        if (_session != null)   // 録音中は、同じボタンが「停止」になる
-        {
-            await StopAsync(null);
-            return;
-        }
-        var inputs = Devices.Inputs;
-        ClearErrors();
-        if (inputs.Count == 0)
-        {
-            Devices.ShowError("入力デバイスが選ばれていません。「（未選択）」ではなくデバイスを選び、左のチェックを入れてください。");
-            return;
-        }
-        if (HasDuplicateDevice(inputs))
-        {
-            Devices.ShowError("同じデバイスが重複しています（「既定のデバイス（変更に追従）」と、その実際のデバイスも同じ扱いです）。どちらかを外してください。");
-            return;
-        }
-        if (!File.Exists(AppPaths.Ffmpeg))
-        {
-            ShowError($"FFmpeg が見つかりません: {AppPaths.Ffmpeg}");
-            return;
-        }
-
-        RecordingGroup? group = null;
-        try
-        {
-            CommitInputs();
-            AddRecentFolder(_settings.Folder);
-            if (DiskSpace.FreeBytes(_settings.Folder) is { } free && free < DiskSpace.StopBytes)
-            {
-                ShowError($"保存先のドライブの空きが {DiskSpace.Text(free)} しかないため、録音を始められません。空き容量を増やすか、保存先を変えてください。");
-                return;
-            }
-            var no = _settings.NextNo;
-            group = RecordingGroup.Create(_provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now);
-            group.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
-            group.Notice += OnNotice;
-            group.Saved += path => Dispatcher.BeginInvoke(new Action(() =>
-            {
-                _settings.AddHistory(path);   // 録音履歴へ（空にするまで残る）
-                Files.Refresh();
-            }));
-            group.Start();
-            _session = group;
-            if (!_settings.ReadOnly) _settings.NextNo = no + 1;
-        }
-        catch (Exception ex)
-        {
-            group?.Dispose();
-            ShowError("録音を開始できませんでした。" + ex.Message);
-            return;
-        }
-        Devices.StartWave();
-        _notice = "";
-        _nextDiskCheck = DateTime.MinValue;   // 開始直後に1回、あとは30秒ごとに空き容量を調べる
-        SetRecording(true);
-        Detail.Reload();   // {No} が進んだので画面へ反映
-        UpdateInfo();
-        ShowRecordingStatus();
-    }
-
     private void OnNotice(string message) => Dispatcher.BeginInvoke(new Action(() =>
     {
         if (_session == null) return;
@@ -106,16 +42,21 @@ public partial class MainWindow
     }
 
     // ---- 一時停止・分割 ----
-    private void Pause_Click(object sender, RoutedEventArgs e)
+    private void Pause_Click(object sender, RoutedEventArgs e) => TogglePause();
+
+    private void TogglePause()
     {
-        if (_session is not { } s) return;
-        if (s.Paused) { s.Resume(); PauseButton.Content = "一時停止"; }
-        else { s.Pause(); PauseButton.Content = "再開"; }
+        if (_session is not { } s || !PauseButton.IsEnabled) return;
+        if (s.Paused) s.Resume();
+        else s.Pause();
+        PauseButton.Content = s.Paused ? "再開" : "一時停止";
     }
 
-    private async void Split_Click(object sender, RoutedEventArgs e)
+    private async void Split_Click(object sender, RoutedEventArgs e) => await SplitAsync();
+
+    private async Task SplitAsync()
     {
-        if (_session is not { } s) return;
+        if (_session is not { } s || !SplitButton.IsEnabled) return;
         SplitButton.IsEnabled = false;
         try { await Task.Run(() => s.Split()); }
         finally { if (_session != null) SplitButton.IsEnabled = true; }
@@ -127,6 +68,8 @@ public partial class MainWindow
         var s = _session;
         if (s == null) return;
         _session = null;
+        _scheduledStopAt = null;
+        _silence = null;
         StartButton.IsEnabled = PauseButton.IsEnabled = SplitButton.IsEnabled = false;
         StatusText.Text = "保存中...";
         await Task.Run(() =>
@@ -177,7 +120,8 @@ public partial class MainWindow
     {
         var label = new System.Windows.Controls.TextBlock();
         var mark = new System.Windows.Documents.Run(recording ? "■ " : "● ");
-        var text = new System.Windows.Documents.Run(recording ? "停止" : "録音開始");
+        // 待機中は「待機をやめる」、自動開始がONなら開始前は「録音待機」
+        var text = new System.Windows.Documents.Run(recording ? (_standby ? "待機をやめる" : "停止") : (_settings.AutoStart ? "録音待機" : "録音開始"));
         mark.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, recording ? "StopFg" : "RecDot");
         text.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, recording ? "StopFg" : "StartFg");
         label.Inlines.Add(mark);
@@ -208,10 +152,20 @@ public partial class MainWindow
     // ---- 表示の更新（50msごと） ----
     private void OnTick()
     {
+        CheckSchedule();
         var s = _session;
         if (s == null)
         {
-            Meter.Value = Math.Max(0, Meter.Value - 0.05);
+            if (_standby) TickStandby();
+            else Meter.Value = Math.Max(0, Meter.Value - 0.05);
+            _tray?.SetTip(_standby ? $"{AppInfo.Name} ― 音を待っています" : $"{AppInfo.Name} ― 待機中");
+            return;
+        }
+        if (_scheduledStopAt is { } stopAt && DateTime.Now >= stopAt)
+        {
+            // 予約録音の長さに達した。停止して保存する
+            _scheduledStopAt = null;
+            _ = StopAsync(null);
             return;
         }
         if (DateTime.Now >= _nextDiskCheck)
@@ -227,11 +181,15 @@ public partial class MainWindow
         TotalPanel.Visibility = s.SplitCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         TotalText.Text = Clock(t);
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
+        var pauseLabel = s.Paused ? "再開" : "一時停止";   // トレイ・ホットキー・デバイス待機での一時停止もボタンへ反映
+        if (!Equals(PauseButton.Content, pauseLabel)) PauseButton.Content = pauseLabel;
+        _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}");
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
         Devices.SetLevels(devicePeaks);
         if (!s.Paused) Devices.PushWave(devicePeaks);
         var peak = s.TakePeak();
+        FeedSilence(s, peak);
         var level = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
         Meter.Value = Math.Max(level, Meter.Value - 0.03);
         if (peak >= 0.99) _clipUntil = DateTime.Now.AddSeconds(1.5);

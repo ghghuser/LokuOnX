@@ -58,6 +58,15 @@ public partial class MainWindow : Window
         _deviceTimer.Tick += (_, _) => PollDevices();
         _deviceTimer.Start();
 
+        Options.Init(settings);
+        Hotkeys.Init(settings);
+        Plans.Init(settings);
+        Options.Changed += OnOptionsChanged;
+        Hotkeys.Changed += ApplyHotkeys;
+        Plans.Changed += ArmSchedule;
+        InitTray();
+        ArmSchedule();
+
         UpdateInfo();
         StartTimer();
         Loaded += async (_, _) =>
@@ -71,6 +80,12 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         Player.Shutdown();
+        DisposeTray();
+        if (_monitor is { } monitor)   // 待機中に終了した
+        {
+            _monitor = null;
+            try { Task.Run(() => { monitor.Stop(); monitor.Dispose(); }).Wait(2000); } catch (Exception) { }
+        }
         base.OnClosed(e);
     }
 
