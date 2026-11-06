@@ -5,6 +5,16 @@
     <StackPanel>
         <TextBlock Text="無音検出" FontWeight="SemiBold" Margin="0,0,0,4"/>
         <WrapPanel Margin="0,0,0,6">
+            <CheckBox x:Name="AutoStartCheck" Content="音が乗ったら自動で録音開始" VerticalAlignment="Center" Margin="0,0,10,0"
+                      ToolTip="ONにすると、録音ボタンが「録音待機」になります。押すと音を待ち、しきい値を超えたら録音を始めます。音が出てから始まるまで少し（0.3秒ほど）かかるため、音の出だしがわずかに欠けることがあります"
+                      Checked="Check_Changed" Unchecked="Check_Changed"/>
+            <TextBlock Text="しきい値 −" VerticalAlignment="Center"/>
+            <ui:NumberBox x:Name="AutoStartDbBox" Width="70" Minimum="10" Maximum="80" Margin="2,0,2,0"
+                          ToolTip="この音量（dB）を超えたら録音を始めます（既定 40）"
+                          LostFocus="Number_LostFocus"/>
+            <TextBlock Text="dB を超えたら" VerticalAlignment="Center"/>
+        </WrapPanel>
+        <WrapPanel Margin="0,0,0,12">
             <CheckBox x:Name="SilenceSplitCheck" Content="無音が続いたら自動で分割" VerticalAlignment="Center" Margin="0,0,10,0"
                       ToolTip="音がしなくなって指定の秒数がたつと、次のファイルへ分割します（前のファイルの終わりに無音がその秒数ぶん入ります）。分割したあと、次の音が出るまでは再び分割しません"
                       Checked="Check_Changed" Unchecked="Check_Changed"/>
@@ -18,16 +28,6 @@
                           LostFocus="Number_LostFocus"/>
             <TextBlock Text="秒続いたら" VerticalAlignment="Center" Margin="6,0,0,0"/>
         </WrapPanel>
-        <WrapPanel Margin="0,0,0,12">
-            <CheckBox x:Name="AutoStartCheck" Content="音が出たら自動で録音を始める" VerticalAlignment="Center" Margin="0,0,10,0"
-                      ToolTip="ONにすると、録音ボタンが「録音待機」になります。押すと音を待ち、しきい値を超えたら録音を始めます。音が出てから始まるまで少し（0.3秒ほど）かかるため、音の出だしがわずかに欠けることがあります"
-                      Checked="Check_Changed" Unchecked="Check_Changed"/>
-            <TextBlock Text="しきい値 −" VerticalAlignment="Center"/>
-            <ui:NumberBox x:Name="AutoStartDbBox" Width="70" Minimum="10" Maximum="80" Margin="2,0,2,0"
-                          ToolTip="この音量（dB）を超えたら録音を始めます（既定 40）"
-                          LostFocus="Number_LostFocus"/>
-            <TextBlock Text="dB を超えたら" VerticalAlignment="Center"/>
-        </WrapPanel>
 
         <TextBlock Text="デバイスが外れたとき" FontWeight="SemiBold" Margin="0,0,0,4"/>
         <CheckBox x:Name="WaitCheck" Content="すべて外れたら、戻るまで待機（一時停止）する" Margin="0,0,0,4"
@@ -35,14 +35,6 @@
                   Checked="Check_Changed" Unchecked="Check_Changed"/>
         <CheckBox x:Name="SplitReturnCheck" Content="戻ったら別ファイルに分割する" Margin="0,0,0,12"
                   ToolTip="外れていたデバイスが戻った時点で、次のファイルへ分割します。録音を始める前の設定が対象です"
-                  Checked="Check_Changed" Unchecked="Check_Changed"/>
-
-        <TextBlock Text="タスクトレイ" FontWeight="SemiBold" Margin="0,0,0,4"/>
-        <CheckBox x:Name="TrayCheck" Content="タスクトレイにアイコンを表示する" Margin="0,0,0,4"
-                  ToolTip="ダブルクリックで画面を開き、右クリックで 録音開始／停止・一時停止・分割・終了 を操作できます"
-                  Checked="Check_Changed" Unchecked="Check_Changed"/>
-        <CheckBox x:Name="MinTrayCheck" Content="最小化したらトレイへ格納する（タスクバーには残さない）" Margin="0,0,0,6"
-                  ToolTip="OFFのときは、最小化してもタスクバーに残ります。トレイのアイコンを表示しているときだけ使えます。格納したままでも録音は続きます"
                   Checked="Check_Changed" Unchecked="Check_Changed"/>
     </StackPanel>
 </UserControl>

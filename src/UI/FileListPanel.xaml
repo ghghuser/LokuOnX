@@ -43,11 +43,11 @@
 
         <!-- 表示する場所（録音履歴／最近の保存先10件）と操作ボタン。幅が足りなければ折り返す -->
         <WrapPanel Grid.Row="0" Margin="0,0,0,4">
-            <TextBlock Text="表示" VerticalAlignment="Center" Margin="0,0,6,4"/>
             <ComboBox x:Name="SourceBox" Width="250" Margin="0,0,10,4" DisplayMemberPath="Label"
                       SelectionChanged="Source_Changed"
                       ToolTip="「録音履歴」＝録音したファイルを、空にするまで残します。フォルダを選ぶと、その中身を表示します（最近の保存先10件まで）"/>
-            <TextBlock x:Name="CountText" VerticalAlignment="Center" Margin="0,0,10,4" Opacity="0.8"/>
+            <TextBlock x:Name="CountText" VerticalAlignment="Center" MinWidth="64" Margin="0,0,10,4" Opacity="0.8"
+                       ToolTip="表示中のファイル数（4桁までは幅が固定で、5桁以上になると広がります）"/>
             <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,6,4" Click="Refresh_Click"/>
             <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,10,4" Click="Clear_Click"
                     ToolTip="録音履歴の一覧を空にします（ファイルは消えません）。フォルダを表示しているときは「録音履歴」になり、押すと録音履歴に戻ります"/>
@@ -76,12 +76,12 @@
                     <GridViewColumn Header="ファイル名" Width="260">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <Grid>
+                                <Grid Margin="-3,0,0,0">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="11"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding Mark}" Style="{StaticResource MarkText}"/>
+                                    <TextBlock Text="{Binding Mark}" Style="{StaticResource MarkText}" TextAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Name}" Style="{StaticResource RowText}" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </DataTemplate>
@@ -108,8 +108,6 @@
 
         <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
                    Visibility="Collapsed" Margin="0,4,0,0"/>
-        <TextBlock x:Name="HintText" Grid.Row="2" Opacity="0.65" Margin="0,4,0,0" TextWrapping="Wrap"
-                   Text="＊ ＝ 起動後に作られたファイル（白に近い文字）。再生中は、別のファイルを選んでも止まりません"/>
 
         <!-- プレイヤー（MainWindow から Footer で入れる） -->
         <ContentPresenter x:Name="Slot" Grid.Row="3" Margin="0,8,0,0"/>

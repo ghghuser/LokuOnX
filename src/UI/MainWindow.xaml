@@ -64,7 +64,12 @@
                                        FontFamily="Bahnschrift, Consolas, Yu Gothic UI" Typography.NumeralAlignment="Tabular"/>
                         </StackPanel>
                     </StackPanel>
-                    <TextBlock x:Name="StateText" Text="待機中" Opacity="0.7" Margin="2,0,0,8"/>
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock x:Name="StateText" Text="待機中" Opacity="0.7" Margin="2,0,0,0" VerticalAlignment="Center"/>
+                        <CheckBox x:Name="InputCheckBox" Content="入力チェック" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  ToolTip="録音していないあいだも、選んだデバイスの音量をメーターと各デバイスのレベルに出します（ファイルには何も書きません）"
+                                  Checked="InputCheck_Changed" Unchecked="InputCheck_Changed"/>
+                    </Grid>
                     <Grid Margin="2,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -113,7 +118,6 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Text="形式・音質" VerticalAlignment="Top" Margin="0,4,0,0"/>
@@ -124,15 +128,6 @@
                              VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
                     <Button x:Name="BrowseButton" Grid.Row="1" Grid.Column="2" Content="参照..."
                             Margin="0,0,0,6" Padding="12,3" Click="Browse_Click"/>
-
-                    <TextBlock Grid.Row="2" Text="自動分割" VerticalAlignment="Center"/>
-                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,8,6">
-                        <ui:TimeBox x:Name="SplitBox" Width="70"
-                                    ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
-                                    LostFocus="Split_LostFocus"/>
-                        <TextBlock Text="(0＝無効。最長24時間)" VerticalAlignment="Center"
-                                   Margin="8,0,0,0" Opacity="0.75"/>
-                    </StackPanel>
                 </Grid>
 
         <!-- ファイル名・番号（常時表示）と、折りたたみ（日付フォルダ・タグ） -->
@@ -140,9 +135,18 @@
             <ui:DetailPanel x:Name="Detail"/>
             <Expander x:Name="ExpOption" Header="オプション">
                 <StackPanel Margin="16,8,0,4">
+                    <TextBlock Text="自動分割" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:TimeBox x:Name="SplitBox" Width="70"
+                                    ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
+                                    LostFocus="Split_LostFocus"/>
+                        <TextBlock Text="ごとに分割 (0＝無効。最長24時間)" VerticalAlignment="Center"
+                                   Margin="8,0,0,0" Opacity="0.75"/>
+                    </StackPanel>
                     <ui:OptionPanel x:Name="Options"/>
-                    <ui:HotkeyPanel x:Name="Hotkeys"/>
                     <ui:SchedulePanel x:Name="Plans"/>
+                    <!-- ホットキーがONのとき、割り当てを薄い文字で（設定は歯車の設定ウィンドウ） -->
+                    <TextBlock x:Name="HotkeyInfo" FontSize="12" Opacity="0.55" TextWrapping="Wrap" Visibility="Collapsed"/>
                 </StackPanel>
             </Expander>
         </StackPanel>

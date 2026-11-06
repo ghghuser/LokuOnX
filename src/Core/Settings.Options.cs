@@ -30,6 +30,9 @@ public sealed partial class Settings
     /// <summary>自動で録音を始める音量のしきい値（dB。既定 -40）。</summary>
     public int AutoStartDb { get => Number("AutoStartDb", -40, SilenceDbMin, SilenceDbMax); set => Set("AutoStartDb", value.ToString()); }
 
+    /// <summary>入力チェック: 録音していないあいだも、メーターを動かす（既定OFF）。</summary>
+    public bool InputCheck { get => Flag("InputCheck", false); set => SetFlag("InputCheck", value); }
+
     // ---- デバイスが外れたとき（M7。自動再開は AutoResume） ----
     /// <summary>すべてのデバイスが外れたら、戻るまで一時停止する（既定OFF＝無音で埋めて続ける）。</summary>
     public bool WaitForDevice { get => Flag("WaitForDevice", false); set => SetFlag("WaitForDevice", value); }
@@ -39,9 +42,10 @@ public sealed partial class Settings
 
     // ---- ホットキー ----
     public bool HotkeysOn { get => Flag("HotkeysOn", false); set => SetFlag("HotkeysOn", value); }
-    public string HotkeyStart { get => Get("HotkeyStart", "Ctrl+Alt+F9"); set => Set("HotkeyStart", value); }
-    public string HotkeyPause { get => Get("HotkeyPause", "Ctrl+Alt+F10"); set => Set("HotkeyPause", value); }
-    public string HotkeySplit { get => Get("HotkeySplit", "Ctrl+Alt+F11"); set => Set("HotkeySplit", value); }
+    public const string DefaultHotkeyStart = "Ctrl+Alt+F9", DefaultHotkeyPause = "Ctrl+Alt+F10", DefaultHotkeySplit = "Ctrl+Alt+F11";
+    public string HotkeyStart { get => Get("HotkeyStart", DefaultHotkeyStart); set => Set("HotkeyStart", value); }
+    public string HotkeyPause { get => Get("HotkeyPause", DefaultHotkeyPause); set => Set("HotkeyPause", value); }
+    public string HotkeySplit { get => Get("HotkeySplit", DefaultHotkeySplit); set => Set("HotkeySplit", value); }
 
     // ---- 予約録音 ----
     public bool ScheduleOn { get => Flag("ScheduleOn", false); set => SetFlag("ScheduleOn", value); }

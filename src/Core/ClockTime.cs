@@ -14,6 +14,13 @@ public static class ClockTime
             : $"{s / 3600:00}:{s / 60 % 60:00}:{s % 60:00}";
     }
 
+    /// <summary>"07:30:00"（秒まで常に出す。▲▼で桁ごとに動かす入力欄用）。</summary>
+    public static string FormatFull(int secondOfDay)
+    {
+        var s = Math.Clamp(secondOfDay, 0, MaxSecondOfDay);
+        return $"{s / 3600:00}:{s / 60 % 60:00}:{s % 60:00}";
+    }
+
     /// <summary>
     /// 「7:30」「07:30:15」「730」「0730」「19」（全角も可）を読む。
     /// コロンが無いときは 1〜2桁＝時、3〜4桁＝時分、5〜6桁＝時分秒。

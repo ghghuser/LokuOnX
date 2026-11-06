@@ -25,6 +25,9 @@ public partial class QualityBar : UserControl
     private bool _loading;
     private string _compFormat = "";
 
+    /// <summary>選んでいるデバイスの元のサンプリング周波数とチャンネル数（「自動」の見積もり用。分からなければ 0）。</summary>
+    public Func<(int Rate, int Channels)>? DeviceFormat { get; set; }
+
     /// <summary>設定が変わった（ファイル名の例の更新用）。</summary>
     public event Action? Changed;
 
@@ -85,6 +88,8 @@ public partial class QualityBar : UserControl
         }
         // ogg は「Vorbis品質」を選んだらビットレートは使われない
         BitrateBox.IsEnabled = fmt.UsesBitrate && !(fmt.Key == "ogg" && _s.Compression >= 0);
+        var (rate, ch) = DeviceFormat?.Invoke() ?? (0, 0);
+        SummaryText.Text = FormatSummary.Describe(_s.Encode, rate, ch);
     }
 
     private void Format_Changed(object sender, SelectionChangedEventArgs e)

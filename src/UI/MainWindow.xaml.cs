@@ -31,11 +31,13 @@ public partial class MainWindow : Window
         _loading = true;
         FolderBox.Text = settings.Folder;
         SplitBox.Text = SplitTime.Format(settings.SplitSeconds);
+        InputCheckBox.IsChecked = settings.InputCheck;
         LoadDevices();
         Devices.Init(settings, _devices, DefaultCaptureKey());
         Devices.Changed += () => { Devices.ClearError(); UpdateInfo(); };
         Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
         Devices.GainChanged += (index, db) => _session?.SetGain(index, db);
+        Quality.DeviceFormat = DeviceFormat;
         Quality.Init(settings);
         Quality.Changed += UpdateInfo;
         Detail.Init(settings, () => Devices.NameLabel);
@@ -59,10 +61,8 @@ public partial class MainWindow : Window
         _deviceTimer.Start();
 
         Options.Init(settings);
-        Hotkeys.Init(settings);
         Plans.Init(settings);
         Options.Changed += OnOptionsChanged;
-        Hotkeys.Changed += ApplyHotkeys;
         Plans.Changed += ArmSchedule;
         InitTray();
         ArmSchedule();
@@ -81,6 +81,7 @@ public partial class MainWindow : Window
     {
         Player.Shutdown();
         DisposeTray();
+        StopCheckMonitor();
         if (_monitor is { } monitor)   // 待機中に終了した
         {
             _monitor = null;
@@ -151,7 +152,26 @@ public partial class MainWindow : Window
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e) =>
-        new SettingsWindow(_settings) { Owner = this }.ShowDialog();
+        new SettingsWindow(_settings, ApplyHotkeys, OnHotkeyCapture, OnTrayOptionsChanged) { Owner = this }.ShowDialog();
+
+    /// <summary>選んだデバイスから決まる、録音の元のサンプリング周波数とチャンネル数（形式・音質の一行まとめの見積もり用。未選択は 0）。</summary>
+    private (int Rate, int Channels) DeviceFormat()
+    {
+        var infos = new List<AudioDeviceInfo>();
+        foreach (var input in Devices.Inputs)
+        {
+            string real;
+            try { real = _provider.Resolve(input.Key) ?? input.Key; }
+            catch (Exception) { real = input.Key; }
+            var info = _devices.FirstOrDefault(d => d.Key == real) ?? _devices.FirstOrDefault(d => d.Key == input.Key);
+            if (info != null) infos.Add(info);
+        }
+        if (infos.Count == 0) return (0, 0);
+        var rate = infos.Where(d => d.SampleRate > 0).Select(d => d.SampleRate).DefaultIfEmpty(0).Max();
+        var ch = infos.Where(d => d.Channels > 0).Select(d => d.Channels).DefaultIfEmpty(0).Max();
+        // 複数のミックスは最大ステレオまで（MixedSource と同じ）
+        return (rate, Devices.Inputs.Count == 1 ? ch : Math.Min(2, ch));
+    }
 
     // ---- 設定の変更 ----
     private void FolderBox_LostFocus(object sender, RoutedEventArgs e)

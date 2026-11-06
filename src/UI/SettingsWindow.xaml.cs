@@ -6,7 +6,10 @@ using Recorder.Core;
 
 namespace Recorder.UI;
 
-/// <summary>右上の歯車で開く、めったに使わない設定（画面の色・スリープ防止）とヘルプ・バージョン情報。値は Settings に即保存。</summary>
+/// <summary>
+/// 右上の歯車で開く、めったに使わない設定（画面の色・スリープ防止・タスクトレイ・ホットキー）とヘルプ・バージョン情報。値は Settings に即保存。
+/// トレイの表示とホットキーの登録はメイン画面側の処理なので、コールバックで反映する。
+/// </summary>
 public partial class SettingsWindow : Window
 {
     private sealed record ThemeChoice(string Key, string Label)
@@ -20,18 +23,43 @@ public partial class SettingsWindow : Window
     };
 
     private readonly Settings _s;
+    private readonly Func<(string Text, bool Error)> _applyHotkeys;
+    private readonly Action<bool> _hotkeyCapture;
+    private readonly Action _trayChanged;
     private readonly bool _loading = true;
 
-    public SettingsWindow(Settings settings)
+    /// <param name="applyHotkeys">ホットキーを登録し直し、結果のメッセージ（登録できなかったキー）を返す。</param>
+    /// <param name="hotkeyCapture">キーの割り当て中は true（登録済みのキーを一時的に外すため）。</param>
+    /// <param name="trayChanged">トレイの設定が変わった。</param>
+    public SettingsWindow(Settings settings, Func<(string Text, bool Error)> applyHotkeys,
+        Action<bool> hotkeyCapture, Action trayChanged)
     {
         InitializeComponent();
         _s = settings;
+        _applyHotkeys = applyHotkeys;
+        _hotkeyCapture = hotkeyCapture;
+        _trayChanged = trayChanged;
         ThemeBox.ItemsSource = Themes;
         ThemeBox.SelectedValue = settings.Theme;
         SleepCheck.IsChecked = settings.PreventSleep;
+        TrayCheck.IsChecked = settings.ShowTray;
+        MinTrayCheck.IsChecked = settings.MinimizeToTray;
+        MinTrayCheck.IsEnabled = settings.ShowTray;
         VersionText.Text = $"{AppInfo.Name} {AppInfo.Version}";
+        Hotkeys.Init(settings);
+        Hotkeys.Changed += () =>
+        {
+            var (text, error) = _applyHotkeys();
+            Hotkeys.SetMessage(text, error);
+        };
+        Hotkeys.CaptureChanged += capturing => _hotkeyCapture(capturing);
         ThemeManager.Attach(this, settings.Theme);
         _loading = false;
+        if (settings.HotkeysOn)
+        {
+            var (text, error) = _applyHotkeys();   // 前に登録できなかったキーがあれば、ここにも出す
+            Hotkeys.SetMessage(text, error);
+        }
     }
 
     private void Theme_Changed(object sender, SelectionChangedEventArgs e)
@@ -45,6 +73,15 @@ public partial class SettingsWindow : Window
     {
         if (_loading) return;
         _s.PreventSleep = SleepCheck.IsChecked == true;
+    }
+
+    private void Tray_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _s.ShowTray = TrayCheck.IsChecked == true;
+        _s.MinimizeToTray = MinTrayCheck.IsChecked == true;
+        MinTrayCheck.IsEnabled = _s.ShowTray;   // アイコンが無いと、格納した画面を呼び戻せない
+        _trayChanged();
     }
 
     private void Link_Navigate(object sender, RequestNavigateEventArgs e)

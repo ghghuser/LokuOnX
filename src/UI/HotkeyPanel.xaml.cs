@@ -74,6 +74,29 @@ public partial class HotkeyPanel : System.Windows.Controls.UserControl
         Changed?.Invoke();
     }
 
+    /// <summary>既定のキーに戻す。ほかの操作がそのキーを使っていたら、割り当てない。</summary>
+    private void Restore_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button b) return;
+        var tag = b.Tag as string;
+        var text = HotkeySpec.Format(tag switch
+        {
+            "start" => Settings.DefaultHotkeyStart,
+            "pause" => Settings.DefaultHotkeyPause,
+            _ => Settings.DefaultHotkeySplit,
+        });
+        foreach (var other in new[] { "start", "pause", "split" })
+        {
+            if (other != tag && BoxOf(other).Text == text)
+            {
+                SetMessage("既定のキー " + text + " は、ほかの操作に割り当て済みのため戻せません。先にそちらを変えるか解除してください。", true);
+                return;
+            }
+        }
+        SetMessage("", false);
+        Save(tag, text);
+    }
+
     private void Clear_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button b) return;

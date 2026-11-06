@@ -54,6 +54,7 @@ public partial class MainWindow
         var inputs = Devices.Inputs;
         ClearErrors();
         if (!ValidateStart(inputs)) return false;
+        StopCheckMonitor();   // 入力チェックで開いていたデバイスは、録音の前に手放す
 
         RecordingGroup? group = null;
         try

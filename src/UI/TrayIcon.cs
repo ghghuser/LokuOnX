@@ -51,6 +51,7 @@ public sealed class TrayIcon : IDisposable
     private static extern uint ExtractIconEx(string file, int index, IntPtr[]? large, IntPtr[]? small, uint count);
 
     [DllImport("user32.dll")] private static extern bool DestroyIcon(IntPtr icon);
+    [DllImport("user32.dll")] private static extern int GetSystemMetrics(int index);
     [DllImport("user32.dll")] private static extern IntPtr LoadIcon(IntPtr instance, IntPtr name);
     [DllImport("user32.dll")] private static extern uint RegisterWindowMessage(string text);
     [DllImport("user32.dll")] private static extern IntPtr CreatePopupMenu();
@@ -63,8 +64,11 @@ public sealed class TrayIcon : IDisposable
 
     private readonly MessageWindow _window;
     private readonly uint _taskbarCreated = RegisterWindowMessage("TaskbarCreated");
-    private IntPtr _icon;
+    private IntPtr _icon;           // いま出しているアイコン
+    private IntPtr _appIcon;        // アプリのアイコン
+    private IntPtr _led;            // 録音中の赤いLED風アイコン（初めて必要になったときに作る）
     private bool _ownsIcon;
+    private bool _recording;
     private bool _visible;
     private string _tip = "";
 
@@ -82,6 +86,7 @@ public sealed class TrayIcon : IDisposable
         _window = window;
         _window.AddHook(OnMessage);
         LoadAppIcon();
+        _appIcon = _icon;
     }
 
     /// <summary>exe に埋め込んだアプリのアイコンを取り出す（取れなければ Windows 標準のアイコン）。</summary>
@@ -100,6 +105,30 @@ public sealed class TrayIcon : IDisposable
         }
         catch (Exception) { }
         _icon = LoadIcon(IntPtr.Zero, new IntPtr(32512));   // IDI_APPLICATION
+    }
+
+    /// <summary>録音中は、アイコンをLED風の大きい赤丸にする。録音中でなければアプリのアイコンへ戻す。</summary>
+    public void SetRecording(bool recording)
+    {
+        if (recording == _recording) return;
+        _recording = recording;
+        if (recording)
+        {
+            if (_led == IntPtr.Zero)
+            {
+                try { _led = LedIcon.Create(Math.Max(16, GetSystemMetrics(49))); }   // SM_CXSMICON（トレイの小アイコンの幅）
+                catch (Exception) { _led = IntPtr.Zero; }
+            }
+            if (_led == IntPtr.Zero) { _recording = false; return; }   // 作れなければ、そのままアプリのアイコン
+            _icon = _led;
+        }
+        else
+        {
+            _icon = _appIcon;
+        }
+        if (!_visible) return;
+        var d = Data(NifIcon);
+        Shell_NotifyIcon(NimModify, ref d);
     }
 
     private NotifyIconData Data(uint flags) => new()
@@ -181,7 +210,8 @@ public sealed class TrayIcon : IDisposable
     public void Dispose()
     {
         Visible = false;
-        if (_ownsIcon && _icon != IntPtr.Zero) DestroyIcon(_icon);
-        _icon = IntPtr.Zero;
+        if (_ownsIcon && _appIcon != IntPtr.Zero) DestroyIcon(_appIcon);
+        if (_led != IntPtr.Zero) DestroyIcon(_led);
+        _appIcon = _led = _icon = IntPtr.Zero;
     }
 }

@@ -23,11 +23,6 @@ public partial class MainWindow
             _tray.CommandSelected += OnTrayCommand;
             _hotkeys = new HotkeyHost(_msg);
             _hotkeys.Pressed += OnHotkey;
-            Hotkeys.CaptureChanged += capturing =>
-            {
-                if (capturing) _hotkeys?.UnregisterAll();   // 割り当て中は、登録済みのキーを外す（押したキーを受け取るため）
-                else ApplyHotkeys();
-            };
         }
         catch (Exception ex)
         {
@@ -37,6 +32,16 @@ public partial class MainWindow
         }
         ApplyTray();
         ApplyHotkeys();
+    }
+
+    /// <summary>歯車の設定ウィンドウから。タスクトレイの設定が変わった。</summary>
+    private void OnTrayOptionsChanged() => ApplyTray();
+
+    /// <summary>歯車の設定ウィンドウから。キーの割り当て中は、登録済みのキーを外す（押したキーを受け取るため）。終わったら登録し直す。</summary>
+    private void OnHotkeyCapture(bool capturing)
+    {
+        if (capturing) _hotkeys?.UnregisterAll();
+        else ApplyHotkeys();
     }
 
     /// <summary>オプション欄の変更を反映する（トレイの表示・録音ボタンの文字）。</summary>
@@ -108,16 +113,19 @@ public partial class MainWindow
         }
     }
 
-    /// <summary>ホットキーを登録し直す。ほかのアプリが使っているキーなどで登録できなかったものは、オプション欄に赤文字で出す。</summary>
-    private void ApplyHotkeys()
+    /// <summary>
+    /// ホットキーを登録し直す。登録できなかったキー（ほかのアプリが使っているなど）は、結果のメッセージ（赤文字用）で返す。
+    /// 設定ウィンドウに出す。オプション欄の最下段には、ホットキーがONのとき割り当てを薄い文字で出す。
+    /// </summary>
+    private (string Text, bool Error) ApplyHotkeys()
     {
-        if (_hotkeys == null) return;
+        if (_hotkeys == null) return ("", false);
         _hotkeys.UnregisterAll();
-        if (!_settings.HotkeysOn) { Hotkeys.SetMessage("", false); return; }
+        if (!_settings.HotkeysOn) { ShowHotkeyInfo(false); return ("", false); }
         if (_settings.ReadOnly)
         {
-            Hotkeys.SetMessage("2つ目の起動ではホットキーは使えません（最初に起動したほうで使います）。", true);
-            return;
+            ShowHotkeyInfo(false);
+            return ("2つ目の起動ではホットキーは使えません（最初に起動したほうで使います）。", true);
         }
         var failed = new List<string>();
         void Register(int id, string text)
@@ -128,8 +136,25 @@ public partial class MainWindow
         Register(HkStart, _settings.HotkeyStart);
         Register(HkPause, _settings.HotkeyPause);
         Register(HkSplit, _settings.HotkeySplit);
-        Hotkeys.SetMessage(failed.Count == 0 ? "" :
-            "登録できなかったキーがあります（ほかのアプリが使っています）: " + string.Join("、", failed) + "。別のキーに変えてください。", true);
+        ShowHotkeyInfo(true);
+        return failed.Count == 0 ? ("", false) :
+            ("登録できなかったキーがあります（ほかのアプリが使っています）: " + string.Join("、", failed) + "。別のキーに変えてください。", true);
+    }
+
+    /// <summary>オプション欄の最下段に、いまのホットキーを薄い文字で出す（ホットキーがONで、1つ以上割り当てがあるときだけ）。</summary>
+    private void ShowHotkeyInfo(bool on)
+    {
+        var items = new List<string>();
+        void Add(string label, string text)
+        {
+            var t = HotkeySpec.Format(text);
+            if (t.Length > 0) items.Add($"{label} {t}");
+        }
+        Add("録音の開始・停止", _settings.HotkeyStart);
+        Add("一時停止・再開", _settings.HotkeyPause);
+        Add("分割", _settings.HotkeySplit);
+        HotkeyInfo.Text = "ホットキー　" + string.Join("　／　", items);
+        HotkeyInfo.Visibility = on && items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void DisposeTray()

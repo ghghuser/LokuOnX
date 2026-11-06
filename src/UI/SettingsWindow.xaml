@@ -1,7 +1,8 @@
 <Window x:Class="Recorder.UI.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="設定とヘルプ" Width="560" SizeToContent="Height" MinHeight="300"
+        xmlns:ui="clr-namespace:Recorder.UI"
+        Title="設定とヘルプ" Width="580" SizeToContent="Height" MinHeight="300"
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource WindowFg}"
         FontFamily="Yu Gothic UI, Meiryo UI" FontSize="14"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize">
@@ -18,9 +19,19 @@
         <CheckBox x:Name="SleepCheck" Content="録音中はスリープさせない" Margin="0,0,0,14"
                   Checked="Sleep_Changed" Unchecked="Sleep_Changed"/>
 
+        <TextBlock Text="タスクトレイ" FontWeight="SemiBold" Margin="0,0,0,6"/>
+        <CheckBox x:Name="TrayCheck" Content="タスクトレイにアイコンを表示する" Margin="0,0,0,4"
+                  ToolTip="ダブルクリックで画面を開き、右クリックで 録音開始／停止・一時停止・分割・終了 を操作できます。録音中は、アイコンが赤いLED風の丸に変わります"
+                  Checked="Tray_Changed" Unchecked="Tray_Changed"/>
+        <CheckBox x:Name="MinTrayCheck" Content="最小化したらトレイへ格納する（タスクバーには残さない）" Margin="0,0,0,14"
+                  ToolTip="OFFのときは、最小化してもタスクバーに残ります。トレイのアイコンを表示しているときだけ使えます。格納したままでも録音は続きます"
+                  Checked="Tray_Changed" Unchecked="Tray_Changed"/>
+
+        <ui:HotkeyPanel x:Name="Hotkeys"/>
+
         <TextBlock Text="ヘルプ" FontWeight="SemiBold" Margin="0,0,0,6"/>
         <TextBlock TextWrapping="Wrap" LineHeight="22" Margin="0,0,0,14" Opacity="0.9"
-                   Text="・ファイル名やフォルダ名の変数は、パターン欄の右の「？」ボタンで説明と入力補助が開きます。&#10;・プリセットは exe と同じ場所の Presets フォルダに「名前.json」で保存されます（保存先と番号は含みません）。&#10;・エラーは音の鳴るポップアップではなく、原因の近くに赤文字で表示されます。&#10;・長さを正しく表示したいときは、aac は m4a を選んでください。"/>
+                   Text="・ファイル名やフォルダ名の変数は、パターン欄の右の「？」ボタンで説明と入力補助が開きます。&#10;・プリセットは exe と同じ場所の Presets フォルダに「名前.json」で保存されます（保存先と番号は含みません）。&#10;・エラーは音の鳴るポップアップではなく、原因の近くに赤文字で表示されます。&#10;・長さを正しく表示したいときは、aac は m4a を選んでください。&#10;・ファイル一覧の ＊ は、起動後に作られたファイル（白に近い文字）です。再生中は、別のファイルを選んでも止まりません。"/>
 
         <TextBlock Text="バージョン情報" FontWeight="SemiBold" Margin="0,0,0,6"/>
         <TextBlock x:Name="VersionText" Margin="0,0,0,4"/>

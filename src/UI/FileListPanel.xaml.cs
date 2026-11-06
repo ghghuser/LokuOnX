@@ -9,7 +9,7 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>
-/// 録音履歴・ファイル一覧（PROJECT.md §3-7）。「表示」のプルダウンで、録音履歴（空にするまで残る）か、
+/// 録音履歴・ファイル一覧（PROJECT.md §3-7）。プルダウンで、録音履歴（空にするまで残る）か、
 /// 最近の保存先フォルダ（10件まで）の中身を切り替える。一覧の読み込み・並べ替え・長さの取得は、このファイル。
 /// ボタンの操作（開く・名前の変更・削除・履歴を空にする）は FileListPanel.Actions.cs。
 /// </summary>
@@ -226,7 +226,6 @@ public partial class FileListPanel : UserControl
 
     private void ShowError(string message)
     {
-        HintText.Visibility = Visibility.Collapsed;
         ErrorText.Text = message;
         ErrorText.Visibility = Visibility.Visible;
     }
@@ -235,6 +234,5 @@ public partial class FileListPanel : UserControl
     {
         ErrorText.Text = "";
         ErrorText.Visibility = Visibility.Collapsed;
-        HintText.Visibility = Visibility.Visible;
     }
 }

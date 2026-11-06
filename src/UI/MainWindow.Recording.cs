@@ -157,7 +157,8 @@ public partial class MainWindow
         if (s == null)
         {
             if (_standby) TickStandby();
-            else Meter.Value = Math.Max(0, Meter.Value - 0.05);
+            else TickInputCheck();
+            _tray?.SetRecording(false);
             _tray?.SetTip(_standby ? $"{AppInfo.Name} ― 音を待っています" : $"{AppInfo.Name} ― 待機中");
             return;
         }
@@ -183,6 +184,7 @@ public partial class MainWindow
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
         var pauseLabel = s.Paused ? "再開" : "一時停止";   // トレイ・ホットキー・デバイス待機での一時停止もボタンへ反映
         if (!Equals(PauseButton.Content, pauseLabel)) PauseButton.Content = pauseLabel;
+        _tray?.SetRecording(!s.Paused);   // 録音中はトレイのアイコンが赤いLED風の丸になる
         _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}");
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
@@ -190,6 +192,12 @@ public partial class MainWindow
         if (!s.Paused) Devices.PushWave(devicePeaks);
         var peak = s.TakePeak();
         FeedSilence(s, peak);
+        ShowMeter(peak);
+    }
+
+    /// <summary>全体のメーター（ミックス後の音量。クリップで赤）。録音中・待機中・入力チェックで共通。</summary>
+    private void ShowMeter(float peak)
+    {
         var level = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
         Meter.Value = Math.Max(level, Meter.Value - 0.03);
         if (peak >= 0.99) _clipUntil = DateTime.Now.AddSeconds(1.5);

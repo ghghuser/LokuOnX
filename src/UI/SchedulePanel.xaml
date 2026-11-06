@@ -9,9 +9,9 @@
                   Checked="Check_Changed" Unchecked="Check_Changed"/>
         <WrapPanel Margin="0,0,0,4">
             <TextBlock Text="開始時刻" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <TextBox x:Name="StartTimeBox" Width="80" VerticalContentAlignment="Center" Margin="0,0,16,0"
-                     ToolTip="時:分（例 07:30。秒まで書くことも可。730 や 0730 でも入ります）"
-                     LostFocus="Start_LostFocus"/>
+            <ui:ClockBox x:Name="StartTimeBox" Width="90" Margin="0,0,16,0"
+                         ToolTip="時:分:秒（例 07:30:00。730 や 0730 でも入ります）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
+                         LostFocus="Start_LostFocus"/>
             <TextBlock Text="録音する長さ" VerticalAlignment="Center" Margin="0,0,6,0"/>
             <ui:TimeBox x:Name="LengthBox" Width="70"
                         ToolTip="時:分:秒。この長さがたつと自動で停止して保存します。00:00:00 は自動では止めません。最長 24:00:00"

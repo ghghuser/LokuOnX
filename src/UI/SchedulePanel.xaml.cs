@@ -25,7 +25,7 @@ public partial class SchedulePanel : System.Windows.Controls.UserControl
     {
         _loading = true;
         OnCheck.IsChecked = _s.ScheduleOn;
-        StartTimeBox.Text = ClockTime.Format(_s.ScheduleTime);
+        StartTimeBox.Text = ClockTime.FormatFull(_s.ScheduleTime);
         LengthBox.Text = SplitTime.Format(_s.ScheduleSeconds);
         RepeatBox.SelectedIndex = _s.ScheduleDaily ? 1 : 0;
         _loading = false;
@@ -54,7 +54,7 @@ public partial class SchedulePanel : System.Windows.Controls.UserControl
     {
         if (_loading) return;
         if (ClockTime.TryParse(StartTimeBox.Text, out var sec)) _s.ScheduleTime = sec;
-        StartTimeBox.Text = ClockTime.Format(_s.ScheduleTime);
+        StartTimeBox.Text = ClockTime.FormatFull(_s.ScheduleTime);
         Changed?.Invoke();
     }
 

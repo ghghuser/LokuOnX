@@ -11,6 +11,8 @@
                      ToolTip="欄をクリックして、割り当てたいキーを押します（Ctrl・Alt・Shift・Win のどれかと一緒に）。Delete か BackSpace で未設定にします"
                      PreviewKeyDown="Key_PreviewKeyDown" GotKeyboardFocus="Box_Focus" LostKeyboardFocus="Box_Focus"/>
             <Button Content="解除" Tag="start" Padding="10,2" Margin="6,0,0,0" Click="Clear_Click"/>
+            <Button Content="復元" Tag="start" Padding="10,2" Margin="6,0,0,0" Click="Restore_Click"
+                    ToolTip="既定のキー（開始・停止 Ctrl+Alt+F9／一時停止 Ctrl+Alt+F10／分割 Ctrl+Alt+F11）に戻します"/>
         </WrapPanel>
         <WrapPanel Margin="0,0,0,4">
             <TextBlock Text="一時停止・再開" Width="130" VerticalAlignment="Center"/>
@@ -18,6 +20,8 @@
                      ToolTip="欄をクリックして、割り当てたいキーを押します（Ctrl・Alt・Shift・Win のどれかと一緒に）。Delete か BackSpace で未設定にします"
                      PreviewKeyDown="Key_PreviewKeyDown" GotKeyboardFocus="Box_Focus" LostKeyboardFocus="Box_Focus"/>
             <Button Content="解除" Tag="pause" Padding="10,2" Margin="6,0,0,0" Click="Clear_Click"/>
+            <Button Content="復元" Tag="pause" Padding="10,2" Margin="6,0,0,0" Click="Restore_Click"
+                    ToolTip="既定のキー（開始・停止 Ctrl+Alt+F9／一時停止 Ctrl+Alt+F10／分割 Ctrl+Alt+F11）に戻します"/>
         </WrapPanel>
         <WrapPanel Margin="0,0,0,4">
             <TextBlock Text="分割" Width="130" VerticalAlignment="Center"/>
@@ -25,6 +29,8 @@
                      ToolTip="欄をクリックして、割り当てたいキーを押します（Ctrl・Alt・Shift・Win のどれかと一緒に）。Delete か BackSpace で未設定にします"
                      PreviewKeyDown="Key_PreviewKeyDown" GotKeyboardFocus="Box_Focus" LostKeyboardFocus="Box_Focus"/>
             <Button Content="解除" Tag="split" Padding="10,2" Margin="6,0,0,0" Click="Clear_Click"/>
+            <Button Content="復元" Tag="split" Padding="10,2" Margin="6,0,0,0" Click="Restore_Click"
+                    ToolTip="既定のキー（開始・停止 Ctrl+Alt+F9／一時停止 Ctrl+Alt+F10／分割 Ctrl+Alt+F11）に戻します"/>
         </WrapPanel>
         <TextBlock x:Name="MessageText" TextWrapping="Wrap" Margin="0,2,0,12" Visibility="Collapsed"/>
     </StackPanel>

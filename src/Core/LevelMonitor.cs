@@ -1,40 +1,43 @@
 namespace Recorder.Core;
 
 /// <summary>
-/// 録音していないあいだ、選んだデバイスの音量だけを見る（「音が出たら自動で録音開始」の待機用。PROJECT.md §3-8）。
-/// ファイルには何も書かない。ゲインは掛けたあとの音量で判定する。WPF や Windows API には依存しない（§6-3）。
+/// 録音していないあいだ、選んだデバイスの音量だけを見る（「音が出たら自動で録音開始」の待機と、「入力チェック」用。PROJECT.md §3-8）。
+/// ファイルには何も書かない。音量はゲインを掛けたあとの値（デバイスは inputs の順）。WPF や Windows API には依存しない（§6-3）。
 /// </summary>
 public sealed class LevelMonitor : IDisposable
 {
     private readonly IAudioDeviceProvider _provider;
     private readonly IReadOnlyList<InputSetting> _inputs;
     private readonly List<IAudioSource> _sources = new();
+    private readonly float[] _gain;
+    private readonly float[] _peaks;
     private readonly object _lock = new();
-    private float _peak;
 
     public LevelMonitor(IAudioDeviceProvider provider, IReadOnlyList<InputSetting> inputs)
     {
         _provider = provider;
         _inputs = inputs;
+        _gain = inputs.Select(i => (float)Math.Pow(10.0, i.GainDb / 20.0)).ToArray();
+        _peaks = new float[inputs.Count];
     }
 
     /// <summary>デバイスを開く。開けた台数を返す。1台も開けなければ例外。</summary>
     public int Start()
     {
         var errors = new List<string>();
-        foreach (var input in _inputs)
+        for (int i = 0; i < _inputs.Count; i++)
         {
+            int index = i;
             IAudioSource? src = null;
             try
             {
-                var real = _provider.Resolve(input.Key) ?? throw new InvalidOperationException("既定のデバイスが見つかりません");
+                var real = _provider.Resolve(_inputs[i].Key) ?? throw new InvalidOperationException("既定のデバイスが見つかりません");
                 src = _provider.Create(real);
                 var format = src.Format;
-                var gain = (float)Math.Pow(10.0, input.GainDb / 20.0);
                 src.DataAvailable += (buf, count) =>
                 {
-                    var p = PeakMeter.Compute(buf, count, format) * gain;
-                    lock (_lock) { if (p > _peak) _peak = p; }
+                    var p = PeakMeter.Compute(buf, count, format) * _gain[index];
+                    lock (_lock) { if (p > _peaks[index]) _peaks[index] = p; }
                 };
                 src.Start();
                 _sources.Add(src);
@@ -50,14 +53,20 @@ public sealed class LevelMonitor : IDisposable
         return _sources.Count;
     }
 
-    /// <summary>前回取得以降の最大音量（0〜）を返してリセットする。</summary>
-    public float TakePeak()
+    /// <summary>録音中でなくても、ゲインの変更を反映する（index は inputs の順）。</summary>
+    public void SetGain(int index, double gainDb)
+    {
+        if (index >= 0 && index < _gain.Length) _gain[index] = (float)Math.Pow(10.0, gainDb / 20.0);
+    }
+
+    /// <summary>デバイスごとの、前回取得以降の最大音量（inputs の順）を返してリセットする。</summary>
+    public float[] TakePeaks()
     {
         lock (_lock)
         {
-            var p = _peak;
-            _peak = 0;
-            return p;
+            var copy = (float[])_peaks.Clone();
+            Array.Clear(_peaks, 0, _peaks.Length);
+            return copy;
         }
     }
 
