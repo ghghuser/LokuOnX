@@ -79,13 +79,16 @@ public partial class FileListPanel : UserControl
         SourceBox.ItemsSource = sources;
         SourceBox.SelectedItem = sources.FirstOrDefault(s => string.Equals(s.Key, keep, StringComparison.OrdinalIgnoreCase)) ?? sources[0];
         _loadingSources = false;
-        ClearButton.IsEnabled = IsHistory;
+        UpdateClearButton();
     }
+
+    /// <summary>録音履歴を表示中は「履歴を空にする」、フォルダを表示中は「録音履歴」（押すと録音履歴に戻る）。</summary>
+    private void UpdateClearButton() => ClearButton.Content = IsHistory ? "履歴を空にする" : "録音履歴";
 
     private void Source_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (_loadingSources || _settings == null) return;
-        ClearButton.IsEnabled = IsHistory;
+        UpdateClearButton();
         ClearError();
         Refresh();
     }

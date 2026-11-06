@@ -50,7 +50,7 @@
             <TextBlock x:Name="CountText" VerticalAlignment="Center" Margin="0,0,10,4" Opacity="0.8"/>
             <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,6,4" Click="Refresh_Click"/>
             <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,10,4" Click="Clear_Click"
-                    ToolTip="録音履歴の一覧を空にします（ファイルは消えません）。録音履歴を表示しているときだけ使えます"/>
+                    ToolTip="録音履歴の一覧を空にします（ファイルは消えません）。フォルダを表示しているときは「録音履歴」になり、押すと録音履歴に戻ります"/>
             <Button x:Name="SaveFolderButton" Content="保存先を表示" Padding="10,3" Margin="0,0,6,4" Click="ShowSaveFolder_Click"
                     ToolTip="いまの保存先フォルダの中身を一覧に表示します"/>
             <Button x:Name="PickFolderButton" Content="フォルダを選んで表示…" Padding="10,3" Margin="0,0,0,4" Click="PickFolder_Click"

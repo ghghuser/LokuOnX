@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 env:
   # BtbN の LGPL ビルド（n8.1）。404 のときは master 版へ自動で切り替える
@@ -77,6 +78,20 @@ jobs:
           name: LokuOnX-win-x64
           path: dist/
           if-no-files-found: error
+
+      # 成果物は直近2つだけ残す（古いものを削除。失敗してもビルドは失敗にしない）
+      - name: Keep only latest 2 artifacts
+        continue-on-error: true
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $json = gh api "repos/${{ github.repository }}/actions/artifacts?name=LokuOnX-win-x64&per_page=100" | ConvertFrom-Json
+          $old = $json.artifacts | Where-Object { -not $_.expired } | Sort-Object created_at -Descending | Select-Object -Skip 2
+          foreach ($a in $old) {
+            Write-Host "delete artifact $($a.id) ($($a.created_at))"
+            gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$($a.id)"
+          }
 
       - name: Make release ZIP
         if: startsWith(github.ref, 'refs/tags/v')

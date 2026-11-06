@@ -2,15 +2,15 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- ダーク: 色（ブラシ）と、色が付く部品の簡単なスタイル。ボタン・コンボボックスは DarkControls.xaml -->
     <SolidColorBrush x:Key="WindowBg" Color="#202124"/>
-    <SolidColorBrush x:Key="WindowFg" Color="#DADDE1"/>
+    <SolidColorBrush x:Key="WindowFg" Color="#DDDAD5"/>
     <SolidColorBrush x:Key="PanelBg" Color="#802D2F33"/>
     <SolidColorBrush x:Key="PopupBg" Color="#2D2F33"/>
     <SolidColorBrush x:Key="PanelHover" Color="#B03C4043"/>
     <SolidColorBrush x:Key="PanelBorder" Color="#46494E"/>
     <SolidColorBrush x:Key="Accent" Color="#4C8DFF"/>
     <SolidColorBrush x:Key="DisabledFg" Color="#7A7D82"/>
-    <SolidColorBrush x:Key="NewFileFg" Color="#ECEEF1"/>
-    <SolidColorBrush x:Key="OldFileFg" Color="#AEB2B8"/>
+    <SolidColorBrush x:Key="NewFileFg" Color="#EEEBE6"/>
+    <SolidColorBrush x:Key="OldFileFg" Color="#B2AEA8"/>
     <SolidColorBrush x:Key="MarkFg" Color="#9AA0A6"/>
     <!-- パステルイエロー（チェック・スライダー・選択行の線・フォーカス） -->
     <SolidColorBrush x:Key="Pastel" Color="#F3DD8A"/>
@@ -63,9 +63,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
                     <StackPanel Orientation="Horizontal" Background="Transparent" SnapsToDevicePixels="True">
-                        <Border x:Name="Box" Width="19" Height="19" CornerRadius="4" BorderThickness="1.5"
+                        <Border x:Name="Box" Width="16" Height="16" CornerRadius="3.5" BorderThickness="1.5"
                                 BorderBrush="{DynamicResource PanelBorder}" Background="Transparent" VerticalAlignment="Center">
-                            <Path x:Name="Tick" Data="M4,9.5 L8,13.5 L15,5.5" Stroke="{DynamicResource PastelText}" StrokeThickness="2.2"
+                            <Path x:Name="Tick" Data="M3.3,8 L6.6,11.3 L12.7,4.5" Stroke="{DynamicResource PastelText}" StrokeThickness="2"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                   Visibility="Collapsed" Margin="-1,-1,0,0"/>
                         </Border>

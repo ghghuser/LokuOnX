@@ -48,12 +48,12 @@
                 Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="320"/>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="320"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
+                <StackPanel Grid.Column="2">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40"
                                    FontFamily="Bahnschrift, Consolas, Yu Gothic UI" Typography.NumeralAlignment="Tabular"/>
@@ -94,7 +94,7 @@
 
                 <Rectangle Grid.Column="1" Width="1" Margin="18,2" Fill="{DynamicResource CardBorder}"/>
 
-                <ui:DeviceList x:Name="Devices" Grid.Column="2"/>
+                <ui:DeviceList x:Name="Devices" Grid.Column="0"/>
             </Grid>
         </Border>
 

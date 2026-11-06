@@ -124,7 +124,12 @@ public partial class FileListPanel
     private void Clear_Click(object sender, RoutedEventArgs e)
     {
         ClearError();
-        if (!IsHistory) return;
+        if (!IsHistory)
+        {
+            ReloadSources(HistoryKey);   // フォルダ表示中は、録音履歴に戻す
+            Refresh();
+            return;
+        }
         var answer = MessageBox.Show(Owner!, "録音履歴の一覧を空にします（ファイルは消えません）。よろしいですか？",
             AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
