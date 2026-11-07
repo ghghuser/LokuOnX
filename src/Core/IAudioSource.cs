@@ -5,7 +5,16 @@ public sealed record AudioDeviceInfo(string Key, string Label, bool IsLoopback, 
     bool IsDefault = false)
 {
     /// <summary>一覧に出す名前。Windowsの既定のデバイスには末尾に ＊（全角）を付ける（ファイル名の {Device} には付けない）。</summary>
-    public string DisplayLabel => IsDefault ? Label + " ＊" : Label;
+    public string DisplayLabel => IsDefault ? Label + DefaultMark : Label;
+
+    /// <summary>ラベル先頭の絵文字（🎤・🔊・🎛）。無ければ空。一覧で、アイコンだけ色を付けるのに使う（Core は色を持たない）。</summary>
+    public string Icon => Label.Length > 2 && char.IsHighSurrogate(Label[0]) && Label[2] == ' ' ? Label.Substring(0, 2) : "";
+
+    /// <summary>アイコンのあとの部分（先頭の空白を含む）。アイコンが無ければラベル全体。</summary>
+    public string LabelAfterIcon => Icon.Length == 0 ? Label : Label.Substring(2);
+
+    /// <summary>既定のデバイスの目印（全角の ＊。一覧で赤紫に色を付ける）。</summary>
+    public string DefaultMark => IsDefault ? " ＊" : "";
 
     /// <summary>ダーク用のコンボボックスなど、表示名を指定できない場面でも名前が出るようにする。</summary>
     public override string ToString() => DisplayLabel;

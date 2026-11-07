@@ -168,7 +168,7 @@ public partial class DeviceList : UserControl
         row.Use.ToolTip = "消灯にすると、このデバイスは録音しません（設定は残ります。録音中は変えられません）";
         Grid.SetColumn(row.Use, 0);
 
-        row.Combo.DisplayMemberPath = "DisplayLabel";
+        row.Combo.ItemTemplate = (DataTemplate)Resources["DeviceItem"];
         row.Combo.Margin = new Thickness(0, 0, 10, 0);
         row.Combo.VerticalAlignment = VerticalAlignment.Center;
         Grid.SetColumn(row.Combo, 1);

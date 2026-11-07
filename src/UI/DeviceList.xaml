@@ -1,6 +1,16 @@
 <UserControl x:Class="Recorder.UI.DeviceList"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:Recorder.UI">
+    <UserControl.Resources>
+        <ui:DeviceIconBrushConverter x:Key="IconBrush"/>
+        <!-- プルダウンの1項目: アイコン（色付き）・名前・既定のデバイスの ＊（赤紫）。色は Theme/Common.xaml -->
+        <DataTemplate x:Key="DeviceItem">
+            <TextBlock>
+                <Run Text="{Binding Icon, Mode=OneWay}" Foreground="{Binding Icon, Mode=OneWay, Converter={StaticResource IconBrush}}"/><Run Text="{Binding LabelAfterIcon, Mode=OneWay}"/><Run Text="{Binding DefaultMark, Mode=OneWay}" Foreground="{DynamicResource DefaultMarkFg}"/>
+            </TextBlock>
+        </DataTemplate>
+    </UserControl.Resources>
     <!-- 録音コンソールの右側: 1行＝1デバイスの「ストリップ」（選択・波形・ゲイン・レベル）。行は DeviceList.xaml.cs が作る。
          列の幅は DeviceList.xaml.cs の Cols と同じ（見出しと行をそろえる） -->
     <Grid>

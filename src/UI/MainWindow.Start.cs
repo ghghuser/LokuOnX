@@ -6,6 +6,15 @@ namespace Recorder.UI;
 /// <summary>メイン画面のうち、録音の開始（録音ボタン・確認・組み立て）。停止・一時停止・分割・表示の更新は MainWindow.Recording.cs。</summary>
 public partial class MainWindow
 {
+    private const string AsioOneRowMessage =
+        "ASIOは同時に1行しか使えません（ドライバを専有するため）。他の行はマイクやスピーカー（WASAPI）にするか、チェックを外してください。";
+
+    /// <summary>ASIOの行が2つ以上選ばれたら、選んだ時点で赤文字を出す（録音開始時にも同じ確認をする）。</summary>
+    private void CheckAsioRows()
+    {
+        if (Devices.Inputs.Count(i => AsioKey.Is(i.Key)) > 1) Devices.ShowError(AsioOneRowMessage);
+    }
+
     // ---- 開始 ----
     private async void Start_Click(object sender, RoutedEventArgs e) => await ToggleAsync();
 
@@ -42,7 +51,7 @@ public partial class MainWindow
         }
         if (inputs.Count(i => AsioKey.Is(i.Key)) > 1)
         {
-            Devices.ShowError("ASIOは同時に1行しか使えません（ドライバを専有するため）。他の行はマイクやスピーカー（WASAPI）にするか、チェックを外してください。");
+            Devices.ShowError(AsioOneRowMessage);
             return false;
         }
         if (!File.Exists(AppPaths.Ffmpeg))

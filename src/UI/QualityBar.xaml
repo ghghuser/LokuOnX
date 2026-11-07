@@ -2,36 +2,40 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel>
-        <!-- 1行目: 形式・サンプリング周波数・チャンネル -->
+        <!-- 1段目: 形式・ビットレート・圧縮レベル／LAME品質／Vorbis品質 -->
         <WrapPanel Margin="0,0,0,4">
-            <ComboBox x:Name="FormatBox" Width="124" Margin="0,0,10,2" DisplayMemberPath="Label" SelectedValuePath="Key"
+            <ComboBox x:Name="FormatBox" Width="124" Margin="0,0,18,2" DisplayMemberPath="Label" SelectedValuePath="Key"
                       SelectionChanged="Format_Changed"/>
-            <TextBlock Text="チャンネル" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="ChannelBox" Width="92" Margin="0,0,10,2"
-                      DisplayMemberPath="Label" SelectedValuePath="Value"
-                      SelectionChanged="Channel_Changed"/>
-            <TextBlock Text="サンプリング周波数" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="RateBox" Width="124" Margin="0,0,0,2"
-                      DisplayMemberPath="Label" SelectedValuePath="Value"
-                      ToolTip="サンプリング周波数。自動＝デバイスに合わせます。opus は 48 kHz に固定されます"
-                      SelectionChanged="Rate_Changed"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
+                <TextBlock Text="ビットレート" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ComboBox x:Name="BitrateBox" Width="100"
+                          DisplayMemberPath="Label" SelectedValuePath="Value"
+                          ToolTip="mp3 / aac / ogg / opus のとき有効（flac・wav は無劣化のため指定なし）"
+                          SelectionChanged="Bitrate_Changed"/>
+            </StackPanel>
+            <!-- 圧縮率: 設定のある形式（flac・mp3・ogg・opus）だけ表示する -->
+            <StackPanel x:Name="CompPanel" Orientation="Horizontal" Margin="0,0,0,2">
+                <TextBlock x:Name="CompLabel" Text="圧縮レベル" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ComboBox x:Name="CompBox" Width="150"
+                          DisplayMemberPath="Label" SelectedValuePath="Value"
+                          SelectionChanged="Comp_Changed"/>
+            </StackPanel>
         </WrapPanel>
-        <!-- 2行目（形式の下）: ビットレート・圧縮レベル／LAME品質／Vorbis品質 -->
+        <!-- 2段目: チャンネル・サンプリング周波数 -->
         <WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
-            <TextBlock Text="ビットレート" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="BitrateBox" Width="100"
-                      DisplayMemberPath="Label" SelectedValuePath="Value"
-                      ToolTip="mp3 / aac / ogg / opus のとき有効（flac・wav は無劣化のため指定なし）"
-                      SelectionChanged="Bitrate_Changed"/>
-        </StackPanel>
-            <!-- 圧縮率: 設定のある形式（flac・mp3・ogg・opus）だけ表示する -->
-        <StackPanel x:Name="CompPanel" Orientation="Horizontal" Margin="0,0,0,2">
-            <TextBlock x:Name="CompLabel" Text="圧縮レベル" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="CompBox" Width="150"
-                      DisplayMemberPath="Label" SelectedValuePath="Value"
-                      SelectionChanged="Comp_Changed"/>
-        </StackPanel>
+                <TextBlock Text="チャンネル" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ComboBox x:Name="ChannelBox" Width="92"
+                          DisplayMemberPath="Label" SelectedValuePath="Value"
+                          SelectionChanged="Channel_Changed"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                <TextBlock Text="サンプリング周波数" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ComboBox x:Name="RateBox" Width="124"
+                          DisplayMemberPath="Label" SelectedValuePath="Value"
+                          ToolTip="サンプリング周波数。自動＝デバイスに合わせます。opus は 48 kHz に固定されます"
+                          SelectionChanged="Rate_Changed"/>
+            </StackPanel>
         </WrapPanel>
         <!-- 設定のまとめ（一行）と、1時間の目安のファイルサイズ -->
         <TextBlock x:Name="SummaryText" FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,2,0,0"

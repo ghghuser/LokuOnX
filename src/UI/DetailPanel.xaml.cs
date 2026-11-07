@@ -78,7 +78,7 @@ public partial class DetailPanel : UserControl
     private void PatternHelp_Click(object sender, RoutedEventArgs e)
     {
         if (_s == null) return;
-        var win = new VariableEditor("ファイル名パターン", PatternBox.Text, VariableHelp.Pattern,
+        var win = new VariableEditor("ファイル名", PatternBox.Text, VariableHelp.Pattern,
             p => FileNamer.FileName(p, SampleContext(DateTime.Now))) { Owner = Window.GetWindow(this) };
         if (win.ShowDialog() != true) return;
         PatternBox.Text = win.Result;

@@ -29,4 +29,29 @@ public static class LedIcon
         }
         return bmp.GetHicon();
     }
+
+    /// <summary>
+    /// 待機中（「音が出たら自動で録音開始」で音を待っているとき）のトレイ用アイコン。
+    /// 黄色（琥珀色）の太いリングと中心の点。録音中の赤い丸とも、通常のアプリのアイコンとも見分けがつく。
+    /// </summary>
+    public static IntPtr CreateStandby(int size)
+    {
+        size = Math.Clamp(size, 16, 64);
+        using var bmp = new System.Drawing.Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.Clear(System.Drawing.Color.Transparent);
+            var amber = System.Drawing.Color.FromArgb(255, 255, 184, 28);
+            float c = size / 2f;
+            float lw = Math.Max(2.5f, size / 5f);          // リングの太さ（小さいアイコンでも太く）
+            float r = size / 2f - lw / 2f - 0.5f;          // リングの中心線の半径
+            using var ring = new System.Drawing.Pen(amber, lw);
+            g.DrawEllipse(ring, c - r, c - r, r * 2, r * 2);
+            float rc = size * 0.16f;                       // 中心の点
+            using var core = new System.Drawing.SolidBrush(amber);
+            g.FillEllipse(core, c - rc, c - rc, rc * 2, rc * 2);
+        }
+        return bmp.GetHicon();
+    }
 }

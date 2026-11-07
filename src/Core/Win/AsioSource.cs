@@ -118,18 +118,42 @@ public sealed class AsioSource : IAudioSource
         throw new InvalidOperationException($"ASIOドライバ「{driver}」を開けませんでした（{last?.Message}）", last);
     }
 
-    /// <summary>ドライバのスレッドから呼ばれる。インターリーブの float にして渡す。</summary>
+    /// <summary>
+    /// ドライバのスレッドから呼ばれる。インターリーブの float にして渡す。
+    /// ここで例外が出るとアプリごと落ちるので、必ず捕まえて「止まった」として知らせる（未対応のサンプル形式など）。
+    /// </summary>
     private void OnAudio(object? sender, AsioAudioAvailableEventArgs e)
     {
         if (!_playing) return;
-        int channels = e.InputBuffers.Length;
-        if (channels != _count || e.SamplesPerBuffer <= 0) return;
-        int n = e.SamplesPerBuffer * channels;
-        if (_buf.Length < n) _buf = new float[n];
-        e.GetAsInterleavedSamples(_buf);
-        var bytes = new byte[n * sizeof(float)];
-        Buffer.BlockCopy(_buf, 0, bytes, 0, bytes.Length);
-        DataAvailable?.Invoke(bytes, bytes.Length);
+        try
+        {
+            int inCh = e.InputBuffers.Length;
+            int frames = e.SamplesPerBuffer;
+            if (inCh <= 0 || frames <= 0) return;
+            int n = frames * inCh;
+            if (_buf.Length < n) _buf = new float[n];
+            e.GetAsInterleavedSamples(_buf);
+            var bytes = new byte[frames * _count * sizeof(float)];
+            if (inCh == _count)
+            {
+                Buffer.BlockCopy(_buf, 0, bytes, 0, bytes.Length);
+            }
+            else
+            {
+                // ドライバから届いたチャンネル数が想定と違うときは、先頭から詰める（捨てずに録る）
+                var tmp = new float[frames * _count];
+                for (int i = 0; i < frames; i++)
+                    for (int c = 0; c < _count; c++)
+                        tmp[i * _count + c] = c < inCh ? _buf[i * inCh + c] : 0f;
+                Buffer.BlockCopy(tmp, 0, bytes, 0, bytes.Length);
+            }
+            DataAvailable?.Invoke(bytes, bytes.Length);
+        }
+        catch (Exception ex)
+        {
+            _playing = false;
+            Stopped?.Invoke(new InvalidOperationException("ASIOの音声を読み取れませんでした（" + ex.Message + "）", ex));
+        }
     }
 
     private void OnPlaybackStopped(object? sender, StoppedEventArgs e)

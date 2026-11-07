@@ -36,7 +36,8 @@ public partial class MainWindow : Window
         InputCheckBox.IsChecked = settings.InputCheck;
         LoadDevices();
         Devices.Init(settings, _devices, DefaultCaptureKey());
-        Devices.Changed += () => { Devices.ClearError(); UpdateInfo(); };
+        Devices.Changed += () => { Devices.ClearError(); CheckAsioRows(); UpdateInfo(); };
+        CheckAsioRows();
         Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
         Devices.GainChanged += (index, db) => _session?.SetGain(index, db);
         Devices.MasterGainChanged += db =>

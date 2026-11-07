@@ -67,8 +67,10 @@ public sealed class TrayIcon : IDisposable
     private IntPtr _icon;           // いま出しているアイコン
     private IntPtr _appIcon;        // アプリのアイコン
     private IntPtr _led;            // 録音中の赤いLED風アイコン（初めて必要になったときに作る）
+    private IntPtr _amber;          // 待機中の黄色いリングのアイコン（同上）
     private bool _ownsIcon;
     private bool _recording;
+    private bool _standby;
     private bool _visible;
     private string _tip = "";
 
@@ -107,25 +109,47 @@ public sealed class TrayIcon : IDisposable
         _icon = LoadIcon(IntPtr.Zero, new IntPtr(32512));   // IDI_APPLICATION
     }
 
-    /// <summary>録音中は、アイコンをLED風の大きい赤丸にする。録音中でなければアプリのアイコンへ戻す。</summary>
+    /// <summary>録音中は、アイコンをLED風の大きい赤丸にする。録音中でなければ（待機中なら黄色いリング、それ以外は）アプリのアイコンへ戻す。</summary>
     public void SetRecording(bool recording)
     {
         if (recording == _recording) return;
         _recording = recording;
-        if (recording)
+        UpdateIcon();
+    }
+
+    /// <summary>音を待っている待機中は、アイコンを黄色いリングにする（録音中の赤丸が優先）。</summary>
+    public void SetStandby(bool standby)
+    {
+        if (standby == _standby) return;
+        _standby = standby;
+        UpdateIcon();
+    }
+
+    /// <summary>いまの状態（録音中＞待機中＞通常）に合うアイコンへ差し替える。作れなければ、そのままアプリのアイコン。</summary>
+    private void UpdateIcon()
+    {
+        var next = _appIcon;
+        if (_recording)
         {
             if (_led == IntPtr.Zero)
             {
                 try { _led = LedIcon.Create(Math.Max(16, GetSystemMetrics(49))); }   // SM_CXSMICON（トレイの小アイコンの幅）
                 catch (Exception) { _led = IntPtr.Zero; }
             }
-            if (_led == IntPtr.Zero) { _recording = false; return; }   // 作れなければ、そのままアプリのアイコン
-            _icon = _led;
+            if (_led != IntPtr.Zero) next = _led;
+            else _recording = false;
         }
-        else
+        if (!_recording && _standby)
         {
-            _icon = _appIcon;
+            if (_amber == IntPtr.Zero)
+            {
+                try { _amber = LedIcon.CreateStandby(Math.Max(16, GetSystemMetrics(49))); }
+                catch (Exception) { _amber = IntPtr.Zero; }
+            }
+            if (_amber != IntPtr.Zero) next = _amber;
         }
+        if (next == _icon) return;
+        _icon = next;
         if (!_visible) return;
         var d = Data(NifIcon);
         Shell_NotifyIcon(NimModify, ref d);
@@ -212,6 +236,7 @@ public sealed class TrayIcon : IDisposable
         Visible = false;
         if (_ownsIcon && _appIcon != IntPtr.Zero) DestroyIcon(_appIcon);
         if (_led != IntPtr.Zero) DestroyIcon(_led);
-        _appIcon = _led = _icon = IntPtr.Zero;
+        if (_amber != IntPtr.Zero) DestroyIcon(_amber);
+        _appIcon = _led = _amber = _icon = IntPtr.Zero;
     }
 }

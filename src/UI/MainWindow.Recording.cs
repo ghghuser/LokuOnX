@@ -157,6 +157,7 @@ public partial class MainWindow
             if (_standby) TickStandby();
             else TickInputCheck();
             _tray?.SetRecording(false);
+            _tray?.SetStandby(_standby);   // 待機中はトレイのアイコンが黄色いリングになる
             _tray?.SetTip((_standby ? $"{AppInfo.Name} ― 音を待っています" : $"{AppInfo.Name} ― 待機中") + ScheduleTip());
             return;
         }

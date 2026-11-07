@@ -1,5 +1,12 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- ★ 色の調整はここ（ライト・ダーク共通。#RRGGBB を書き換えるだけで変わります） -->
+    <SolidColorBrush x:Key="IconMicFg" Color="#2AA7D8"/>        <!-- 🎤 マイク（水色） -->
+    <SolidColorBrush x:Key="IconSpeakerFg" Color="#F08A4B"/>    <!-- 🔊 スピーカー（橙） -->
+    <SolidColorBrush x:Key="IconAsioFg" Color="#9B6BE8"/>       <!-- 🎛 ASIO（紫） -->
+    <SolidColorBrush x:Key="DefaultMarkFg" Color="#CC3D8C"/>    <!-- 既定のデバイスの ＊（赤紫） -->
+    <SolidColorBrush x:Key="LampOn" Color="#34D96B"/>           <!-- 入力デバイスの「使う」ランプ（緑） -->
+
     <!-- 設定の「見出し」と「中身」を見分けやすくする共通スタイル（ライト・ダーク共通。色は Dark.xaml / Light.xaml の SectionFg・SectionBar）。
          見出し＝色付きの小さめの太字、中身＝左に細い縦線を引いて少し字下げ -->
     <Style x:Key="SectionTitle" TargetType="TextBlock">
@@ -26,7 +33,7 @@
                                 CornerRadius="8" Padding="12,14,12,8">
                             <ContentPresenter/>
                         </Border>
-                        <Border HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,0"
+                        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,0,0,0" Padding="8,0"
                                 Background="{DynamicResource WindowBg}">
                             <TextBlock Text="{TemplateBinding Header}" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{DynamicResource GroupFg}"/>
@@ -37,7 +44,7 @@
         </Setter>
     </Style>
 
-    <!-- 入力デバイスの「使う」用。丸いランプ（ON＝黄色く点灯、OFF＝消灯）。他のチェックボックスは下のトグル式 -->
+    <!-- 入力デバイスの「使う」用。丸いランプ（ON＝緑に点灯、OFF＝消灯）。他のチェックボックスは下のトグル式 -->
     <Style x:Key="LampCheck" TargetType="CheckBox">
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
@@ -49,16 +56,16 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource ToggleOn}"/>
-                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource ToggleOn}"/>
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampOn}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampOn}"/>
                             <Setter TargetName="Lamp" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#F3DD8A" BlurRadius="8" ShadowDepth="0" Opacity="0.75"/>
+                                    <DropShadowEffect Color="#34D96B" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource ToggleOn}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampOn}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>

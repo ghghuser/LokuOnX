@@ -16,6 +16,7 @@ public sealed class DeviceInput : IDisposable
     private int _lost;                      // 1 = つながっているデバイスが止まった
     private bool _reportedLost;
     private bool _stopping;
+    private string? _stopReason;            // 止まった理由（ドライバが知らせてきたもの。通知に添える）
 
     public DeviceStream Stream { get; }
     public string Label { get; }
@@ -82,6 +83,7 @@ public sealed class DeviceInput : IDisposable
             _src = created;
             _srcKey = real;
             Volatile.Write(ref _lost, 0);
+            _stopReason = null;
             LastError = null;
             return true;
         }
@@ -96,6 +98,7 @@ public sealed class DeviceInput : IDisposable
     private void OnSourceStopped(IAudioSource who, Exception? ex)
     {
         if (_stopping || !ReferenceEquals(who, Volatile.Read(ref _src))) return;
+        if (ex != null) _stopReason = ex.Message;
         Volatile.Write(ref _lost, 1);
     }
 
@@ -121,17 +124,18 @@ public sealed class DeviceInput : IDisposable
             if (_stopping) return;
             if (_src != null && Volatile.Read(ref _lost) == 1)
             {
+                var why = string.IsNullOrEmpty(_stopReason) ? "" : $"（{_stopReason}）";
                 CloseSource();
                 if (!_autoResume)
                 {
-                    Failed?.Invoke("入力デバイスが使えなくなりました: " + Label);
+                    Failed?.Invoke("入力デバイスが使えなくなりました: " + Label + why);
                     return;
                 }
                 if (!_reportedLost)
                 {
                     _reportedLost = true;
                     lost = true;
-                    Notice?.Invoke("デバイスが使えなくなりました。無音で録音を続け、戻ったら自動で再開します: " + Label);
+                    Notice?.Invoke("デバイスが使えなくなりました。無音で録音を続け、戻ったら自動で再開します: " + Label + why);
                 }
             }
             var wanted = SafeResolve();
