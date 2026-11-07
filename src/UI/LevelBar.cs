@@ -8,7 +8,8 @@ public static class MeterColors
 {
     public static readonly Brush Green = Frozen(new SolidColorBrush(Color.FromRgb(0x3D, 0xCB, 0x5C)));
     public static readonly Brush Red = Frozen(new SolidColorBrush(Color.FromRgb(0xE0, 0x3C, 0x3C)));
-    public static readonly Brush Blue = Frozen(new SolidColorBrush(Color.FromRgb(0x4F, 0xB3, 0xFF)));
+    public static readonly Brush Blue = Frozen(new SolidColorBrush(Color.FromRgb(0x7D, 0xCB, 0xFF)));   // 波形（明るめの青）
+    public static readonly Brush Yellow = Frozen(new SolidColorBrush(Color.FromRgb(0xF2, 0xC9, 0x4C)));
     /// <summary>ミュート中の色（ゲインの数値・スライダー・メーター）。</summary>
     public static readonly Brush Muted = Frozen(new SolidColorBrush(Color.FromRgb(0xE5, 0x6B, 0x4A)));
     public static readonly Brush MutedBg = Frozen(new SolidColorBrush(Color.FromArgb(0x55, 0xE5, 0x6B, 0x4A)));
@@ -21,13 +22,17 @@ public static class MeterColors
 }
 
 /// <summary>
-/// 1本のレベルメーター（横棒）。緑の棒＋ピークホールドの白い線＋右端のクリップ表示（普段は灰色の四角、クリップで赤）。
+/// 1本のレベルメーター（横棒）。音量に合わせて 緑（〜-18 dB）→ 黄（-18〜-6 dB）→ 赤（-6 dB〜）に色が変わる棒＋ピークホールドの白い線＋右端のクリップ表示（普段は灰色の四角、クリップで赤）。
 /// ピーク（0.0〜1.0超）を Update で渡す。-60〜0 dB を 0〜1 に割り当てる（LevelScale の目盛りと同じ）。ミュート中は棒を出さず、色を変える。
 /// </summary>
 public sealed class LevelBar : FrameworkElement
 {
     public const double ClipWidth = 10;
     public const double Gap = 4;
+
+    /// <summary>黄色・赤に変わる位置（-60〜0 dB を 0〜1 にしたもの）。-18 dB と -6 dB。</summary>
+    private const double YellowFrom = (60 - 18) / 60.0;
+    private const double RedFrom = (60 - 6) / 60.0;
 
     private static readonly Brush Back = Frozen(new SolidColorBrush(Color.FromArgb(0x40, 0x80, 0x80, 0x80)));
     private static readonly Brush ClipOff = Frozen(new SolidColorBrush(Color.FromArgb(0x70, 0x80, 0x80, 0x80)));
@@ -41,6 +46,9 @@ public sealed class LevelBar : FrameworkElement
     private bool _muted;
 
     public LevelBar() => Height = 9;
+
+    /// <summary>角の丸み（小さいほど四角に近い）。</summary>
+    private const double Radius = 1.2;
 
     /// <summary>ミュート中か。棒は出さず、背景と右端が橙になる。</summary>
     public bool Muted
@@ -95,10 +103,20 @@ public sealed class LevelBar : FrameworkElement
         double w = ActualWidth, h = ActualHeight;
         if (w <= ClipWidth + Gap || h <= 0) return;
         double barW = w - ClipWidth - Gap;
-        double r = Math.Min(2.5, h / 2);
+        double r = Math.Min(Radius, h / 2);
         dc.DrawRoundedRectangle(_muted ? MeterColors.MutedBg : Back, null, new Rect(0, 0, barW, h), r, r);
         if (!_muted && _level > 0.001)
-            dc.DrawRoundedRectangle(MeterColors.Green, null, new Rect(0, 0, Math.Max(2, barW * _level), h), r, r);
+        {
+            // 棒の角は丸めたまま、中を 緑・黄・赤 の帯で塗り分ける
+            dc.PushClip(new RectangleGeometry(new Rect(0, 0, Math.Max(2, barW * _level), h), r, r));
+            dc.DrawRectangle(MeterColors.Green, null, new Rect(0, 0, barW * Math.Min(_level, YellowFrom) + 2, h));
+            if (_level > YellowFrom)
+                dc.DrawRectangle(MeterColors.Yellow, null,
+                    new Rect(barW * YellowFrom, 0, barW * (Math.Min(_level, RedFrom) - YellowFrom), h));
+            if (_level > RedFrom)
+                dc.DrawRectangle(MeterColors.Red, null, new Rect(barW * RedFrom, 0, barW * (_level - RedFrom), h));
+            dc.Pop();
+        }
         if (!_muted && _hold > 0.02)
         {
             double x = Math.Min(barW - 2, barW * _hold);

@@ -23,8 +23,10 @@ public sealed class OutputMeter : Grid
         Add(caption, 0, 0);
         Add(Label("L"), 1, 0);
         Add(Label("R"), 2, 0);
-        _l.Margin = new Thickness(0, 1, 0, 2);
-        _r.Margin = new Thickness(0, 1, 0, 0);
+        // L と R の隙間は 1px ほど（棒を少し太くして、ラベルの行の高さとそろえる）
+        _l.Height = _r.Height = 11;
+        _l.Margin = new Thickness(0, 0, 0, 1);
+        _r.Margin = new Thickness(0, 0, 0, 0);
         Add(_l, 1, 1);
         Add(_r, 2, 1);
         var scale = new LevelScale { Margin = new Thickness(0, 2, 0, 0) };
@@ -35,6 +37,7 @@ public sealed class OutputMeter : Grid
     private static TextBlock Label(string text) => new()
     {
         Text = text, FontSize = 11, Opacity = 0.75, VerticalAlignment = VerticalAlignment.Center,
+        LineHeight = 11, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, Margin = new Thickness(0, 0, 0, 1),
     };
 
     private void Add(UIElement e, int row, int col)

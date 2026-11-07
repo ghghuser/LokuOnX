@@ -14,4 +14,73 @@
         <Setter Property="Padding" Value="12,2,0,2"/>
         <Setter Property="Margin" Value="2,0,0,4"/>
     </Style>
+
+    <!-- 左下の設定グループ（形式・音質／保存先・ファイル名）: 枠で囲み、小さめの黄色い見出しを付ける（色は Dark.xaml / Light.xaml の GroupFg） -->
+    <Style x:Key="GroupCard" TargetType="Border">
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12,8,12,8"/>
+        <Setter Property="Margin" Value="0,0,0,10"/>
+    </Style>
+    <Style x:Key="GroupTitle" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource GroupFg}"/>
+        <Setter Property="Margin" Value="0,0,0,6"/>
+    </Style>
+
+    <!-- すべてのチェックボックスを、丸いトグル式（ON＝明るい青緑、つまみが右へ動く）にする。ライト・ダーク共通（色は Dark.xaml / Light.xaml の ToggleOn・ToggleOff・ToggleKnobOff） -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel x:Name="Root" Orientation="Horizontal" Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid Width="34" Height="18" VerticalAlignment="Center">
+                            <Border x:Name="Track" CornerRadius="9" Background="{DynamicResource ToggleOff}"
+                                    BorderThickness="1" BorderBrush="Transparent"/>
+                            <Ellipse x:Name="Knob" Width="12" Height="12" HorizontalAlignment="Left" Margin="3,0,0,0"
+                                     Fill="{DynamicResource ToggleKnobOff}">
+                                <Ellipse.RenderTransform>
+                                    <TranslateTransform x:Name="KnobMove" X="0"/>
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Grid>
+                        <ContentPresenter x:Name="Content" Margin="8,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource ToggleOn}"/>
+                            <Setter TargetName="Knob" Property="Fill" Value="White"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="KnobMove" Storyboard.TargetProperty="X" To="16" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="KnobMove" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource ToggleOn}"/>
+                        </Trigger>
+                        <Trigger Property="HasContent" Value="False">
+                            <Setter TargetName="Content" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

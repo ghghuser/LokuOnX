@@ -47,6 +47,7 @@ public partial class MainWindow : Window
         Quality.DeviceFormat = DeviceFormat;
         Quality.Init(settings);
         Quality.Changed += UpdateInfo;
+        Detail.Tags = TagsTab;
         Detail.Init(settings, () => Devices.NameLabel);
         Detail.Changed += UpdateInfo;
         Presets.Init(settings);

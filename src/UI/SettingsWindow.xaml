@@ -33,18 +33,6 @@
                                       Checked="Sleep_Changed" Unchecked="Sleep_Changed"/>
                         </Border>
 
-                        <TextBlock Text="デバイスが外れたとき" Style="{StaticResource SectionTitle}"/>
-                        <Border Style="{StaticResource SectionBody}">
-                            <StackPanel>
-                                <CheckBox x:Name="WaitCheck" Content="すべて外れたら、戻るまで待機（一時停止）する" Margin="0,0,0,4"
-                                          ToolTip="OFFのときは、無音で埋めて録音を続けます。ONのときは、使えるデバイスが1台も無くなったら一時停止し（無音を入れません）、戻ったら自動で再開します。他のデバイスが録れているあいだは続けます。録音を始める前の設定が対象です"
-                                          Checked="Device_Changed" Unchecked="Device_Changed"/>
-                                <CheckBox x:Name="SplitReturnCheck" Content="戻ったら別ファイルに分割する"
-                                          ToolTip="外れていたデバイスが戻った時点で、次のファイルへ分割します。録音を始める前の設定が対象です"
-                                          Checked="Device_Changed" Unchecked="Device_Changed"/>
-                            </StackPanel>
-                        </Border>
-
                         <TextBlock Text="タスクトレイ" Style="{StaticResource SectionTitle}"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>
@@ -57,6 +45,18 @@
                             </StackPanel>
                         </Border>
 
+                        <TextBlock Text="デバイスが外れたとき" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource SectionBody}">
+                            <StackPanel>
+                                <CheckBox x:Name="WaitCheck" Content="すべて外れたら、戻るまで待機（一時停止）する" Margin="0,0,0,4"
+                                          ToolTip="OFFのときは、無音で埋めて録音を続けます。ONのときは、使えるデバイスが1台も無くなったら一時停止し（無音を入れません）、戻ったら自動で再開します。他のデバイスが録れているあいだは続けます。録音を始める前の設定が対象です"
+                                          Checked="Device_Changed" Unchecked="Device_Changed"/>
+                                <CheckBox x:Name="SplitReturnCheck" Content="戻ったら別ファイルに分割する"
+                                          ToolTip="外れていたデバイスが戻った時点で、次のファイルへ分割します。録音を始める前の設定が対象です"
+                                          Checked="Device_Changed" Unchecked="Device_Changed"/>
+                            </StackPanel>
+                        </Border>
+
                         <ui:HotkeyPanel x:Name="Hotkeys"/>
                     </StackPanel>
                 </ScrollViewer>
@@ -65,14 +65,14 @@
             <TabItem Header="ヘルプ">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <TextBlock TextWrapping="Wrap" LineHeight="24" Margin="2,2,10,0" Opacity="0.92"
-                               Text="・ファイル名やフォルダ名の変数は、パターン欄の右の「？」ボタンで説明と入力補助が開きます。&#10;・プリセットは exe と同じ場所の Presets フォルダに「名前.json」で保存されます（保存先と番号は含みません）。&#10;・エラーは音の鳴るポップアップではなく、原因の近くに赤文字で表示されます。&#10;・長さを正しく表示したいときは、aac は m4a を選んでください。&#10;・ファイル一覧の ＊ は、起動後に作られたファイル（白に近い文字）です。再生中は、別のファイルを選んでも止まりません。&#10;・予約録音が有効なときは、画面の上の段に「⏰ 予約 …」が黄色く出ます。録音中はトレイのアイコンが赤い丸に変わります。&#10;・メーターの白い線は直近の最大値、右端の四角が赤くなるとクリップです。ゲインを左端にするとミュート（橙色の表示）になります。"/>
+                               Text="■ ファイル名やフォルダ名の変数は、パターン欄の右の「？」ボタンで説明と入力補助が開きます。&#10;■ プリセットは exe と同じ場所の Presets フォルダに「名前.json」で保存されます（保存先と番号は含みません）。&#10;■ エラーは音の鳴るポップアップではなく、原因の近くに赤文字で表示されます。&#10;■ 長さを正しく表示したいときは、aac は m4a を選んでください。&#10;■ ファイル一覧の ＊ は、起動後に作られたファイル（白に近い文字）です。再生中は、別のファイルを選んでも止まりません。&#10;■ 予約録音が有効なときは、画面の上の段に「⏰ 予約 …」が黄色く出ます。録音中はトレイのアイコンが赤い丸に変わります。&#10;■ メーターの白い線は直近の最大値、右端の四角が赤くなるとクリップです。ゲインを左端にするとミュート（橙色の表示）になります。"/>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="バージョン情報">
-                <StackPanel Margin="2,4,0,0">
-                    <TextBlock x:Name="VersionText" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                    <TextBlock Margin="0,0,0,14">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="VersionText" FontSize="20" FontWeight="SemiBold" TextAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock TextAlignment="Center" Margin="0,0,0,14">
                         <Hyperlink x:Name="GitHubLink" NavigateUri="https://github.com/ghghuser/LokuOnX" RequestNavigate="Link_Navigate">GitHub のリポジトリ</Hyperlink>
                     </TextBlock>
                 </StackPanel>

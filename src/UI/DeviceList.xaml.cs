@@ -380,15 +380,26 @@ public partial class DeviceList : UserControl
     public void StartWave()
     {
         var active = Active();
+        Array.Clear(_waveAcc, 0, _waveAcc.Length);
+        _waveCount = 0;
         foreach (var r in _rows) r.Wave.SetRows(active.Contains(r) ? new[] { "" } : Array.Empty<string>());
     }
 
-    /// <summary>デバイスごとのピーク（上から順）を、行の波形へ1列ずつ足す（一時停止中は呼ばない）。</summary>
+    private const int WaveStride = 2;   // 波形の1列は、呼び出し WaveStride 回ぶん（50ms×2＝100ms）。大きいほど流れる速さが遅い
+    private float[] _waveAcc = Array.Empty<float>();
+    private int _waveCount;
+
+    /// <summary>デバイスごとのピーク（上から順）を、行の波形へ足す（一時停止中は呼ばない）。50msごとに呼ばれ、WaveStride 回ぶんの最大値を1列にする（波形の流れが遅くなる）。</summary>
     public void PushWave(float[] peaks)
     {
+        if (_waveAcc.Length != peaks.Length) { _waveAcc = new float[peaks.Length]; _waveCount = 0; }
+        for (int i = 0; i < peaks.Length; i++) if (peaks[i] > _waveAcc[i]) _waveAcc[i] = peaks[i];
+        if (++_waveCount < WaveStride) return;
         var active = Active();
         for (int i = 0; i < active.Count; i++)
-            active[i].Wave.Push(new[] { i < peaks.Length ? peaks[i] : 0f });
+            active[i].Wave.Push(new[] { i < _waveAcc.Length ? _waveAcc[i] : 0f });
+        Array.Clear(_waveAcc, 0, _waveAcc.Length);
+        _waveCount = 0;
     }
 
     /// <summary>デバイスごとのピーク（上から順）を、行のメーターに出す。</summary>

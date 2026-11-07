@@ -3,6 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:Recorder.UI">
     <StackPanel>
+        <!-- 日付フォルダ（保存先の下の行） -->
+        <WrapPanel Margin="0,0,0,6">
+            <TextBlock Text="日付フォルダ" Width="90" VerticalAlignment="Center"/>
+            <CheckBox x:Name="DateFolderCheck" Content="作る" VerticalAlignment="Center"
+                      Margin="0,0,10,0" Checked="DateFolder_Changed" Unchecked="DateFolder_Changed"/>
+            <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
+                     ToolTip="日付フォルダの名前（録音開始日で固定）"
+                     LostFocus="DateFormat_LostFocus"/>
+            <Button Content="？" Width="28" Margin="6,0,0,0"
+                    ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="DateFormatHelp_Click"/>
+        </WrapPanel>
         <!-- ファイル名テンプレート -->
         <WrapPanel Margin="0,0,0,6">
             <TextBlock Text="ファイル名" Width="90" VerticalAlignment="Center"/>
@@ -34,22 +45,5 @@
                      ToolTip="新しい録音ごとにこの番号へ戻ります（分割のたびに +1）"
                      LostFocus="Track_LostFocus"/>
         </WrapPanel>
-
-        <!-- 折りたたみ: 日付フォルダ・タグ -->
-        <Expander Header="日付フォルダ・タグ">
-            <StackPanel Margin="16,6,0,4">
-                <WrapPanel Margin="0,0,0,8">
-                    <CheckBox x:Name="DateFolderCheck" Content="日付フォルダを作る" VerticalAlignment="Center"
-                              Margin="0,0,8,0" Checked="DateFolder_Changed" Unchecked="DateFolder_Changed"/>
-                    <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
-                             ToolTip="日付フォルダの名前（録音開始日で固定）"
-                             LostFocus="DateFormat_LostFocus"/>
-                    <Button Content="？" Width="28" Margin="6,0,0,0"
-                            ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="DateFormatHelp_Click"/>
-                </WrapPanel>
-                <TextBlock Text="タグ" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <ui:TagPanel x:Name="Tags" Margin="0,0,0,10"/>
-            </StackPanel>
-        </Expander>
     </StackPanel>
 </UserControl>

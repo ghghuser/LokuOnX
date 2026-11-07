@@ -136,7 +136,7 @@ public partial class MainWindow
         SetPauseButton(false);
         FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
         Devices.SetRecording(recording);
-        Quality.IsEnabled = Detail.IsEnabled = Presets.IsEnabled = !recording;
+        Quality.IsEnabled = Detail.IsEnabled = TagsTab.IsEnabled = Presets.IsEnabled = !recording;
         SleepGuard.Prevent(recording && _settings.PreventSleep);
         BrowseButton.IsEnabled = !recording;
         if (!recording)
@@ -192,15 +192,29 @@ public partial class MainWindow
         OutMeter.Update(left, right);   // 出力レベル（L・R。白い線＝最大値、右端＝クリップ）
     }
 
-    /// <summary>一時停止ボタンの表示（「⏸ 一時停止」／「▶ 再開」）。</summary>
+    /// <summary>一時停止ボタンの表示（「一時停止」＝2本線の図形、「再開」＝三角の図形）。図形は文字と同じ色になる（無効のときも）。</summary>
     private void SetPauseButton(bool paused)
     {
         _pauseShown = paused;
-        var label = new System.Windows.Controls.TextBlock();
-        label.Inlines.Add(new System.Windows.Documents.Run(paused ? "▶" : "⏸")
-            { FontFamily = new FontFamily("Segoe UI Symbol, Segoe UI Emoji") });
-        label.Inlines.Add(new System.Windows.Documents.Run(paused ? " 再開" : " 一時停止"));
-        PauseButton.Content = label;
+        var icon = new System.Windows.Shapes.Path
+        {
+            Data = System.Windows.Media.Geometry.Parse(paused ? "M0,0 L10,5.5 L0,11 Z" : "M0,0 H3.4 V11 H0 Z M6.6,0 H10 V11 H6.6 Z"),
+            Stretch = System.Windows.Media.Stretch.Uniform,
+            Width = 10,
+            Height = 11,
+            Margin = new Thickness(0, 0, 7, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        // 塗りの色は、ボタンの文字の色をそのまま使う（有効・無効で自動的に変わる）
+        icon.SetBinding(System.Windows.Shapes.Shape.FillProperty, new System.Windows.Data.Binding
+        {
+            Path = new PropertyPath("(0)", System.Windows.Documents.TextElement.ForegroundProperty),
+            RelativeSource = System.Windows.Data.RelativeSource.Self,
+        });
+        var panel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
+        panel.Children.Add(icon);
+        panel.Children.Add(new System.Windows.Controls.TextBlock { Text = paused ? "再開" : "一時停止", VerticalAlignment = VerticalAlignment.Center });
+        PauseButton.Content = panel;
     }
 
     /// <summary>保存先の空き容量。1GB未満で赤文字の警告、100MB未満なら安全のため録音を止めて保存する。</summary>

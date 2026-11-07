@@ -15,8 +15,13 @@
     <SolidColorBrush x:Key="RecDot" Color="#C94A86"/>
     <SolidColorBrush x:Key="SectionFg" Color="#1A5FB4"/>
     <SolidColorBrush x:Key="SectionBar" Color="#9DB9E0"/>
-    <SolidColorBrush x:Key="ScheduleOnFg" Color="#8A5A00"/>
-    <SolidColorBrush x:Key="ScheduleOnBg" Color="#FFE9A8"/>
+    <SolidColorBrush x:Key="ScheduleOnFg" Color="#B34700"/>
+    <SolidColorBrush x:Key="ScheduleOnBg" Color="#FFD9B0"/>
+    <SolidColorBrush x:Key="GroupFg" Color="#8A6D00"/>
+    <!-- チェックボックス（丸いトグル式）。ON＝明るい青緑 -->
+    <SolidColorBrush x:Key="ToggleOn" Color="#14C4A8"/>
+    <SolidColorBrush x:Key="ToggleOff" Color="#B9BEC5"/>
+    <SolidColorBrush x:Key="ToggleKnobOff" Color="#FFFFFF"/>
     <!-- 無効（グレーアウト）のラジオボタンは、文字も丸印もかなり薄くする（ダークは DarkControls.xaml） -->
     <Style TargetType="RadioButton">
         <Style.Triggers>

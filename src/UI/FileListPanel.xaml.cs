@@ -65,30 +65,47 @@ public partial class FileListPanel : UserControl
         UpdateHeaders();
     }
 
-    private string SourceKey => (SourceBox.SelectedItem as Source)?.Key ?? HistoryKey;
-    private bool IsHistory => SourceKey == HistoryKey;
+    /// <summary>録音履歴のタブか（もう1つは「フォルダ」のタブ）。</summary>
+    private bool IsHistory => SourceTabs.SelectedIndex != 1;
+
+    /// <summary>いま表示しているもの。録音履歴なら HistoryKey、フォルダのタブならプルダウンで選んだフォルダ。</summary>
+    private string SourceKey => IsHistory ? HistoryKey : (SourceBox.SelectedItem as Source)?.Key ?? _settings?.Folder ?? "";
     private List<LibraryFile> SelectedFiles => List.SelectedItems.Cast<LibraryFile>().Where(f => !f.IsRecording).ToList();
 
-    /// <summary>プルダウン（録音履歴＋最近の保存先）を作り直す。いま選んでいる場所はできるだけ保つ。</summary>
+    /// <summary>フォルダのプルダウン（最近の保存先）を作り直す。select があればそれを表示する（HistoryKey なら録音履歴のタブ）。なければ、いま表示している場所をできるだけ保つ。</summary>
     public void ReloadSources(string? select = null)
     {
         var keep = select ?? SourceKey;
         _loadingSources = true;
-        var sources = new List<Source> { new(HistoryKey, "録音履歴") };
-        sources.AddRange(_settings.RecentFolders.Select(f => new Source(f, "📁 " + f)));
+        var sources = _settings.RecentFolders.Select(f => new Source(f, "📁 " + f)).ToList();
         SourceBox.ItemsSource = sources;
-        SourceBox.SelectedItem = sources.FirstOrDefault(s => string.Equals(s.Key, keep, StringComparison.OrdinalIgnoreCase)) ?? sources[0];
+        SourceBox.SelectedItem = sources.FirstOrDefault(s => string.Equals(s.Key, keep, StringComparison.OrdinalIgnoreCase))
+                                 ?? sources.FirstOrDefault();
+        SourceTabs.SelectedIndex = keep == HistoryKey ? 0 : 1;
         _loadingSources = false;
-        UpdateClearButton();
+        UpdateToolbar();
     }
 
-    /// <summary>録音履歴を表示中は「履歴を空にする」、フォルダを表示中は「録音履歴」（押すと録音履歴に戻る）。</summary>
-    private void UpdateClearButton() => ClearButton.Content = IsHistory ? "履歴を空にする" : "録音履歴";
+    /// <summary>録音履歴のタブでは「履歴を空にする」、フォルダのタブではフォルダの選択とボタンを出す。</summary>
+    private void UpdateToolbar()
+    {
+        bool history = IsHistory;
+        ClearButton.Visibility = history ? Visibility.Visible : Visibility.Collapsed;
+        var folder = history ? Visibility.Collapsed : Visibility.Visible;
+        SourceBox.Visibility = SaveFolderButton.Visibility = PickFolderButton.Visibility = folder;
+    }
+
+    private void SourceTab_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.OriginalSource != SourceTabs || _loadingSources || _settings == null) return;
+        UpdateToolbar();
+        ClearError();
+        Refresh();
+    }
 
     private void Source_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (_loadingSources || _settings == null) return;
-        UpdateClearButton();
         ClearError();
         Refresh();
     }
@@ -117,7 +134,7 @@ public partial class FileListPanel : UserControl
         foreach (var f in files.Where(f => keep.Contains(f.Path, StringComparer.OrdinalIgnoreCase)))
             List.SelectedItems.Add(f);
         _restoring = false;
-        CountText.Text = files.Count == 0 ? "（なし）" : $"{files.Count} 個";
+        CountText.Text = files.Count == 0 ? "（なし）" : $"{files.Count} 件";
         RaiseSelected();
         _ = LoadLengthsAsync(files.Where(f => f.Length == null).Take(AutoLengthLimit).ToList(), cts.Token);
     }

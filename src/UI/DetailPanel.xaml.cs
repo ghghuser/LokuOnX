@@ -14,6 +14,9 @@ public partial class DetailPanel : UserControl
     /// <summary>設定が変わった（常時表示のファイル名の例の更新用）。</summary>
     public event Action? Changed;
 
+    /// <summary>タグの入力欄（左下の「タグ(メタデータ)」タブにある）。Init の前に MainWindow が渡す。</summary>
+    public TagPanel Tags { get; set; } = null!;
+
     public DetailPanel()
     {
         InitializeComponent();

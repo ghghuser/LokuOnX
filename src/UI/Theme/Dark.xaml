@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- ダーク: 色（ブラシ）と、色が付く部品の簡単なスタイル。ボタン・コンボボックスは DarkControls.xaml -->
-    <SolidColorBrush x:Key="WindowBg" Color="#202124"/>
+    <SolidColorBrush x:Key="WindowBg" Color="#1A1B1D"/>
     <SolidColorBrush x:Key="WindowFg" Color="#DDDAD5"/>
     <SolidColorBrush x:Key="PanelBg" Color="#802D2F33"/>
     <SolidColorBrush x:Key="PopupBg" Color="#2D2F33"/>
@@ -28,11 +28,17 @@
     <SolidColorBrush x:Key="StartFg" Color="#E3F3E8"/>
     <SolidColorBrush x:Key="StopFg" Color="#DEE8FA"/>
     <SolidColorBrush x:Key="RecDot" Color="#C94A86"/>
-    <!-- 設定の見出し（淡い青）と中身の縦線、予約録音が有効なときの色（パステルイエロー系） -->
+    <!-- 設定の見出し（淡い青）と中身の縦線、予約録音が有効なときの色（オレンジ系） -->
     <SolidColorBrush x:Key="SectionFg" Color="#8AB4F8"/>
     <SolidColorBrush x:Key="SectionBar" Color="#3F5C8F"/>
-    <SolidColorBrush x:Key="ScheduleOnFg" Color="#F3DD8A"/>
-    <SolidColorBrush x:Key="ScheduleOnBg" Color="#4A4224"/>
+    <SolidColorBrush x:Key="ScheduleOnFg" Color="#FFAE5C"/>
+    <SolidColorBrush x:Key="ScheduleOnBg" Color="#4D3018"/>
+    <!-- 左下の設定グループの見出し（ラジオ・スライダーと同じパステルイエロー） -->
+    <SolidColorBrush x:Key="GroupFg" Color="#F3DD8A"/>
+    <!-- チェックボックス（丸いトグル式）。ON＝明るい青緑 -->
+    <SolidColorBrush x:Key="ToggleOn" Color="#2DD4BF"/>
+    <SolidColorBrush x:Key="ToggleOff" Color="#4A4D52"/>
+    <SolidColorBrush x:Key="ToggleKnobOff" Color="#C9CCD1"/>
 
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource PanelBg}"/>
@@ -60,44 +66,6 @@
             </Setter.Value>
         </Setter>
     </Style>
-
-    <!-- 丸みのあるチェックボックス（チェック時はパステルイエロー） -->
-    <Style TargetType="CheckBox">
-        <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="CheckBox">
-                    <StackPanel Orientation="Horizontal" Background="Transparent" SnapsToDevicePixels="True">
-                        <Border x:Name="Box" Width="16" Height="16" CornerRadius="3.5" BorderThickness="1.5"
-                                BorderBrush="{DynamicResource PanelBorder}" Background="Transparent" VerticalAlignment="Center">
-                            <Path x:Name="Tick" Data="M3.3,8 L6.6,11.3 L12.7,4.5" Stroke="{DynamicResource PastelText}" StrokeThickness="2"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                  Visibility="Collapsed" Margin="-1,-1,0,0"/>
-                        </Border>
-                        <ContentPresenter x:Name="Content" Margin="8,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
-                    </StackPanel>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource Pastel}"/>
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Pastel}"/>
-                            <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Pastel}"/>
-                        </Trigger>
-                        <Trigger Property="HasContent" Value="False">
-                            <Setter TargetName="Content" Property="Visibility" Value="Collapsed"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{DynamicResource DisabledFg}"/>
-                            <Setter TargetName="Box" Property="Opacity" Value="0.5"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <Style TargetType="Expander">
         <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
     </Style>

@@ -16,6 +16,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="640"/>
@@ -107,57 +108,64 @@
         <TextBlock x:Name="ErrorText" Grid.Row="2" Grid.ColumnSpan="3" Foreground="#D33" FontWeight="SemiBold"
                    TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,8"/>
 
-        <!-- 左下: 設定（縦に長いときはスクロール） -->
+        <!-- 左下: 設定（縦に長いときはスクロール）。「形式・音質」「保存先・ファイル名」は枠で囲み、その下にタブ -->
         <ScrollViewer Grid.Row="3" Grid.Column="0" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="90"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+            <StackPanel Margin="0,0,10,0">
+                <Border Style="{StaticResource GroupCard}">
+                    <StackPanel>
+                        <TextBlock Text="形式・音質" Style="{StaticResource GroupTitle}"/>
+                        <ui:QualityBar x:Name="Quality"/>
+                    </StackPanel>
+                </Border>
 
-                    <TextBlock Grid.Row="0" Text="形式・音質" VerticalAlignment="Top" Margin="0,4,0,0"/>
-                    <ui:QualityBar x:Name="Quality" Grid.Row="0" Grid.Column="1" Margin="0,0,8,4"/>
+                <Border Style="{StaticResource GroupCard}">
+                    <StackPanel>
+                        <TextBlock Text="保存先・ファイル名" Style="{StaticResource GroupTitle}"/>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="保存先" VerticalAlignment="Center"/>
+                            <TextBox x:Name="FolderBox" Grid.Column="1" Margin="0,0,8,0"
+                                     VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
+                            <Button x:Name="BrowseButton" Grid.Column="2" Content="参照..."
+                                    Padding="12,3" Click="Browse_Click"/>
+                        </Grid>
+                        <ui:DetailPanel x:Name="Detail"/>
+                    </StackPanel>
+                </Border>
 
-                    <TextBlock Grid.Row="1" Text="保存先" VerticalAlignment="Center"/>
-                    <TextBox x:Name="FolderBox" Grid.Row="1" Grid.Column="1" Margin="0,0,8,6"
-                             VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
-                    <Button x:Name="BrowseButton" Grid.Row="1" Grid.Column="2" Content="参照..."
-                            Margin="0,0,0,6" Padding="12,3" Click="Browse_Click"/>
-                </Grid>
-
-        <!-- ファイル名・番号（常時表示）と、折りたたみ（日付フォルダ・タグ） -->
-        <StackPanel Margin="0,4,0,0">
-            <ui:DetailPanel x:Name="Detail"/>
-            <Expander x:Name="ExpOption" Header="オプション">
-                <StackPanel Margin="16,8,0,4">
-                    <TextBlock Text="自動分割" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
-                    <Border Style="{StaticResource SectionBody}">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:TimeBox x:Name="SplitBox" Width="70"
-                                        ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
-                                        LostFocus="Split_LostFocus"/>
-                            <TextBlock Text="ごとに分割 (0＝無効。最長24時間)" VerticalAlignment="Center"
-                                       Margin="8,0,0,0" Opacity="0.75"/>
+                <TabControl x:Name="LowerTabs">
+                    <TabItem Header="タグ(メタデータ)">
+                        <ui:TagPanel x:Name="TagsTab" Margin="2,0,0,6"/>
+                    </TabItem>
+                    <TabItem Header="自動オプション">
+                        <StackPanel Margin="2,0,0,4">
+                            <TextBlock Text="自動分割" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <Border Style="{StaticResource SectionBody}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:TimeBox x:Name="SplitBox" Width="70"
+                                                ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
+                                                LostFocus="Split_LostFocus"/>
+                                    <TextBlock Text="ごとに分割 (0＝無効。最長24時間)" VerticalAlignment="Center"
+                                               Margin="8,0,0,0" Opacity="0.75"/>
+                                </StackPanel>
+                            </Border>
+                            <ui:OptionPanel x:Name="Options"/>
+                            <ui:SchedulePanel x:Name="Plans"/>
                         </StackPanel>
-                    </Border>
-                    <ui:OptionPanel x:Name="Options"/>
-                    <ui:SchedulePanel x:Name="Plans"/>
-                </StackPanel>
-            </Expander>
-            <!-- ホットキーがONのとき、割り当てを薄い文字で（オプション欄の外の最下段。設定は歯車の設定ウィンドウ） -->
-            <TextBlock x:Name="HotkeyInfo" FontSize="12" Opacity="0.55" TextWrapping="Wrap" Margin="2,10,0,4" Visibility="Collapsed"/>
-        </StackPanel>
-
+                    </TabItem>
+                </TabControl>
             </StackPanel>
         </ScrollViewer>
 
         <!-- 右下: 録音履歴（ファイル一覧）・プレイヤー・ファイル操作 -->
         <ui:FileListPanel x:Name="Files" Grid.Row="3" Grid.Column="2"/>
+
+        <!-- ウィンドウの一番下: ホットキーがONのとき、割り当てを薄い文字で（設定は歯車の設定ウィンドウ） -->
+        <TextBlock x:Name="HotkeyInfo" Grid.Row="4" Grid.ColumnSpan="3" FontSize="12" Opacity="0.55" TextWrapping="Wrap"
+                   Margin="2,8,0,0" Visibility="Collapsed"/>
     </Grid>
 </Window>
