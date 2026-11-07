@@ -386,7 +386,7 @@ public partial class DeviceList : UserControl
         foreach (var r in _rows) r.Wave.SetRows(active.Contains(r) ? new[] { "" } : Array.Empty<string>());
     }
 
-    private const int WaveStride = 2;   // 波形の1列は、呼び出し WaveStride 回ぶん（50ms×2＝100ms）。大きいほど流れる速さが遅い
+    private const int WaveStride = 1;   // 波形の1列は、呼び出し WaveStride 回ぶん（50ms×2＝100ms）。大きいほど流れる速さが遅い
     private float[] _waveAcc = Array.Empty<float>();
     private int _waveCount;
 

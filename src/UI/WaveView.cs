@@ -10,7 +10,7 @@ namespace Recorder.UI;
 /// </summary>
 public sealed class WaveView : FrameworkElement
 {
-    private const int ColumnWidth = 2;
+    private const int ColumnWidth = 1;
     private const int MaxColumns = 3000;
 
     private static readonly Brush Green = MeterColors.Blue;   // 波形は青（クリップだけ赤）

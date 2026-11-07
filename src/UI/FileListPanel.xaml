@@ -34,6 +34,8 @@
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsRecording}" Value="True">
                     <Setter Property="Foreground" Value="#C94A86"/>
+                    <Setter Property="FontSize" Value="8"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
