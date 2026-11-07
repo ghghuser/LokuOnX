@@ -98,6 +98,8 @@ public sealed class RecordingGroup : IDisposable
         }
         if (inputs.Select(i => RealKey(i.Key)).Distinct().Count() != inputs.Count)
             throw new InvalidOperationException("同じデバイスが重複して選ばれています（「既定のデバイス」と、その実際のデバイスの組み合わせも重複です）。");
+        if (inputs.Count(i => AsioKey.Is(i.Key)) > 1)
+            throw new InvalidOperationException("ASIOは同時に1行しか使えません（ドライバを専有するため）。");
 
         bool separate = s.SeparateFiles && inputs.Count > 1;
         // ファイル名の {Device} には、既定のデバイスなら「いま実際のデバイス名」を使う（ファイルを始めた時点の名前）

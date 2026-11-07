@@ -42,6 +42,17 @@
                             </StackPanel>
                         </Border>
 
+                        <TextBlock Text="ASIO（上級者向け）" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource SectionBody}">
+                            <StackPanel>
+                                <CheckBox x:Name="AsioCheck" Content="入力デバイスの一覧にASIOを表示する"
+                                          ToolTip="FlexASIO などのASIOドライバが入っているときだけ、一覧の最後に「🎛 ドライバ名 入力1-2」のように出ます。通常のマイクやスピーカーの録音には不要です"
+                                          Checked="Asio_Changed" Unchecked="Asio_Changed"/>
+                                <TextBlock Text="ASIOはドライバを専有するため、同時に使えるのは1行だけです（マイクやスピーカーとの同時録音は可能です）。録音中の切り替えは、録音が終わってから一覧に反映されます。"
+                                           TextWrapping="Wrap" FontSize="12" Opacity="0.65" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+
                         <TextBlock Text="タスクトレイ" Style="{StaticResource SectionTitle}"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>

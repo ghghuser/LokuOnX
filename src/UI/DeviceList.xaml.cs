@@ -305,7 +305,9 @@ public partial class DeviceList : UserControl
         var items = new List<AudioDeviceInfo> { new("", "（未選択）", false, 0, 0) };
         items.AddRange(_devices);
         if (key.Length > 0 && !items.Any(d => d.Key == key))
-            items.Add(new AudioDeviceInfo(key, "（接続されていないデバイス）", AudioKeys.IsLoopback(key), 0, 0));
+            items.Add(new AudioDeviceInfo(key,
+                AsioKey.Is(key) ? $"🎛 {AsioKey.Describe(key)}（未接続／ASIO非表示）" : "（接続されていないデバイス）",
+                AudioKeys.IsLoopback(key), 0, 0));
         return items;
     }
 

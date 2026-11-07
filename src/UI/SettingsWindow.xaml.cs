@@ -26,19 +26,23 @@ public partial class SettingsWindow : Window
     private readonly Func<(string Text, bool Error)> _applyHotkeys;
     private readonly Action<bool> _hotkeyCapture;
     private readonly Action _trayChanged;
+    private readonly Action _asioChanged;
     private readonly bool _loading = true;
 
     /// <param name="applyHotkeys">ホットキーを登録し直し、結果のメッセージ（登録できなかったキー）を返す。</param>
     /// <param name="hotkeyCapture">キーの割り当て中は true（登録済みのキーを一時的に外すため）。</param>
     /// <param name="trayChanged">トレイの設定が変わった。</param>
+    /// <param name="asioChanged">ASIOを一覧に出す設定が変わった（メイン画面がデバイス一覧を読み直す）。</param>
     public SettingsWindow(Settings settings, Func<(string Text, bool Error)> applyHotkeys,
-        Action<bool> hotkeyCapture, Action trayChanged)
+        Action<bool> hotkeyCapture, Action trayChanged, Action asioChanged)
     {
         InitializeComponent();
         _s = settings;
         _applyHotkeys = applyHotkeys;
         _hotkeyCapture = hotkeyCapture;
         _trayChanged = trayChanged;
+        _asioChanged = asioChanged;
+        AsioCheck.IsChecked = settings.AsioEnabled;
         ThemeBox.ItemsSource = Themes;
         ThemeBox.SelectedValue = settings.Theme;
         SleepCheck.IsChecked = settings.PreventSleep;
@@ -82,6 +86,13 @@ public partial class SettingsWindow : Window
         if (_loading) return;
         _s.WaitForDevice = WaitCheck.IsChecked == true;
         _s.SplitOnReturn = SplitReturnCheck.IsChecked == true;
+    }
+
+    private void Asio_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _s.AsioEnabled = AsioCheck.IsChecked == true;
+        _asioChanged();
     }
 
     private void Tray_Changed(object sender, RoutedEventArgs e)

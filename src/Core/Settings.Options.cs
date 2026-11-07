@@ -48,6 +48,10 @@ public sealed partial class Settings
     /// <summary>デバイスが戻ったら別ファイルに分割する（既定OFF）。</summary>
     public bool SplitOnReturn { get => Flag("SplitOnReturn", false); set => SetFlag("SplitOnReturn", value); }
 
+    // ---- ASIO（M8） ----
+    /// <summary>入力デバイスの一覧にASIOを表示する（既定OFF）。ONでも、ASIOドライバが入っていなければ何も増えない。プリセットには含めない。</summary>
+    public bool AsioEnabled { get => Flag("AsioEnabled", false); set => SetFlag("AsioEnabled", value); }
+
     // ---- ホットキー ----
     public bool HotkeysOn { get => Flag("HotkeysOn", false); set => SetFlag("HotkeysOn", value); }
     public const string DefaultHotkeyStart = "Ctrl+Alt+F9", DefaultHotkeyPause = "Ctrl+Alt+F10", DefaultHotkeySplit = "Ctrl+Alt+F11";

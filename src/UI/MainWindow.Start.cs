@@ -40,6 +40,11 @@ public partial class MainWindow
             Devices.ShowError("同じデバイスが重複しています（「既定のデバイス（変更に追従）」と、その実際のデバイスも同じ扱いです）。どちらかを外してください。");
             return false;
         }
+        if (inputs.Count(i => AsioKey.Is(i.Key)) > 1)
+        {
+            Devices.ShowError("ASIOは同時に1行しか使えません（ドライバを専有するため）。他の行はマイクやスピーカー（WASAPI）にするか、チェックを外してください。");
+            return false;
+        }
         if (!File.Exists(AppPaths.Ffmpeg))
         {
             ShowError($"FFmpeg が見つかりません: {AppPaths.Ffmpeg}");

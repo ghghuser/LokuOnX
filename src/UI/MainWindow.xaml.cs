@@ -10,7 +10,7 @@ public partial class MainWindow : Window
 {
     private readonly PlayerPanel Player = new();   // 一覧（FileListPanel）の下に Footer として入れる
     private readonly Settings _settings;
-    private readonly IAudioDeviceProvider _provider = new WasapiDeviceProvider();
+    private readonly IAudioDeviceProvider _provider;
     private readonly DispatcherTimer _deviceTimer = new() { Interval = TimeSpan.FromSeconds(3) };
     private List<AudioDeviceInfo> _devices = new();
     private string _signature = "";
@@ -25,6 +25,7 @@ public partial class MainWindow : Window
         Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         Width = Math.Min(Width, SystemParameters.WorkArea.Width);
         _settings = settings;
+        _provider = new AppDeviceProvider(() => settings.AsioEnabled);   // ASIOは設定でONのときだけ一覧に出る（M8）
         SetRecordButton(false);
         SetPauseButton(false);
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
@@ -160,7 +161,7 @@ public partial class MainWindow : Window
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e) =>
-        new SettingsWindow(_settings, ApplyHotkeys, OnHotkeyCapture, OnTrayOptionsChanged) { Owner = this }.ShowDialog();
+        new SettingsWindow(_settings, ApplyHotkeys, OnHotkeyCapture, OnTrayOptionsChanged, PollDevices) { Owner = this }.ShowDialog();
 
     /// <summary>選んだデバイスから決まる、録音の元のサンプリング周波数とチャンネル数（形式・音質の一行まとめの見積もり用。未選択は 0）。</summary>
     private (int Rate, int Channels) DeviceFormat()
