@@ -15,22 +15,61 @@
         <Setter Property="Margin" Value="2,0,0,4"/>
     </Style>
 
-    <!-- 左下の設定グループ（形式・音質／保存先・ファイル名）: 枠で囲み、小さめの黄色い見出しを付ける（色は Dark.xaml / Light.xaml の GroupFg） -->
-    <Style x:Key="GroupCard" TargetType="Border">
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
-        <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="Padding" Value="12,8,12,8"/>
+    <!-- 左下の設定グループ: 枠の上辺の中央に小さめの黄色い見出しを埋め込む（ーーー 形式・音質 ーーー）。色は Dark.xaml / Light.xaml の GroupFg・CardBorder・WindowBg -->
+    <Style x:Key="GroupFrame" TargetType="GroupBox">
         <Setter Property="Margin" Value="0,0,0,10"/>
-    </Style>
-    <Style x:Key="GroupTitle" TargetType="TextBlock">
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Foreground" Value="{DynamicResource GroupFg}"/>
-        <Setter Property="Margin" Value="0,0,0,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Border Margin="0,9,0,0" BorderThickness="1" BorderBrush="{DynamicResource CardBorder}"
+                                CornerRadius="8" Padding="12,14,12,8">
+                            <ContentPresenter/>
+                        </Border>
+                        <Border HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,0"
+                                Background="{DynamicResource WindowBg}">
+                            <TextBlock Text="{TemplateBinding Header}" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource GroupFg}"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
-    <!-- すべてのチェックボックスを、丸いトグル式（ON＝明るい青緑、つまみが右へ動く）にする。ライト・ダーク共通（色は Dark.xaml / Light.xaml の ToggleOn・ToggleOff・ToggleKnobOff） -->
+    <!-- 入力デバイスの「使う」用。丸いランプ（ON＝黄色く点灯、OFF＝消灯）。他のチェックボックスは下のトグル式 -->
+    <Style x:Key="LampCheck" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent" Width="20" Height="20" SnapsToDevicePixels="True">
+                        <Ellipse x:Name="Lamp" Width="14" Height="14" StrokeThickness="1.5"
+                                 Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource ToggleOn}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource ToggleOn}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#F3DD8A" BlurRadius="8" ShadowDepth="0" Opacity="0.75"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource ToggleOn}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- すべてのチェックボックスを、丸いトグル式（ON＝黄色、つまみが右へ動く）にする。ライト・ダーク共通（色は Dark.xaml / Light.xaml の ToggleOn・ToggleOff・ToggleKnobOff） -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -53,7 +92,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{DynamicResource ToggleOn}"/>
-                            <Setter TargetName="Knob" Property="Fill" Value="White"/>
+                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource ToggleKnobOn}"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>

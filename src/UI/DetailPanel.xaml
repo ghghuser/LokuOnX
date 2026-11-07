@@ -5,11 +5,11 @@
     <StackPanel>
         <!-- 日付フォルダ（保存先の下の行） -->
         <WrapPanel Margin="0,0,0,6">
-            <TextBlock Text="日付フォルダ" Width="90" VerticalAlignment="Center"/>
+            <TextBlock Text="保存フォルダ名" Width="90" VerticalAlignment="Center"/>
             <CheckBox x:Name="DateFolderCheck" Content="作る" VerticalAlignment="Center"
                       Margin="0,0,10,0" Checked="DateFolder_Changed" Unchecked="DateFolder_Changed"/>
             <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
-                     ToolTip="日付フォルダの名前（録音開始日で固定）"
+                     ToolTip="保存フォルダ名（録音開始日で固定）"
                      LostFocus="DateFormat_LostFocus"/>
             <Button Content="？" Width="28" Margin="6,0,0,0"
                     ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="DateFormatHelp_Click"/>

@@ -45,13 +45,13 @@
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Text="デバイスが外れたとき" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="録音中にデバイスが外れたとき" Style="{StaticResource SectionTitle}"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>
-                                <CheckBox x:Name="WaitCheck" Content="すべて外れたら、戻るまで待機（一時停止）する" Margin="0,0,0,4"
+                                <CheckBox x:Name="WaitCheck" Content="すべて外れたら、戻るまで録音を一時停止して待つ" Margin="0,0,0,4"
                                           ToolTip="OFFのときは、無音で埋めて録音を続けます。ONのときは、使えるデバイスが1台も無くなったら一時停止し（無音を入れません）、戻ったら自動で再開します。他のデバイスが録れているあいだは続けます。録音を始める前の設定が対象です"
                                           Checked="Device_Changed" Unchecked="Device_Changed"/>
-                                <CheckBox x:Name="SplitReturnCheck" Content="戻ったら別ファイルに分割する"
+                                <CheckBox x:Name="SplitReturnCheck" Content="戻ったら別ファイルに分割して録音を続ける"
                                           ToolTip="外れていたデバイスが戻った時点で、次のファイルへ分割します。録音を始める前の設定が対象です"
                                           Checked="Device_Changed" Unchecked="Device_Changed"/>
                             </StackPanel>

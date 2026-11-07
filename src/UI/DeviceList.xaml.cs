@@ -161,10 +161,11 @@ public partial class DeviceList : UserControl
         foreach (var w in new[] { 30.0, 250.0, -1, 116.0, 64.0, 66.0 })
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = w < 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(w) });
 
+        row.Use.Style = (Style)Application.Current.FindResource("LampCheck");
         row.Use.IsChecked = enabled;
         row.Use.VerticalAlignment = VerticalAlignment.Center;
         row.Use.Margin = new Thickness(0, 0, 6, 0);
-        row.Use.ToolTip = "チェックを外すと、このデバイスは録音しません（設定は残ります。録音中は変えられません）";
+        row.Use.ToolTip = "消灯にすると、このデバイスは録音しません（設定は残ります。録音中は変えられません）";
         Grid.SetColumn(row.Use, 0);
 
         row.Combo.DisplayMemberPath = "DisplayLabel";

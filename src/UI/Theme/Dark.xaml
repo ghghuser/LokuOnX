@@ -36,9 +36,10 @@
     <!-- 左下の設定グループの見出し（ラジオ・スライダーと同じパステルイエロー） -->
     <SolidColorBrush x:Key="GroupFg" Color="#F3DD8A"/>
     <!-- チェックボックス（丸いトグル式）。ON＝明るい青緑 -->
-    <SolidColorBrush x:Key="ToggleOn" Color="#2DD4BF"/>
+    <SolidColorBrush x:Key="ToggleOn" Color="#F3DD8A"/>
     <SolidColorBrush x:Key="ToggleOff" Color="#4A4D52"/>
     <SolidColorBrush x:Key="ToggleKnobOff" Color="#C9CCD1"/>
+    <SolidColorBrush x:Key="ToggleKnobOn" Color="#3A3320"/>
 
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource PanelBg}"/>

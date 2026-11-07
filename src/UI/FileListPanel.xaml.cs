@@ -134,7 +134,7 @@ public partial class FileListPanel : UserControl
         foreach (var f in files.Where(f => keep.Contains(f.Path, StringComparer.OrdinalIgnoreCase)))
             List.SelectedItems.Add(f);
         _restoring = false;
-        CountText.Text = files.Count == 0 ? "（なし）" : $"{files.Count} 件";
+        CountText.Text = files.Count == 0 ? "0 件" : $"{files.Count} 件";
         RaiseSelected();
         _ = LoadLengthsAsync(files.Where(f => f.Length == null).Take(AutoLengthLimit).ToList(), cts.Token);
     }

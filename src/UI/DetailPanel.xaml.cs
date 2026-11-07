@@ -88,7 +88,7 @@ public partial class DetailPanel : UserControl
     private void DateFormatHelp_Click(object sender, RoutedEventArgs e)
     {
         if (_s == null) return;
-        var win = new VariableEditor("日付フォルダの名前", DateFormatBox.Text, VariableHelp.Date,
+        var win = new VariableEditor("保存フォルダ名", DateFormatBox.Text, VariableHelp.Date,
             f => FileNamer.Folder(_s.Folder, true, f, SampleContext(DateTime.Now))) { Owner = Window.GetWindow(this) };
         if (win.ShowDialog() != true) return;
         DateFormatBox.Text = win.Result;

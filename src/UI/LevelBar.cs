@@ -104,7 +104,7 @@ public sealed class LevelBar : FrameworkElement
         if (w <= ClipWidth + Gap || h <= 0) return;
         double barW = w - ClipWidth - Gap;
         double r = Math.Min(Radius, h / 2);
-        dc.DrawRoundedRectangle(_muted ? MeterColors.MutedBg : Back, null, new Rect(0, 0, barW, h), r, r);
+        dc.DrawRoundedRectangle(_muted ? MeterColors.MutedBg : (TryFindResource("LaneBg") as Brush ?? Back), null, new Rect(0, 0, barW, h), r, r);
         if (!_muted && _level > 0.001)
         {
             // 棒の角は丸めたまま、中を 緑・黄・赤 の帯で塗り分ける
