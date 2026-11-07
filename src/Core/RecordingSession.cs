@@ -25,6 +25,7 @@ public sealed partial class RecordingSession : IDisposable
     private Track _current = null!;
     private System.Threading.Timer? _idleTimer;
     private float _peak;
+    private readonly float[] _chPeaks = new float[2];   // 出力のL/Rのピーク（メーター用）
     private volatile bool _stopped;
     private volatile bool _paused;    // 音を捨てている（フェードアウト完了後）
     private volatile bool _pausing;   // 一時停止が要求されている
@@ -119,6 +120,7 @@ public sealed partial class RecordingSession : IDisposable
         if (count <= 0) return;
         var p = PeakMeter.Compute(buf, count, _source.Format);
         if (p > _peak) _peak = p;
+        PeakMeter.Channels(buf, count, _source.Format, _chPeaks);
         _filler.Feed(buf, count);
     }
 
@@ -156,6 +158,14 @@ public sealed partial class RecordingSession : IDisposable
         var p = _peak;
         _peak = 0;
         return p;
+    }
+
+    /// <summary>前回取得以降の出力のL/Rのピークを返してリセットする（モノはLと同じ）。メーター表示用。</summary>
+    public (float L, float R) TakeChannelPeaks()
+    {
+        float l = _chPeaks[0], r = _chPeaks.Length > 1 && _source.Format.Channels > 1 ? _chPeaks[1] : l;
+        _chPeaks[0] = _chPeaks[1] = 0;
+        return (l, r);
     }
 
     // ---- 一時停止／再開 ----

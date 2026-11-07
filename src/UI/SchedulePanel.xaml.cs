@@ -31,16 +31,42 @@ public partial class SchedulePanel : System.Windows.Controls.UserControl
         _loading = false;
     }
 
-    /// <summary>「次の予約」の表示を更新する。next が null なら予約なし。</summary>
+    /// <summary>「次の予約」の表示を更新する（常に表示）。next が null なら予約なし。予約録音が有効なあいだは色を付ける。</summary>
     public void ShowNext(DateTime? next)
     {
-        if (next is not { } t)
+        if (next is { } t)
         {
-            NextText.Text = _s.ReadOnly && _s.ScheduleOn ? "2つ目の起動では予約録音は動きません。" : "";
-            return;
+            var len = _s.ScheduleSeconds > 0 ? $"、{SplitTime.Format(_s.ScheduleSeconds)} 録音して自動停止" : "、手動で停止するまで録音";
+            NextText.Text = $"次の予約: {t:yyyy/MM/dd HH:mm:ss}{len}";
         }
-        var len = _s.ScheduleSeconds > 0 ? $"、{SplitTime.Format(_s.ScheduleSeconds)} 録音して自動停止" : "、手動で停止するまで録音";
-        NextText.Text = $"次の予約: {t:yyyy/MM/dd HH:mm:ss}{len}";
+        else
+        {
+            NextText.Text = _s.ReadOnly && _s.ScheduleOn
+                ? "次の予約: なし（2つ目の起動では予約録音は動きません）"
+                : "次の予約: なし（予約録音は使っていません）";
+        }
+        ApplyOnState(next != null);
+    }
+
+    /// <summary>予約録音が有効なとき、チェックの文字と「次の予約」を目立つ色（太字）にする。</summary>
+    private void ApplyOnState(bool active)
+    {
+        if (active)
+        {
+            OnCheck.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "ScheduleOnFg");
+            OnCheck.FontWeight = FontWeights.SemiBold;
+            NextText.SetResourceReference(TextBlock.ForegroundProperty, "ScheduleOnFg");
+            NextText.FontWeight = FontWeights.SemiBold;
+            NextText.Opacity = 1;
+        }
+        else
+        {
+            OnCheck.ClearValue(System.Windows.Controls.Control.ForegroundProperty);
+            OnCheck.ClearValue(System.Windows.Controls.Control.FontWeightProperty);
+            NextText.ClearValue(TextBlock.ForegroundProperty);
+            NextText.ClearValue(TextBlock.FontWeightProperty);
+            NextText.Opacity = 0.65;
+        }
     }
 
     private void Check_Changed(object sender, RoutedEventArgs e)

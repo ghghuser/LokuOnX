@@ -9,12 +9,10 @@ namespace Recorder.UI;
 /// <summary>メイン画面のうち、録音・停止・一時停止・分割と、メーター表示。</summary>
 public partial class MainWindow
 {
-    private static readonly Brush GreenBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0x9E, 0x4F));
-    private static readonly Brush RedBrush = new SolidColorBrush(Color.FromRgb(0xD3, 0x33, 0x33));
 
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(50) };
     private RecordingGroup? _session;
-    private DateTime _clipUntil = DateTime.MinValue;
+    private bool _pauseShown;   // 一時停止ボタンが「再開」の表示か
     private bool _closeAfterStop;
     private string _notice = "";
     private DateTime _nextDiskCheck = DateTime.MinValue;
@@ -49,7 +47,7 @@ public partial class MainWindow
         if (_session is not { } s || !PauseButton.IsEnabled) return;
         if (s.Paused) s.Resume();
         else s.Pause();
-        PauseButton.Content = s.Paused ? "再開" : "一時停止";
+        SetPauseButton(s.Paused);
     }
 
     private async void Split_Click(object sender, RoutedEventArgs e) => await SplitAsync();
@@ -135,7 +133,7 @@ public partial class MainWindow
         StartButton.IsEnabled = true;
         SetRecordButton(recording);
         PauseButton.IsEnabled = SplitButton.IsEnabled = recording;
-        PauseButton.Content = "一時停止";
+        SetPauseButton(false);
         FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
         Devices.SetRecording(recording);
         Quality.IsEnabled = Detail.IsEnabled = Presets.IsEnabled = !recording;
@@ -159,7 +157,7 @@ public partial class MainWindow
             if (_standby) TickStandby();
             else TickInputCheck();
             _tray?.SetRecording(false);
-            _tray?.SetTip(_standby ? $"{AppInfo.Name} ― 音を待っています" : $"{AppInfo.Name} ― 待機中");
+            _tray?.SetTip((_standby ? $"{AppInfo.Name} ― 音を待っています" : $"{AppInfo.Name} ― 待機中") + ScheduleTip());
             return;
         }
         if (_scheduledStopAt is { } stopAt && DateTime.Now >= stopAt)
@@ -182,28 +180,27 @@ public partial class MainWindow
         TotalPanel.Visibility = s.SplitCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         TotalText.Text = Clock(t);
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
-        var pauseLabel = s.Paused ? "再開" : "一時停止";   // トレイ・ホットキー・デバイス待機での一時停止もボタンへ反映
-        if (!Equals(PauseButton.Content, pauseLabel)) PauseButton.Content = pauseLabel;
+        if (_pauseShown != s.Paused) SetPauseButton(s.Paused);   // トレイ・ホットキー・デバイス待機での一時停止もボタンへ反映
         _tray?.SetRecording(!s.Paused);   // 録音中はトレイのアイコンが赤いLED風の丸になる
-        _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}");
+        _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}" + ScheduleTip());
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
         Devices.SetLevels(devicePeaks);
         if (!s.Paused) Devices.PushWave(devicePeaks);
-        var peak = s.TakePeak();
-        FeedSilence(s, peak);
-        ShowMeter(peak);
+        FeedSilence(s, s.TakePeak());
+        var (left, right) = s.TakeChannelPeaks();
+        OutMeter.Update(left, right);   // 出力レベル（L・R。白い線＝最大値、右端＝クリップ）
     }
 
-    /// <summary>全体のメーター（ミックス後の音量。クリップで赤）。録音中・待機中・入力チェックで共通。</summary>
-    private void ShowMeter(float peak)
+    /// <summary>一時停止ボタンの表示（「⏸ 一時停止」／「▶ 再開」）。</summary>
+    private void SetPauseButton(bool paused)
     {
-        var level = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
-        Meter.Value = Math.Max(level, Meter.Value - 0.03);
-        if (peak >= 0.99) _clipUntil = DateTime.Now.AddSeconds(1.5);
-        var clip = DateTime.Now < _clipUntil;
-        Meter.Foreground = clip ? RedBrush : GreenBrush;
-        PeakText.Text = clip ? "クリップ!" : "";
+        _pauseShown = paused;
+        var label = new System.Windows.Controls.TextBlock();
+        label.Inlines.Add(new System.Windows.Documents.Run(paused ? "▶" : "⏸")
+            { FontFamily = new FontFamily("Segoe UI Symbol, Segoe UI Emoji") });
+        label.Inlines.Add(new System.Windows.Documents.Run(paused ? " 再開" : " 一時停止"));
+        PauseButton.Content = label;
     }
 
     /// <summary>保存先の空き容量。1GB未満で赤文字の警告、100MB未満なら安全のため録音を止めて保存する。</summary>

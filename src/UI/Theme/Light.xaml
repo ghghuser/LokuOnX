@@ -13,6 +13,10 @@
     <SolidColorBrush x:Key="StartFg" Color="#1E5A36"/>
     <SolidColorBrush x:Key="StopFg" Color="#1D4580"/>
     <SolidColorBrush x:Key="RecDot" Color="#C94A86"/>
+    <SolidColorBrush x:Key="SectionFg" Color="#1A5FB4"/>
+    <SolidColorBrush x:Key="SectionBar" Color="#9DB9E0"/>
+    <SolidColorBrush x:Key="ScheduleOnFg" Color="#8A5A00"/>
+    <SolidColorBrush x:Key="ScheduleOnBg" Color="#FFE9A8"/>
     <!-- 無効（グレーアウト）のラジオボタンは、文字も丸印もかなり薄くする（ダークは DarkControls.xaml） -->
     <Style TargetType="RadioButton">
         <Style.Triggers>

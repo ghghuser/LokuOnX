@@ -24,8 +24,25 @@ public partial class MainWindow
         _scheduleAt = _settings.ScheduleOn && !_settings.ReadOnly
             ? ClockTime.Next(DateTime.Now, _settings.ScheduleTime)
             : null;
-        Plans.ShowNext(_scheduleAt);
+        UpdateScheduleDisplay();
     }
+
+    /// <summary>オプション欄の「次の予約」と、画面の上の段の予約バッジ（黄色。予約が有効なときだけ）を更新する。</summary>
+    private void UpdateScheduleDisplay()
+    {
+        Plans.ShowNext(_scheduleAt);
+        if (_scheduleAt is not { } at)
+        {
+            ScheduleBadge.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var day = at.Date == DateTime.Today ? "今日" : at.Date == DateTime.Today.AddDays(1) ? "明日" : at.ToString("M/d");
+        ScheduleBadgeText.Text = $"⏰ 予約 {day} {at:HH:mm:ss}（{(_settings.ScheduleDaily ? "毎日" : "1回")}）";
+        ScheduleBadge.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>トレイのツールチップの末尾に付ける予約の表示（予約が有効なときだけ）。</summary>
+    private string ScheduleTip() => _scheduleAt is { } at ? $"　⏰ 予約 {at:HH:mm}" : "";
 
     /// <summary>50msごと。予約の時刻になっていれば録音を始める。</summary>
     private void CheckSchedule()
@@ -42,7 +59,7 @@ public partial class MainWindow
             _settings.ScheduleOn = false;   // 1回だけの予約は、実行したらOFFに戻す
             Plans.Reload();
         }
-        Plans.ShowNext(_scheduleAt);
+        UpdateScheduleDisplay();
 
         if (now - at > TimeSpan.FromSeconds(60))
         {
@@ -82,7 +99,9 @@ public partial class MainWindow
         {
             var monitor = new LevelMonitor(_provider, inputs);
             monitor.Start();
+            monitor.SetMasterGain(Devices.MasterGainDb);
             _monitor = monitor;
+            Devices.StartWave();
         }
         catch (Exception ex)
         {
@@ -135,7 +154,9 @@ public partial class MainWindow
         var peaks = monitor.TakePeaks();
         var peak = peaks.Length == 0 ? 0f : peaks.Max();
         Devices.SetLevels(peaks);
-        ShowMeter(peak);
+        Devices.PushWave(peaks);
+        var (left, right) = monitor.TakeChannelPeaks();
+        OutMeter.Update(left, right);
         if (peak < SilenceDetector.ToLinear(_settings.AutoStartDb)) return;
 
         _standby = false;
@@ -172,8 +193,7 @@ public partial class MainWindow
         {
             StopCheckMonitor();
             Devices.SetLevels(Array.Empty<float>());
-            Meter.Value = Math.Max(0, Meter.Value - 0.05);
-            PeakText.Text = "";
+            OutMeter.Fade();
             return;
         }
         var sig = string.Join("|", inputs.Select(i => i.Key));
@@ -185,8 +205,10 @@ public partial class MainWindow
             {
                 var monitor = new LevelMonitor(_provider, inputs);
                 monitor.Start();
+                monitor.SetMasterGain(Devices.MasterGainDb);
                 _checkMon = monitor;
                 _checkSig = sig;
+                Devices.StartWave();   // 入力チェック中も波形を流す
             }
             catch (Exception)
             {
@@ -197,7 +219,9 @@ public partial class MainWindow
         for (int i = 0; i < inputs.Count; i++) _checkMon.SetGain(i, inputs[i].GainDb);   // ゲインのスライダーも反映
         var peaks = _checkMon.TakePeaks();
         Devices.SetLevels(peaks);
-        ShowMeter(peaks.Length == 0 ? 0f : peaks.Max());
+        Devices.PushWave(peaks);
+        var (left, right) = _checkMon.TakeChannelPeaks();
+        OutMeter.Update(left, right);
     }
 
     private void StopCheckMonitor()

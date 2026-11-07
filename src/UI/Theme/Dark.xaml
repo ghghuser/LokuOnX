@@ -28,6 +28,11 @@
     <SolidColorBrush x:Key="StartFg" Color="#E3F3E8"/>
     <SolidColorBrush x:Key="StopFg" Color="#DEE8FA"/>
     <SolidColorBrush x:Key="RecDot" Color="#C94A86"/>
+    <!-- 設定の見出し（淡い青）と中身の縦線、予約録音が有効なときの色（パステルイエロー系） -->
+    <SolidColorBrush x:Key="SectionFg" Color="#8AB4F8"/>
+    <SolidColorBrush x:Key="SectionBar" Color="#3F5C8F"/>
+    <SolidColorBrush x:Key="ScheduleOnFg" Color="#F3DD8A"/>
+    <SolidColorBrush x:Key="ScheduleOnBg" Color="#4A4224"/>
 
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource PanelBg}"/>

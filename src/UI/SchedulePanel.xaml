@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:Recorder.UI">
     <StackPanel>
-        <TextBlock Text="予約録音" FontWeight="SemiBold" Margin="0,0,0,4"/>
+        <TextBlock Text="予約録音" Style="{StaticResource SectionTitle}"/>
+        <Border Style="{StaticResource SectionBody}">
+        <StackPanel>
         <CheckBox x:Name="OnCheck" Content="予約録音を使う（予約の時刻までアプリを起動したままにしてください）" Margin="0,0,0,6"
                   ToolTip="決めた時刻になると、いまの設定で録音を始めます。パソコンをスリープから起こすことはできません"
                   Checked="Check_Changed" Unchecked="Check_Changed"/>
@@ -22,6 +24,8 @@
                 <ComboBoxItem Content="毎日くり返す"/>
             </ComboBox>
         </WrapPanel>
-        <TextBlock x:Name="NextText" Margin="0,2,0,12" Opacity="0.8" TextWrapping="Wrap"/>
+        <TextBlock x:Name="NextText" Margin="0,2,0,2" TextWrapping="Wrap"/>
+        </StackPanel>
+        </Border>
     </StackPanel>
 </UserControl>

@@ -26,6 +26,7 @@ public partial class MainWindow : Window
         Width = Math.Min(Width, SystemParameters.WorkArea.Width);
         _settings = settings;
         SetRecordButton(false);
+        SetPauseButton(false);
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
 
         _loading = true;
@@ -37,6 +38,12 @@ public partial class MainWindow : Window
         Devices.Changed += () => { Devices.ClearError(); UpdateInfo(); };
         Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
         Devices.GainChanged += (index, db) => _session?.SetGain(index, db);
+        Devices.MasterGainChanged += db =>
+        {
+            _session?.SetMasterGain(db);
+            _checkMon?.SetMasterGain(db);
+            _monitor?.SetMasterGain(db);
+        };
         Quality.DeviceFormat = DeviceFormat;
         Quality.Init(settings);
         Quality.Changed += UpdateInfo;

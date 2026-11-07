@@ -15,8 +15,8 @@ public partial class QualityBar : UserControl
 {
     private static readonly Choice[] RateChoices =
     {
-        new(0, "自動"), new(22050, "22.05 kHz"), new(32000, "32 kHz"),
-        new(44100, "44.1 kHz"), new(48000, "48 kHz"), new(88200, "88.2 kHz"), new(96000, "96 kHz"),
+        new(0, "自動"), new(22050, "22.05 kHz"), new(32000, "32.0 kHz"),
+        new(44100, "44.1 kHz"), new(48000, "48.0 kHz"), new(88200, "88.2 kHz"), new(96000, "96.0 kHz"),
     };
 
     private static readonly Choice[] ChannelChoices = { new(0, "自動"), new(1, "モノ"), new(2, "ステレオ") };

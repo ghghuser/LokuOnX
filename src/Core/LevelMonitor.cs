@@ -12,12 +12,14 @@ public sealed class LevelMonitor : IDisposable
     private readonly float[] _gain;
     private readonly float[] _peaks;
     private readonly object _lock = new();
+    private float _master = 1f;
+    private float _chL, _chR;   // 出力のL/Rのピーク（デバイスごとのゲインを掛けたあとの最大。全体ゲインは取り出すときに掛ける）
 
     public LevelMonitor(IAudioDeviceProvider provider, IReadOnlyList<InputSetting> inputs)
     {
         _provider = provider;
         _inputs = inputs;
-        _gain = inputs.Select(i => (float)Math.Pow(10.0, i.GainDb / 20.0)).ToArray();
+        _gain = inputs.Select(i => GainMath.DbToLinear(i.GainDb)).ToArray();   // 最小＝ミュート（0）
         _peaks = new float[inputs.Count];
     }
 
@@ -34,10 +36,20 @@ public sealed class LevelMonitor : IDisposable
                 var real = _provider.Resolve(_inputs[i].Key) ?? throw new InvalidOperationException("既定のデバイスが見つかりません");
                 src = _provider.Create(real);
                 var format = src.Format;
+                var ch = new float[2];
                 src.DataAvailable += (buf, count) =>
                 {
-                    var p = PeakMeter.Compute(buf, count, format) * _gain[index];
-                    lock (_lock) { if (p > _peaks[index]) _peaks[index] = p; }
+                    Array.Clear(ch, 0, ch.Length);
+                    PeakMeter.Channels(buf, count, format, ch);
+                    var g = _gain[index];
+                    float l = ch[0] * g, r = (format.Channels > 1 ? ch[1] : ch[0]) * g;
+                    var p = Math.Max(l, r);
+                    lock (_lock)
+                    {
+                        if (p > _peaks[index]) _peaks[index] = p;
+                        if (l > _chL) _chL = l;
+                        if (r > _chR) _chR = r;
+                    }
                 };
                 src.Start();
                 _sources.Add(src);
@@ -56,7 +68,22 @@ public sealed class LevelMonitor : IDisposable
     /// <summary>録音中でなくても、ゲインの変更を反映する（index は inputs の順）。</summary>
     public void SetGain(int index, double gainDb)
     {
-        if (index >= 0 && index < _gain.Length) _gain[index] = (float)Math.Pow(10.0, gainDb / 20.0);
+        if (index >= 0 && index < _gain.Length) _gain[index] = GainMath.DbToLinear(gainDb);
+    }
+
+    /// <summary>全体ゲイン（dB。最小＝ミュート）。出力のL/Rのメーターに反映する。</summary>
+    public void SetMasterGain(double gainDb) => _master = GainMath.DbToLinear(gainDb);
+
+    /// <summary>出力のL/R（全デバイスの最大に全体ゲインを掛けたもの）の、前回取得以降のピークを返してリセットする。</summary>
+    public (float L, float R) TakeChannelPeaks()
+    {
+        lock (_lock)
+        {
+            var l = _chL * _master;
+            var r = _chR * _master;
+            _chL = _chR = 0;
+            return (l, r);
+        }
     }
 
     /// <summary>デバイスごとの、前回取得以降の最大音量（inputs の順）を返してリセットする。</summary>

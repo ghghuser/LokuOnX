@@ -117,6 +117,7 @@ public sealed class RecordingGroup : IDisposable
                 var lane = lanes[idx];
                 var mixInputs = lane.Select(i => new MixInput(i.Key, LabelOf(i.Key), i.GainDb)).ToList();
                 var src = new MixedSource(provider, mixInputs, devices, s.AutoResume);
+                src.SetMasterGain(s.MasterGainDb);
                 sources.Add(src);
                 var label = lane.Count == 1 ? LabelOf(lane[0].Key) : "ミックス";
                 var plan = RecordingPlan.Create(s, label, now, separate ? idx : null, separate);
@@ -149,6 +150,25 @@ public sealed class RecordingGroup : IDisposable
 
     /// <summary>前回取得以降の最大ピーク（ミックス後。別ファイルのときは全ファイルの最大）。</summary>
     public float TakePeak() => _sessions.Max(x => x.TakePeak());
+
+    /// <summary>前回取得以降の出力のL/Rのピーク（別ファイルのときは全ファイルの最大）。</summary>
+    public (float L, float R) TakeChannelPeaks()
+    {
+        float l = 0, r = 0;
+        foreach (var x in _sessions)
+        {
+            var (a, b) = x.TakeChannelPeaks();
+            if (a > l) l = a;
+            if (b > r) r = b;
+        }
+        return (l, r);
+    }
+
+    /// <summary>録音中に全体ゲインを変える。</summary>
+    public void SetMasterGain(double gainDb)
+    {
+        foreach (var x in _sources) x.SetMasterGain(gainDb);
+    }
 
     /// <summary>デバイスごと（選んだ順）の、ゲインを掛けたあとのピーク。</summary>
     public float[] TakeDevicePeaks() => _sources.SelectMany(x => x.TakeDevicePeaks()).ToArray();

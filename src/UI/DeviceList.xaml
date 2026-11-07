@@ -28,7 +28,28 @@
             <TextBlock Grid.Column="5" Text="レベル"/>
         </Grid>
 
-        <StackPanel x:Name="RowsPanel" Grid.Row="1"/>
+        <StackPanel Grid.Row="1">
+            <StackPanel x:Name="RowsPanel"/>
+            <!-- 全体ゲイン（ミックス後・録音するファイルに掛かる）。列はデバイスの行と同じ -->
+            <Rectangle Height="1" Fill="{DynamicResource CardBorder}" Margin="0,0,0,6"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="116"/>
+                    <ColumnDefinition Width="64"/>
+                    <ColumnDefinition Width="66"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="1" Text="全体ゲイン（ミックス後）" VerticalAlignment="Center" Opacity="0.85"
+                           ToolTip="すべてのデバイスを混ぜたあとの音量（録音するファイルに掛かります）。左端＝ミュート。ダブルクリックで 0 dB。録音中も調整できます"/>
+                <Slider x:Name="MasterSlider" Grid.Column="3" VerticalAlignment="Center"
+                        ToolTip="全体ゲイン。左端＝ミュート。ダブルクリックで 0 dB に戻ります。録音中も調整可能。"
+                        ValueChanged="Master_ValueChanged" MouseDoubleClick="Master_DoubleClick"/>
+                <TextBlock x:Name="MasterText" Grid.Column="4" VerticalAlignment="Center" TextAlignment="Right"
+                           Margin="0,0,10,0" FontSize="12"/>
+            </Grid>
+        </StackPanel>
 
         <!-- 下段（コンソールの底にそろえる） -->
         <StackPanel x:Name="FooterPanel" Grid.Row="3" Margin="0,4,0,0" VerticalAlignment="Bottom">

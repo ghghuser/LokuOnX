@@ -29,6 +29,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="プリセット" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -38,7 +39,13 @@
                        FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" Height="32"
                        TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Opacity="0.85" Text="待機中"
                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-            <Button x:Name="SettingsButton" Grid.Column="2" Content="⚙" FontFamily="Segoe UI Symbol"
+            <!-- 予約録音が有効なとき、次の予約を目立つ色で出す -->
+            <Border x:Name="ScheduleBadge" Grid.Column="2" Visibility="Collapsed" CornerRadius="11" Padding="11,3" Margin="0,0,10,0"
+                    VerticalAlignment="Center" Background="{DynamicResource ScheduleOnBg}"
+                    ToolTip="予約録音が有効です。予約の時刻までアプリを起動したままにしてください（設定はオプション欄の「予約録音」）">
+                <TextBlock x:Name="ScheduleBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ScheduleOnFg}"/>
+            </Border>
+            <Button x:Name="SettingsButton" Grid.Column="3" Content="⚙" FontFamily="Segoe UI Symbol"
                     FontSize="17" Width="34" Height="28" Padding="0" VerticalAlignment="Center"
                     ToolTip="設定とヘルプ（画面の色・スリープ防止・バージョン情報）" Click="Settings_Click"/>
         </Grid>
@@ -70,16 +77,8 @@
                                   ToolTip="録音していないあいだも、選んだデバイスの音量をメーターと各デバイスのレベルに出します（ファイルには何も書きません）"
                                   Checked="InputCheck_Changed" Unchecked="InputCheck_Changed"/>
                     </Grid>
-                    <Grid Margin="2,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="82"/>
-                        </Grid.ColumnDefinitions>
-                        <ProgressBar x:Name="Meter" Height="8" Minimum="0" Maximum="1" Foreground="#2E9E4F"
-                                     VerticalAlignment="Center" ToolTip="全体の音量（ミックス後）。赤＝クリップ"/>
-                        <TextBlock x:Name="PeakText" Grid.Column="1" Margin="10,0,0,0" FontSize="12"
-                                   Foreground="#D33" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    </Grid>
+                    <!-- 出力レベル: L・R と dB の目盛り。白い線＝最大値、右端＝クリップ -->
+                    <ui:OutputMeter x:Name="OutMeter" Margin="2,0,0,12"/>
 
                     <!-- 録音ボタン（開始と停止は1つのトグルボタン） -->
                     <Button x:Name="StartButton" Height="46" FontSize="16" FontWeight="SemiBold"
@@ -91,9 +90,11 @@
                             <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button x:Name="PauseButton" Content="一時停止" Height="34" IsEnabled="False" Click="Pause_Click"/>
-                        <Button x:Name="SplitButton" Grid.Column="2" Content="分割" Height="34" IsEnabled="False"
-                                ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click"/>
+                        <Button x:Name="PauseButton" Height="34" IsEnabled="False" Click="Pause_Click"/>
+                        <Button x:Name="SplitButton" Grid.Column="2" Height="34" IsEnabled="False"
+                                ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click">
+                            <TextBlock><Run FontFamily="Segoe UI Symbol" Text="✂"/><Run Text=" 分割"/></TextBlock>
+                        </Button>
                     </Grid>
                 </StackPanel>
 
@@ -135,20 +136,22 @@
             <ui:DetailPanel x:Name="Detail"/>
             <Expander x:Name="ExpOption" Header="オプション">
                 <StackPanel Margin="16,8,0,4">
-                    <TextBlock Text="自動分割" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <ui:TimeBox x:Name="SplitBox" Width="70"
-                                    ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
-                                    LostFocus="Split_LostFocus"/>
-                        <TextBlock Text="ごとに分割 (0＝無効。最長24時間)" VerticalAlignment="Center"
-                                   Margin="8,0,0,0" Opacity="0.75"/>
-                    </StackPanel>
+                    <TextBlock Text="自動分割" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                    <Border Style="{StaticResource SectionBody}">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:TimeBox x:Name="SplitBox" Width="70"
+                                        ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
+                                        LostFocus="Split_LostFocus"/>
+                            <TextBlock Text="ごとに分割 (0＝無効。最長24時間)" VerticalAlignment="Center"
+                                       Margin="8,0,0,0" Opacity="0.75"/>
+                        </StackPanel>
+                    </Border>
                     <ui:OptionPanel x:Name="Options"/>
                     <ui:SchedulePanel x:Name="Plans"/>
-                    <!-- ホットキーがONのとき、割り当てを薄い文字で（設定は歯車の設定ウィンドウ） -->
-                    <TextBlock x:Name="HotkeyInfo" FontSize="12" Opacity="0.55" TextWrapping="Wrap" Visibility="Collapsed"/>
                 </StackPanel>
             </Expander>
+            <!-- ホットキーがONのとき、割り当てを薄い文字で（オプション欄の外の最下段。設定は歯車の設定ウィンドウ） -->
+            <TextBlock x:Name="HotkeyInfo" FontSize="12" Opacity="0.55" TextWrapping="Wrap" Margin="2,10,0,4" Visibility="Collapsed"/>
         </StackPanel>
 
             </StackPanel>

@@ -7,7 +7,7 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>
-/// 右上の歯車で開く、めったに使わない設定（画面の色・スリープ防止・タスクトレイ・ホットキー）とヘルプ・バージョン情報。値は Settings に即保存。
+/// 右上の歯車で開く設定。タブは「詳細設定」（画面の色・スリープ防止・デバイスが外れたとき・タスクトレイ・ホットキー）／「ヘルプ」／「バージョン情報」。値は Settings に即保存。
 /// トレイの表示とホットキーの登録はメイン画面側の処理なので、コールバックで反映する。
 /// </summary>
 public partial class SettingsWindow : Window
@@ -45,6 +45,8 @@ public partial class SettingsWindow : Window
         TrayCheck.IsChecked = settings.ShowTray;
         MinTrayCheck.IsChecked = settings.MinimizeToTray;
         MinTrayCheck.IsEnabled = settings.ShowTray;
+        WaitCheck.IsChecked = settings.WaitForDevice;
+        SplitReturnCheck.IsChecked = settings.SplitOnReturn;
         VersionText.Text = $"{AppInfo.Name} {AppInfo.Version}";
         Hotkeys.Init(settings);
         Hotkeys.Changed += () =>
@@ -73,6 +75,13 @@ public partial class SettingsWindow : Window
     {
         if (_loading) return;
         _s.PreventSleep = SleepCheck.IsChecked == true;
+    }
+
+    private void Device_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _s.WaitForDevice = WaitCheck.IsChecked == true;
+        _s.SplitOnReturn = SplitReturnCheck.IsChecked == true;
     }
 
     private void Tray_Changed(object sender, RoutedEventArgs e)

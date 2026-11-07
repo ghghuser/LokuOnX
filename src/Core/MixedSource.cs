@@ -25,6 +25,8 @@ public sealed class MixedSource : IAudioSource
     private readonly float[] _mix;
     private readonly float[] _scratch;
     private System.Threading.Timer? _timer;
+    private float _master = 1f;                 // 全体ゲイン（ミックス後に掛ける）
+    private float _masterTarget = 1f;
     private long _mixed;                        // 出力したフレーム数
     private bool _stopped;
 
@@ -78,6 +80,9 @@ public sealed class MixedSource : IAudioSource
     }
 
     private double Now() => _clock.Elapsed.TotalSeconds;
+
+    /// <summary>全体ゲイン（dB。最小＝ミュート）。録音中も変えられる（1回の処理の中で滑らかに切り替わる）。</summary>
+    public void SetMasterGain(double gainDb) => _masterTarget = GainMath.DbToLinear(gainDb);
 
     /// <summary>録音中にゲインを変える（index は inputs の順）。</summary>
     public void SetGain(int index, double gainDb)
@@ -138,9 +143,11 @@ public sealed class MixedSource : IAudioSource
             Array.Clear(_mix, 0, floats);
             foreach (var input in _inputs) input.Stream.MixInto(_mix, n, _scratch);
 
+            float g0 = _master, g1 = _masterTarget;
+            _master = g1;
             for (int i = 0; i < floats; i++)
             {
-                float v = _mix[i];
+                float v = g0 == g1 ? _mix[i] * g1 : _mix[i] * (g0 + (g1 - g0) * (i / _ch) / n);
                 if (float.IsNaN(v)) v = 0f;
                 else if (v > 1f) v = 1f;
                 else if (v < -1f) v = -1f;

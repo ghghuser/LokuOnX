@@ -4,9 +4,9 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>
-/// オプション欄のうち、無音検出・デバイスが外れたとき（PROJECT.md §3-8）。すべて既定OFF。
-/// 値は Settings へ即保存。無音検出・デバイスの設定は、次に録音を始めたときから効く。
-/// タスクトレイとホットキーは、右上の歯車の設定ウィンドウ（SettingsWindow）にある。
+/// オプション欄のうち、無音検出（PROJECT.md §3-8）。すべて既定OFF。
+/// 値は Settings へ即保存。無音検出の設定は、次に録音を始めたときから効く。
+/// タスクトレイ・ホットキー・デバイスが外れたときの設定は、右上の歯車の設定ウィンドウ（SettingsWindow）の「詳細設定」にある。
 /// </summary>
 public partial class OptionPanel : System.Windows.Controls.UserControl
 {
@@ -32,8 +32,6 @@ public partial class OptionPanel : System.Windows.Controls.UserControl
         SilenceSplitCheck.IsChecked = _s.SilenceSplit;
         SilenceDbBox.Text = (-_s.SilenceDb).ToString();
         SilenceSecBox.Text = _s.SilenceSeconds.ToString();
-        WaitCheck.IsChecked = _s.WaitForDevice;
-        SplitReturnCheck.IsChecked = _s.SplitOnReturn;
         _loading = false;
     }
 
@@ -42,8 +40,6 @@ public partial class OptionPanel : System.Windows.Controls.UserControl
         if (_loading) return;
         _s.AutoStart = AutoStartCheck.IsChecked == true;
         _s.SilenceSplit = SilenceSplitCheck.IsChecked == true;
-        _s.WaitForDevice = WaitCheck.IsChecked == true;
-        _s.SplitOnReturn = SplitReturnCheck.IsChecked == true;
         Changed?.Invoke();
     }
 

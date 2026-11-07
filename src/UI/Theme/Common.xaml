@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 設定の「見出し」と「中身」を見分けやすくする共通スタイル（ライト・ダーク共通。色は Dark.xaml / Light.xaml の SectionFg・SectionBar）。
+         見出し＝色付きの小さめの太字、中身＝左に細い縦線を引いて少し字下げ -->
+    <Style x:Key="SectionTitle" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{DynamicResource SectionFg}"/>
+        <Setter Property="Margin" Value="0,12,0,6"/>
+    </Style>
+    <Style x:Key="SectionBody" TargetType="Border">
+        <Setter Property="BorderThickness" Value="2,0,0,0"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SectionBar}"/>
+        <Setter Property="Padding" Value="12,2,0,2"/>
+        <Setter Property="Margin" Value="2,0,0,4"/>
+    </Style>
+</ResourceDictionary>

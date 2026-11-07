@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel>
         <!-- 1行目: 形式・サンプリング周波数・チャンネル -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+        <WrapPanel Margin="0,0,0,4">
             <ComboBox x:Name="FormatBox" Width="124" Margin="0,0,12,2" DisplayMemberPath="Label" SelectedValuePath="Key"
                       SelectionChanged="Format_Changed"/>
             <TextBlock Text="チャンネル" VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -11,11 +11,11 @@
                       DisplayMemberPath="Label" SelectedValuePath="Value"
                       SelectionChanged="Channel_Changed"/>
             <TextBlock Text="サンプリング周波数" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="RateBox" Width="100" Margin="0,0,0,2"
+            <ComboBox x:Name="RateBox" Width="124" Margin="0,0,0,2"
                       DisplayMemberPath="Label" SelectedValuePath="Value"
                       ToolTip="自動＝デバイスに合わせます。opus は 48 kHz に固定されます"
                       SelectionChanged="Rate_Changed"/>
-        </StackPanel>
+        </WrapPanel>
         <!-- 2行目（形式の下）: ビットレート・圧縮レベル／LAME品質／Vorbis品質 -->
         <WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,18,2">

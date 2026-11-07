@@ -33,6 +33,14 @@ public sealed partial class Settings
     /// <summary>入力チェック: 録音していないあいだも、メーターを動かす（既定OFF）。</summary>
     public bool InputCheck { get => Flag("InputCheck", false); set => SetFlag("InputCheck", value); }
 
+    /// <summary>全体ゲイン（dB。ミックス後に掛ける。最小＝ミュート）。既定 0。デバイスごとのゲインとは別。</summary>
+    public double MasterGainDb
+    {
+        get => double.TryParse(Get("MasterGain", "0"), System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture, out var d) ? Math.Clamp(d, MinGainDb, MaxGainDb) : 0;
+        set => Set("MasterGain", Math.Clamp(value, MinGainDb, MaxGainDb).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture));
+    }
+
     // ---- デバイスが外れたとき（M7。自動再開は AutoResume） ----
     /// <summary>すべてのデバイスが外れたら、戻るまで一時停止する（既定OFF＝無音で埋めて続ける）。</summary>
     public bool WaitForDevice { get => Flag("WaitForDevice", false); set => SetFlag("WaitForDevice", value); }

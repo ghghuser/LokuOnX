@@ -76,12 +76,12 @@
                     <GridViewColumn Header="ファイル名" Width="260">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <Grid Margin="-3,0,0,0">
+                                <Grid Margin="-7,0,0,0">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding Mark}" Style="{StaticResource MarkText}" TextAlignment="Center"/>
+                                    <TextBlock Text="{Binding Mark}" Style="{StaticResource MarkText}" TextAlignment="Left"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Name}" Style="{StaticResource RowText}" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </DataTemplate>

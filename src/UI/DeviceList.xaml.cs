@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Recorder.Core;
@@ -15,9 +16,6 @@ namespace Recorder.UI;
 /// </summary>
 public partial class DeviceList : UserControl
 {
-    private static readonly Brush GreenBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0x9E, 0x4F));
-    private static readonly Brush RedBrush = new SolidColorBrush(Color.FromRgb(0xD3, 0x33, 0x33));
-
     private sealed class Row
     {
         public readonly Grid Panel = new();
@@ -25,10 +23,9 @@ public partial class DeviceList : UserControl
         public readonly ComboBox Combo = new();
         public readonly Slider Gain = new();
         public readonly TextBlock GainText = new();
-        public readonly ProgressBar Level = new();
+        public readonly LevelBar Level = new();
         public readonly WaveView Wave = new();
         public readonly Border Lane = new();
-        public DateTime ClipUntil = DateTime.MinValue;
         public string Key = "";
     }
 
@@ -39,6 +36,10 @@ public partial class DeviceList : UserControl
     private bool _loading;
     private bool _recording;
     private bool _touched;
+    private bool _masterDirty;
+
+    /// <summary>全体ゲインが変わった（dB）。録音中も使える。</summary>
+    public event Action<double>? MasterGainChanged;
 
     /// <summary>デバイスの選択・追加・削除・ミックス/別ファイルの切替があった。</summary>
     public event Action? Changed;
@@ -64,8 +65,15 @@ public partial class DeviceList : UserControl
     /// <summary>起動時。保存されたデバイスがなければ defaultKey（Windowsの既定の入力）を1行目にする。</summary>
     public void Init(Settings settings, IReadOnlyList<AudioDeviceInfo> devices, string? defaultKey)
     {
+        _loading = true;   // スライダーの初期設定で、変更の通知が出ないように
         _s = settings;
         _devices = devices.ToList();
+        MasterSlider.Minimum = Settings.MinGainDb;
+        MasterSlider.Maximum = Settings.MaxGainDb;
+        MasterSlider.TickFrequency = 0.5;
+        MasterSlider.IsSnapToTickEnabled = true;
+        MasterSlider.SmallChange = 0.5;
+        MasterSlider.LargeChange = 3;
         Rebuild(defaultKey);
     }
 
@@ -99,6 +107,8 @@ public partial class DeviceList : UserControl
         while (_rows.Count < Settings.MaxInputs) AddRow("", 0);   // 空き行（デバイスを選ぶまで録音に使われない）
         MixRadio.IsChecked = !_s.SeparateFiles;
         SeparateRadio.IsChecked = _s.SeparateFiles;
+        MasterSlider.Value = _s.MasterGainDb;
+        ShowMasterGain();
         _loading = false;
         UpdateLayout2();
     }
@@ -193,13 +203,9 @@ public partial class DeviceList : UserControl
         row.GainText.FontSize = 12;
         Grid.SetColumn(row.GainText, 4);
 
-        row.Level.Minimum = 0;
-        row.Level.Maximum = 1;
-        row.Level.Height = 8;
         row.Level.Margin = new Thickness(0, 0, 4, 0);
-        row.Level.Foreground = GreenBrush;
         row.Level.VerticalAlignment = VerticalAlignment.Center;
-        row.Level.ToolTip = "このデバイスの音量（ゲインを掛けたあと）。赤＝クリップ";
+        row.Level.ToolTip = "このデバイスの音量（ゲインを掛けたあと）。白い線＝直近の最大値、右端の四角が赤＝クリップ。ミュート中は橙";
         Grid.SetColumn(row.Level, 5);
 
         g.Children.Add(row.Use);
@@ -209,6 +215,7 @@ public partial class DeviceList : UserControl
         g.Children.Add(row.GainText);
         g.Children.Add(row.Level);
 
+        ShowMute(row);
         Bind(row);
         row.Combo.SelectionChanged += (_, _) =>
         {
@@ -230,6 +237,7 @@ public partial class DeviceList : UserControl
         row.Gain.ValueChanged += (_, _) =>
         {
             row.GainText.Text = GainLabel(row.Gain.Value);
+            ShowMute(row);
             if (_loading) return;
             _touched = true;
             var at = Active().IndexOf(row);
@@ -244,9 +252,52 @@ public partial class DeviceList : UserControl
         return row;
     }
 
-    private static string GainLabel(double db) => db <= Settings.MinGainDb
+    private static string GainLabel(double db) => GainMath.IsMuted(db)
         ? "ミュート"
         : db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + " dB";
+
+    /// <summary>ミュート（ゲイン最小）のとき、数値の文字・スライダー・メーターを橙にして、一目で分かるようにする。</summary>
+    private static void ShowMute(Row row)
+    {
+        bool muted = GainMath.IsMuted(row.Gain.Value);
+        row.Level.Muted = muted;
+        MuteStyle(row.Gain, row.GainText, muted);
+    }
+
+    private static void MuteStyle(Slider slider, TextBlock text, bool muted)
+    {
+        if (muted)
+        {
+            text.Foreground = MeterColors.Muted;
+            text.FontWeight = FontWeights.SemiBold;
+            slider.Resources["Pastel"] = MeterColors.Muted;   // ダークのスライダー（つまみ・塗り）はパステル色のリソースを使う
+        }
+        else
+        {
+            text.ClearValue(TextBlock.ForegroundProperty);
+            text.ClearValue(TextBlock.FontWeightProperty);
+            slider.Resources.Remove("Pastel");
+        }
+    }
+
+    // ---- 全体ゲイン ----
+    private void ShowMasterGain()
+    {
+        MasterText.Text = GainLabel(MasterSlider.Value);
+        MuteStyle(MasterSlider, MasterText, GainMath.IsMuted(MasterSlider.Value));
+    }
+
+    private void Master_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        ShowMasterGain();
+        if (_loading || _s == null) return;
+        _masterDirty = true;
+        MasterGainChanged?.Invoke(MasterSlider.Value);
+        _saveTimer.Stop();
+        _saveTimer.Start();
+    }
+
+    private void Master_DoubleClick(object sender, MouseButtonEventArgs e) => MasterSlider.Value = 0;
 
     private List<AudioDeviceInfo> ItemsFor(string key)
     {
@@ -302,6 +353,11 @@ public partial class DeviceList : UserControl
     private void SaveNow()
     {
         _saveTimer.Stop();
+        if (_s != null && !_loading && _masterDirty)
+        {
+            _masterDirty = false;
+            _s.MasterGainDb = MasterSlider.Value;
+        }
         if (_s == null || _loading || !_touched) return;
         _s.Inputs = AllRows();
     }
@@ -315,7 +371,7 @@ public partial class DeviceList : UserControl
         {
             r.Combo.IsEnabled = !recording;
             r.Use.IsEnabled = !recording;
-            if (!recording) r.Level.Value = 0;
+            if (!recording) r.Level.Reset();
         }
         UpdateLayout2();
     }
@@ -338,17 +394,12 @@ public partial class DeviceList : UserControl
     /// <summary>デバイスごとのピーク（上から順）を、行のメーターに出す。</summary>
     public void SetLevels(float[] peaks)
     {
-        var now = DateTime.Now;
         var active = Active();
-        foreach (var r in _rows.Where(r => !active.Contains(r))) r.Level.Value = 0;
+        foreach (var r in _rows.Where(r => !active.Contains(r))) r.Level.Reset();
         for (int i = 0; i < active.Count; i++)
-        {
-            var row = active[i];
-            float p = i < peaks.Length ? peaks[i] : 0f;
-            var level = p <= 0 ? 0 : Math.Clamp((20 * Math.Log10(p) + 60) / 60, 0, 1);
-            row.Level.Value = Math.Max(level, row.Level.Value - 0.03);
-            if (p >= 0.99) row.ClipUntil = now.AddSeconds(1.5);
-            row.Level.Foreground = now < row.ClipUntil ? RedBrush : GreenBrush;
-        }
+            active[i].Level.Update(i < peaks.Length ? peaks[i] : 0f);
     }
+
+    /// <summary>全体ゲイン（dB）。</summary>
+    public double MasterGainDb => MasterSlider.Value;
 }

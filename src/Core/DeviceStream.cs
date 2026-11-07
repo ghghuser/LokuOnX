@@ -39,7 +39,7 @@ public sealed class DeviceStream
         _gain = _gainTarget = DbToGain(gainDb);
     }
 
-    private static float DbToGain(double db) => db <= Settings.MinGainDb ? 0f : (float)Math.Pow(10.0, Math.Clamp(db, -60.0, 24.0) / 20.0);
+    private static float DbToGain(double db) => GainMath.DbToLinear(db);
 
     /// <summary>ゲイン（dB）。録音中も変えられる（滑らかに切り替わる）。</summary>
     public void SetGainDb(double db)
