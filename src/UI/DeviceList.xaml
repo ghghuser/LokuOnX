@@ -41,7 +41,7 @@
         </StackPanel>
 
         <!-- 下段（コンソールの底にそろえる） -->
-        <StackPanel x:Name="FooterPanel" Grid.Row="3" Margin="0,4,0,0" VerticalAlignment="Bottom">
+        <StackPanel x:Name="FooterPanel" Grid.Row="3" Margin="0,4,0,0" VerticalAlignment="Bottom" TextElement.FontSize="13">
             <StackPanel Orientation="Horizontal">
                 <Button x:Name="RefreshButton" Content="デバイス再取得" Padding="12,2" Margin="0,0,24,0"
                         ToolTip="接続されているデバイスの一覧を読み直します（3秒ごとの自動更新もあります）"

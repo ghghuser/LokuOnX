@@ -30,8 +30,8 @@ public sealed partial class Settings
     /// <summary>自動で録音を始める音量のしきい値（dB。既定 -40）。</summary>
     public int AutoStartDb { get => Number("AutoStartDb", -40, SilenceDbMin, SilenceDbMax); set => Set("AutoStartDb", value.ToString()); }
 
-    /// <summary>入力チェック: 録音していないあいだも、メーターを動かす（既定OFF）。</summary>
-    public bool InputCheck { get => Flag("InputCheck", false); set => SetFlag("InputCheck", value); }
+    /// <summary>待機中もレベル表示（旧「入力チェック」）: 録音していないあいだも、メーターと波形を動かす（既定ON）。</summary>
+    public bool InputCheck { get => Flag("InputCheck", true); set => SetFlag("InputCheck", value); }
 
     /// <summary>全体ゲイン（dB。ミックス後に掛ける。最小＝ミュート）。既定 0。デバイスごとのゲインとは別。</summary>
     public double MasterGainDb

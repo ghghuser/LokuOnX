@@ -54,7 +54,7 @@ public static class ThemeManager
         "soft" => new[] { "Light", "Soft", "ComboControls", "TabControls", "SoftControls" },
         "softdark" => new[] { "Dark", "SoftDark", "ComboControls", "TabControls", "DarkControls", "DarkList", "SoftControlsDark" },
         _ when IsDark(mode) => new[] { "Dark", "ComboControls", "TabControls", "DarkControls", "DarkList" },
-        _ => new[] { "Light", "ComboControls", "TabControls" },
+        _ => new[] { "Light", "ComboControls", "TabControls", "LightControls" },
     };
 
     private static bool SystemUsesDark()

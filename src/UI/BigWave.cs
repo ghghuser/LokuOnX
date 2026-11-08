@@ -16,6 +16,15 @@ public sealed class BigWave : FrameworkElement
     private readonly List<(float Min, float Max)> _cols = new();
     private DateTime _drawn = DateTime.MinValue;
 
+    /// <summary>全体波形の色（RGB 96,196,255）。個別の波形（WaveView）はこれより少し濃い色。</summary>
+    private static readonly Brush OverallBlue = Freeze(new SolidColorBrush(Color.FromRgb(96, 196, 255)));
+
+    private static Brush Freeze(Brush b)
+    {
+        b.Freeze();
+        return b;
+    }
+
     public BigWave() => Height = 86;
 
     public void Clear()
@@ -76,7 +85,7 @@ public sealed class BigWave : FrameworkElement
         }
         blue.Freeze();
         red.Freeze();
-        dc.DrawGeometry(null, new Pen(MeterColors.Blue, 1), blue);
+        dc.DrawGeometry(null, new Pen(OverallBlue, 1), blue);
         dc.DrawGeometry(null, new Pen(MeterColors.Red, 1), red);
     }
 }

@@ -2,17 +2,17 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- ソフト（ダーク）: ダークの色を、半透明をやめた不透明のやわらかい面に差し替える（ニューモーフィズム風。文字は明るいまま）。
          影の色だけは SoftControlsDark.xaml の DropShadowEffect に直接書いてある -->
-    <SolidColorBrush x:Key="WindowBg" Color="#2A2D33"/>
-    <SolidColorBrush x:Key="PanelBg" Color="#2A2D33"/>
-    <SolidColorBrush x:Key="PopupBg" Color="#30343B"/>
-    <SolidColorBrush x:Key="PanelHover" Color="#343840"/>
-    <SolidColorBrush x:Key="CardBg" Color="#2E3238"/>
+    <SolidColorBrush x:Key="WindowBg" Color="#282B31"/>
+    <SolidColorBrush x:Key="PanelBg" Color="#282B31"/>
+    <SolidColorBrush x:Key="PopupBg" Color="#2E3239"/>
+    <SolidColorBrush x:Key="PanelHover" Color="#32363E"/>
+    <SolidColorBrush x:Key="CardBg" Color="#2C3036"/>
     <SolidColorBrush x:Key="CardBorder" Color="#3A3F47"/>
-    <SolidColorBrush x:Key="LaneBg" Color="#202328"/>
+    <SolidColorBrush x:Key="LaneBg" Color="#1E2126"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#181A1E"/>
     <SolidColorBrush x:Key="PanelBorder" Color="#3A3F47"/>
-    <SolidColorBrush x:Key="SoftFace" Color="#2A2D33"/>
-    <SolidColorBrush x:Key="SoftFaceHover" Color="#31353C"/>
-    <SolidColorBrush x:Key="SoftFacePressed" Color="#23262B"/>
+    <SolidColorBrush x:Key="SoftFace" Color="#282B31"/>
+    <SolidColorBrush x:Key="SoftFaceHover" Color="#2F333A"/>
+    <SolidColorBrush x:Key="SoftFacePressed" Color="#22252A"/>
     <SolidColorBrush x:Key="SoftDisabledFg" Color="#6F737A"/>
 </ResourceDictionary>

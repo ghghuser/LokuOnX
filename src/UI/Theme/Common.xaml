@@ -52,7 +52,7 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent" Width="20" Height="20" SnapsToDevicePixels="True">
                         <Ellipse x:Name="Lamp" Width="14" Height="14" StrokeThickness="1.5"
-                                 Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
+                                 Stroke="{DynamicResource LampOff}" Fill="Transparent"/>
                         <Ellipse x:Name="Ring" Width="14" Height="14" StrokeThickness="1.5" Stroke="{DynamicResource LampOn}"
                                  Fill="Transparent" Visibility="Collapsed">
                             <Ellipse.Effect>

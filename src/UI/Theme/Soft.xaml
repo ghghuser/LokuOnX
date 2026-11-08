@@ -9,7 +9,7 @@
     <SolidColorBrush x:Key="MarkFg" Color="#5A6070"/>
     <SolidColorBrush x:Key="CardBg" Color="#EDF0F5"/>
     <SolidColorBrush x:Key="CardBorder" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="LaneBg" Color="#D5DAE3"/>
+    <SolidColorBrush x:Key="LaneBg" Color="#DDE2EA"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#C5CBD6"/>
     <SolidColorBrush x:Key="StartFg" Color="#1E5A36"/>
     <SolidColorBrush x:Key="StopFg" Color="#1D4580"/>
@@ -18,12 +18,13 @@
     <SolidColorBrush x:Key="SectionBar" Color="#9DB9E0"/>
     <SolidColorBrush x:Key="ScheduleOnFg" Color="#B34700"/>
     <SolidColorBrush x:Key="ScheduleOnBg" Color="#FFD9B0"/>
-    <SolidColorBrush x:Key="GroupFg" Color="#7A5F00"/>
-    <SolidColorBrush x:Key="ToggleOn" Color="#E3B400"/>
+    <SolidColorBrush x:Key="GroupFg" Color="#2A63B8"/>
+    <SolidColorBrush x:Key="ToggleOn" Color="#2F80ED"/>
     <SolidColorBrush x:Key="ToggleOff" Color="#B4BAC5"/>
     <SolidColorBrush x:Key="ToggleKnobOff" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="ToggleKnobOn" Color="#FFFFFF"/>
     <!-- ボタンの面・光・影 -->
+    <SolidColorBrush x:Key="LampOff" Color="#6A7280"/>
     <SolidColorBrush x:Key="SoftFace" Color="#E4E8EE"/>
     <SolidColorBrush x:Key="SoftFaceHover" Color="#EAEEF4"/>
     <SolidColorBrush x:Key="SoftFacePressed" Color="#D8DDE6"/>
