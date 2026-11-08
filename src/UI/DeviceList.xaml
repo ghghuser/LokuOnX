@@ -11,7 +11,7 @@
             </TextBlock>
         </DataTemplate>
     </UserControl.Resources>
-    <!-- 録音コンソールの右側: 1行＝1デバイスの「ストリップ」（選択・波形・ゲイン・レベル）。行は DeviceList.xaml.cs が作る。
+    <!-- 録音コンソールの左側: 1行＝1デバイスの「ストリップ」（選択・波形・レベルとゲインの融合メーター）。行は DeviceList.xaml.cs が作る。
          列の幅は DeviceList.xaml.cs の Cols と同じ（見出しと行をそろえる） -->
     <Grid>
         <Grid.RowDefinitions>
@@ -28,37 +28,16 @@
                 <ColumnDefinition Width="30"/>
                 <ColumnDefinition Width="250"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="116"/>
-                <ColumnDefinition Width="64"/>
-                <ColumnDefinition Width="66"/>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="70"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="1" Text="入力デバイス" ToolTip="PC内部音（🔊）・マイク（🎤）。最大4台を同時に録音できます（使う行だけデバイスを選んでください）"/>
             <TextBlock Grid.Column="2" Text="波形" Margin="2,0,0,0"/>
-            <TextBlock Grid.Column="3" Text="ゲイン" ToolTip="録音中も調整できます。ダブルクリックで 0 dB"/>
-            <TextBlock Grid.Column="5" Text="レベル"/>
+            <TextBlock Grid.Column="3" Text="レベル・ゲイン" ToolTip="メーター＝音量、縦長のつまみ＝ゲイン。録音中も調整できます。ダブルクリックで 0 dB"/>
         </Grid>
 
         <StackPanel Grid.Row="1">
             <StackPanel x:Name="RowsPanel"/>
-            <!-- 全体ゲイン（ミックス後・録音するファイルに掛かる）。列はデバイスの行と同じ -->
-            <Rectangle Height="1" Fill="{DynamicResource CardBorder}" Margin="0,0,0,6"/>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="30"/>
-                    <ColumnDefinition Width="250"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="116"/>
-                    <ColumnDefinition Width="64"/>
-                    <ColumnDefinition Width="66"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="1" Text="全体ゲイン（ミックス後）" VerticalAlignment="Center" Opacity="0.85"
-                           ToolTip="すべてのデバイスを混ぜたあとの音量（録音するファイルに掛かります）。左端＝ミュート。ダブルクリックで 0 dB。録音中も調整できます"/>
-                <Slider x:Name="MasterSlider" Grid.Column="3" VerticalAlignment="Center"
-                        ToolTip="全体ゲイン。左端＝ミュート。ダブルクリックで 0 dB に戻ります。録音中も調整可能。"
-                        ValueChanged="Master_ValueChanged" MouseDoubleClick="Master_DoubleClick"/>
-                <TextBlock x:Name="MasterText" Grid.Column="4" VerticalAlignment="Center" TextAlignment="Right"
-                           Margin="0,0,10,0" FontSize="12"/>
-            </Grid>
         </StackPanel>
 
         <!-- 下段（コンソールの底にそろえる） -->

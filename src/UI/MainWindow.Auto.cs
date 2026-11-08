@@ -102,6 +102,7 @@ public partial class MainWindow
             monitor.SetMasterGain(Devices.MasterGainDb);
             _monitor = monitor;
             Devices.StartWave();
+            OverallWave.Clear();
         }
         catch (Exception ex)
         {
@@ -157,6 +158,7 @@ public partial class MainWindow
         Devices.PushWave(peaks);
         var (left, right) = monitor.TakeChannelPeaks();
         OutMeter.Update(left, right);
+        PushMonitorWave(left, right);
         if (peak < SilenceDetector.ToLinear(_settings.AutoStartDb)) return;
 
         _standby = false;
@@ -209,6 +211,7 @@ public partial class MainWindow
                 _checkMon = monitor;
                 _checkSig = sig;
                 Devices.StartWave();   // 入力チェック中も波形を流す
+                OverallWave.Clear();
             }
             catch (Exception)
             {
@@ -222,6 +225,14 @@ public partial class MainWindow
         Devices.PushWave(peaks);
         var (left, right) = _checkMon.TakeChannelPeaks();
         OutMeter.Update(left, right);
+        PushMonitorWave(left, right);
+    }
+
+    /// <summary>待機・入力チェック中の全体波形。録音していないときは音の区間データが無いので、50msごとの最大音量から（-最大, +最大）の区間を作って足す。</summary>
+    private void PushMonitorWave(float left, float right)
+    {
+        var p = Math.Min(1f, Math.Max(left, right));
+        OverallWave.Push(new[] { (-p, p) });
     }
 
     private void StopCheckMonitor()

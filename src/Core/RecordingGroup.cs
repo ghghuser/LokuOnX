@@ -166,6 +166,14 @@ public sealed class RecordingGroup : IDisposable
         return (l, r);
     }
 
+    /// <summary>全体波形用の区間（0.04秒ごとの最小値・最大値）。別ファイルのときは先頭のファイルの音（残りは捨てる）。</summary>
+    public (float Min, float Max)[] TakeWave()
+    {
+        var first = _sessions[0].TakeWave();
+        for (int i = 1; i < _sessions.Count; i++) _sessions[i].TakeWave();
+        return first;
+    }
+
     /// <summary>録音中に全体ゲインを変える。</summary>
     public void SetMasterGain(double gainDb)
     {

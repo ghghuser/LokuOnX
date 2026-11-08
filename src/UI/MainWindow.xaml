@@ -78,22 +78,29 @@
                                   ToolTip="録音していないあいだも、選んだデバイスの音量をメーターと各デバイスのレベルに出します（ファイルには何も書きません）"
                                   Checked="InputCheck_Changed" Unchecked="InputCheck_Changed"/>
                     </Grid>
-                    <!-- 出力レベル: L・R と dB の目盛り。白い線＝最大値、右端＝クリップ -->
+                    <!-- 全体波形（録音する音全体。右端が最新） -->
+                    <ui:BigWave x:Name="OverallWave" Margin="0,0,0,10"
+                                ToolTip="録音する音全体の波形（右端が最新。約60秒ぶん）。小さい音も見えるよう強調して表示します。赤＝クリップ"/>
+
+                    <!-- 出力レベルと全体ゲインの融合メーター: L・R と dB の目盛り。白い線＝最大値、右端＝クリップ、縦長のつまみ＝全体ゲイン -->
                     <ui:OutputMeter x:Name="OutMeter" Margin="2,0,0,12"/>
 
-                    <!-- 録音ボタン（開始と停止は1つのトグルボタン） -->
-                    <Button x:Name="StartButton" Height="46" FontSize="16" FontWeight="SemiBold"
-                            ToolTip="押すと録音を始めます。録音中は「■ 停止」になり、もう一度押すと停止して保存します"
-                            Click="Start_Click"/>
-                    <Grid Margin="0,8,0,0">
+                    <!-- 録音・一時停止・分割を同じ行に（録音ボタンは開始と停止を兼ねるトグル） -->
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="8"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Button x:Name="PauseButton" Height="34" IsEnabled="False" Click="Pause_Click"/>
-                        <Button x:Name="SplitButton" Grid.Column="2" Height="34" IsEnabled="False"
-                                ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click">
+                        <Button x:Name="StartButton" Height="46" FontSize="16" FontWeight="SemiBold"
+                                ToolTip="押すと録音を始めます。録音中は「■ 停止」になり、もう一度押すと停止して保存します"
+                                Click="Start_Click"/>
+                        <Button x:Name="PauseButton" Grid.Column="2" Height="46" MinWidth="96" Padding="10,0" FontSize="13"
+                                IsEnabled="False" Click="Pause_Click"/>
+                        <Button x:Name="SplitButton" Grid.Column="4" Height="46" MinWidth="78" Padding="10,0" FontSize="13"
+                                IsEnabled="False" ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click">
                             <TextBlock><Run FontFamily="Segoe UI Symbol" Text="✂"/><Run Text=" 分割"/></TextBlock>
                         </Button>
                     </Grid>

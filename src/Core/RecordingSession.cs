@@ -25,6 +25,7 @@ public sealed partial class RecordingSession : IDisposable
     private Track _current = null!;
     private System.Threading.Timer? _idleTimer;
     private float _peak;
+    private readonly WaveColumns _wave = new();
     private readonly float[] _chPeaks = new float[2];   // 出力のL/Rのピーク（メーター用）
     private volatile bool _stopped;
     private volatile bool _paused;    // 音を捨てている（フェードアウト完了後）
@@ -121,6 +122,7 @@ public sealed partial class RecordingSession : IDisposable
         var p = PeakMeter.Compute(buf, count, _source.Format);
         if (p > _peak) _peak = p;
         PeakMeter.Channels(buf, count, _source.Format, _chPeaks);
+        _wave.Feed(buf, count, _source.Format);
         _filler.Feed(buf, count);
     }
 
@@ -159,6 +161,9 @@ public sealed partial class RecordingSession : IDisposable
         _peak = 0;
         return p;
     }
+
+    /// <summary>前回取得以降の、全体波形用の区間（0.04秒ごとの最小値・最大値）を返す。</summary>
+    public (float Min, float Max)[] TakeWave() => _wave.Take();
 
     /// <summary>前回取得以降の出力のL/Rのピークを返してリセットする（モノはLと同じ）。メーター表示用。</summary>
     public (float L, float R) TakeChannelPeaks()

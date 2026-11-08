@@ -100,6 +100,7 @@ public partial class MainWindow
             return false;
         }
         Devices.StartWave();
+        OverallWave.Clear();
         _notice = "";
         _nextDiskCheck = DateTime.MinValue;   // 開始直後に1回、あとは30秒ごとに空き容量を調べる
         _scheduledStopAt = null;

@@ -35,6 +35,7 @@ public partial class MainWindow : Window
         SplitBox.Text = SplitTime.Format(settings.SplitSeconds);
         InputCheckBox.IsChecked = settings.InputCheck;
         LoadDevices();
+        Devices.AttachMaster(OutMeter.Gain, OutMeter.GainText);   // 全体ゲインは出力メーターと一体（Init の前に）
         Devices.Init(settings, _devices, DefaultCaptureKey());
         Devices.Changed += () => { Devices.ClearError(); CheckAsioRows(); UpdateInfo(); };
         CheckAsioRows();
