@@ -156,8 +156,7 @@ public partial class MainWindow
         {
             if (_standby) TickStandby();
             else TickInputCheck();
-            _tray?.SetRecording(false);
-            _tray?.SetStandby(_standby);   // 待機中はトレイのアイコンが黄色いリングになる
+            _tray?.SetState(_standby ? TrayState.Standby : TrayState.Idle);   // 待機中はトレイのアイコンが黄色いリングになる
             _tray?.SetTip((_standby ? $"{AppInfo.Name} ― 音を待っています" : $"{AppInfo.Name} ― 待機中") + ScheduleTip());
             return;
         }
@@ -182,7 +181,7 @@ public partial class MainWindow
         TotalText.Text = Clock(t);
         StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
         if (_pauseShown != s.Paused) SetPauseButton(s.Paused);   // トレイ・ホットキー・デバイス待機での一時停止もボタンへ反映
-        _tray?.SetRecording(!s.Paused);   // 録音中はトレイのアイコンが赤いLED風の丸になる
+        _tray?.SetState(s.Paused ? TrayState.Paused : TrayState.Recording);   // 録音中は赤い丸、一時停止中は一時停止マーク
         _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}" + ScheduleTip());
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();

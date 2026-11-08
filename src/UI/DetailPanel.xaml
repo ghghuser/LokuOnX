@@ -5,7 +5,7 @@
     <!-- 項目名は右寄せ＋「：」で、内容のすぐ左に付ける（項目名と内容の間が空きすぎないように）。内容の左端は全行そろう -->
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="FormLabel"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>

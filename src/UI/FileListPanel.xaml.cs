@@ -131,10 +131,10 @@ public partial class FileListPanel : UserControl
         if (_recording != null && RecordingShown()) _items.Insert(0, _recording);
         List.ItemsSource = _items;
         ApplySort();
-        foreach (var f in files.Where(f => keep.Contains(f.Path, StringComparer.OrdinalIgnoreCase)))
+        ApplyFilter();   // 絞り込み中なら、読み直したあとも同じ条件で（件数の表示もここで更新）
+        foreach (var f in files.Where(f => keep.Contains(f.Path, StringComparer.OrdinalIgnoreCase) && List.Items.Contains(f)))
             List.SelectedItems.Add(f);
         _restoring = false;
-        CountText.Text = files.Count == 0 ? "0 件" : $"{files.Count} 件";
         RaiseSelected();
         _ = LoadLengthsAsync(files.Where(f => f.Length == null).Take(AutoLengthLimit).ToList(), cts.Token);
     }
@@ -225,6 +225,28 @@ public partial class FileListPanel : UserControl
         _sortDesc = SortKeys[index] == _sortKey ? !_sortDesc : SortKeys[index] != "Name";
         _sortKey = SortKeys[index];
         ApplySort();
+    }
+
+    // ---- 絞り込み（ファイル名に含まれる文字。数千件になっても探せるように） ----
+    private string _filter = "";
+
+    private void Filter_Changed(object sender, TextChangedEventArgs e)
+    {
+        _filter = FilterBox.Text.Trim();
+        ApplyFilter();
+    }
+
+    /// <summary>絞り込みを一覧へ反映して、件数を更新する。録音中の仮の行は、絞り込みに関係なく残す。</summary>
+    private void ApplyFilter()
+    {
+        if (CollectionViewSource.GetDefaultView(List.ItemsSource) is not ListCollectionView view) return;
+        var text = _filter;
+        view.Filter = text.Length == 0
+            ? null
+            : o => o is LibraryFile f && (f.IsRecording || f.Name.Contains(text, StringComparison.CurrentCultureIgnoreCase));
+        int total = _items.Count(f => !f.IsRecording);
+        int shown = text.Length == 0 ? total : List.Items.Cast<LibraryFile>().Count(f => !f.IsRecording);
+        CountText.Text = total == 0 ? "0 件" : text.Length == 0 ? $"{total} 件" : $"{shown} / {total} 件";
     }
 
     private void ApplySort()

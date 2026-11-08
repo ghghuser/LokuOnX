@@ -112,12 +112,30 @@ public partial class FileListPanel
 
     private void ShowSaveFolder_Click(object sender, RoutedEventArgs e) => ShowFolder(_settings.Folder);
 
+    /// <summary>
+    /// フォルダを選ぶ。フォルダ専用のダイアログは中のファイルが見えず「一致する項目はありません」と出るため、
+    /// ファイルの選択ダイアログ（音声ファイルが見える）を使う。見えているフォルダでそのまま「開く」を押せばそのフォルダ、
+    /// ファイルを選んで「開く」でもそのファイルのあるフォルダを表示する。
+    /// </summary>
     private void PickFolder_Click(object sender, RoutedEventArgs e)
     {
         var start = IsHistory ? _settings.Folder : SourceKey;
-        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "一覧に表示するフォルダを選んでください" };
+        var audio = string.Join(";", AudioLibrary.Extensions.Select(x => "*" + x));
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "表示するフォルダを開いて、そのまま「開く」を押してください（中の音声ファイルが見えます）",
+            Filter = $"音声ファイル（{audio}）|{audio}|すべてのファイル|*.*",
+            CheckFileExists = false,   // 「このフォルダを表示」の仮の名前でも通す
+            CheckPathExists = true,
+            ValidateNames = false,
+            Multiselect = false,
+            FileName = "このフォルダを表示",
+        };
         if (Directory.Exists(start)) dlg.InitialDirectory = start;
-        if (dlg.ShowDialog(Owner) == true) ShowFolder(dlg.FolderName);
+        if (dlg.ShowDialog(Owner) != true) return;
+        var path = dlg.FileName;
+        var folder = Directory.Exists(path) ? path : System.IO.Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(folder)) ShowFolder(folder);
     }
 
     // ---- 履歴を空にする（ファイルは消さない。確認してから） ----

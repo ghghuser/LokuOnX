@@ -54,4 +54,79 @@ public static class LedIcon
         }
         return bmp.GetHicon();
     }
+
+    /// <summary>
+    /// 通常（停止中）のトレイ用アイコン。アプリのアイコン（暗い角丸の四角＋青い波形）を、小さなトレイでも見えるように描き直す:
+    /// 波形の棒を大きく（高さを約2倍）・彩度の高い青にし、背景の四角いっぱいに広げる。録音中の赤と紛らわしい赤い点は付けない。
+    /// </summary>
+    public static IntPtr CreateIdle(int size)
+    {
+        size = Math.Clamp(size, 16, 64);
+        using var bmp = new System.Drawing.Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.Clear(System.Drawing.Color.Transparent);
+            // 暗い角丸の四角（明るい・暗いどちらのタスクバーでも青い棒が見えるよう、真っ黒にはしない）。縁線は引かず、棒との間に余白を残す
+            using (var tile = RoundRect(0f, 0f, size, size, size * 0.22f))
+            {
+                using var bg = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 28, 34, 52));
+                g.FillPath(bg, tile);
+            }
+            // 波形の5本の棒（短・中・長・中・短）。16pxで幅2px・すき間1pxになり、にじまない
+            float bw = size * 0.125f, gap = size * 0.0625f;
+            float x = (size - (5 * bw + 4 * gap)) / 2f;
+            using var blue = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 46, 160, 255));
+            foreach (var f in new[] { 0.30f, 0.50f, 0.72f, 0.50f, 0.30f })
+            {
+                float h = 2f * (float)Math.Round(size * f / 2f);   // 偶数にして上下の中央に置く（にじみ防止）
+                using var bar = RoundRect(x, (size - h) / 2f, bw, h, bw / 2f);
+                g.FillPath(blue, bar);
+                x += bw + gap;
+            }
+        }
+        return bmp.GetHicon();
+    }
+
+    /// <summary>録音を一時停止しているときのトレイ用アイコン。赤い丸の中に白い一時停止マーク（2本の縦棒）。</summary>
+    public static IntPtr CreatePaused(int size)
+    {
+        size = Math.Clamp(size, 16, 64);
+        using var bmp = new System.Drawing.Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.Clear(System.Drawing.Color.Transparent);
+            float c = size / 2f, r = size / 2f - 0.5f;
+            using var red = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 232, 36, 40));
+            g.FillEllipse(red, c - r, c - r, r * 2, r * 2);
+            // 白い2本の縦棒（整数の位置にそろえて、にじませない）
+            float bw = (float)Math.Round(size * 0.17f), gap = (float)Math.Round(size * 0.14f);
+            float h = 2f * (float)Math.Round(size * 0.25f);
+            using var white = new System.Drawing.SolidBrush(System.Drawing.Color.White);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+            g.FillRectangle(white, c - gap / 2f - bw, c - h / 2f, bw, h);
+            g.FillRectangle(white, c + gap / 2f, c - h / 2f, bw, h);
+        }
+        return bmp.GetHicon();
+    }
+
+    /// <summary>角丸の四角（x, y, 幅, 高さ, 角の半径）。</summary>
+    private static System.Drawing.Drawing2D.GraphicsPath RoundRect(float x, float y, float w, float h, float r)
+    {
+        r = Math.Min(r, Math.Min(w, h) / 2f);
+        var path = new System.Drawing.Drawing2D.GraphicsPath();
+        if (r <= 0.01f)
+        {
+            path.AddRectangle(new System.Drawing.RectangleF(x, y, w, h));
+            return path;
+        }
+        float d = r * 2f;
+        path.AddArc(x, y, d, d, 180, 90);
+        path.AddArc(x + w - d, y, d, d, 270, 90);
+        path.AddArc(x + w - d, y + h - d, d, d, 0, 90);
+        path.AddArc(x, y + h - d, d, d, 90, 90);
+        path.CloseFigure();
+        return path;
+    }
 }

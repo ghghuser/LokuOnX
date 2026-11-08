@@ -69,8 +69,12 @@
                 <Button x:Name="PickFolderButton" Content="フォルダを選んで表示…" Padding="10,3" Margin="0,0,10,4" Click="PickFolder_Click"
                         ToolTip="好きなフォルダを選んで、その中身を一覧に表示します（最近の10件に入ります）"/>
                 <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,10,4" Click="Refresh_Click"/>
+                <TextBlock Text="絞り込み" VerticalAlignment="Center" Margin="0,0,6,4" Opacity="0.8"/>
+                <TextBox x:Name="FilterBox" Width="130" Margin="0,0,10,4" VerticalContentAlignment="Center"
+                         ToolTip="ファイル名に含まれる文字で絞り込みます（大文字・小文字は区別しません）。ファイル名に日付が入っていれば、日付でも探せます（例: 2026_10 ＝ 2026年10月）"
+                         TextChanged="Filter_Changed"/>
                 <TextBlock x:Name="CountText" VerticalAlignment="Center" MinWidth="64" Margin="0,0,0,4" Opacity="0.8"
-                           ToolTip="表示中のファイル数（4桁までは幅が固定で、5桁以上になると広がります）"/>
+                           ToolTip="表示中のファイル数（絞り込み中は「表示 / 全体」。4桁までは幅が固定で、5桁以上になると広がります）"/>
             </WrapPanel>
         </StackPanel>
 

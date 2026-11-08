@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace Recorder.UI;
 
+/// <summary>トレイのアイコンが表す状態（通常・待機中・録音中・一時停止中）。</summary>
+public enum TrayState { Idle, Standby, Recording, Paused }
+
 /// <summary>トレイの右クリックメニューの1項目（Id が 0 のものは区切り線）。</summary>
 public sealed record TrayMenuItem(int Id, string Text, bool Enabled = true)
 {
@@ -66,11 +69,12 @@ public sealed class TrayIcon : IDisposable
     private readonly uint _taskbarCreated = RegisterWindowMessage("TaskbarCreated");
     private IntPtr _icon;           // いま出しているアイコン
     private IntPtr _appIcon;        // アプリのアイコン
-    private IntPtr _led;            // 録音中の赤いLED風アイコン（初めて必要になったときに作る）
+    private IntPtr _idle;           // 通常のアイコン（アプリのアイコンを、トレイで見やすく描き直したもの。初めて必要になったときに作る）
+    private IntPtr _led;            // 録音中の赤い丸のアイコン（同上）
     private IntPtr _amber;          // 待機中の黄色いリングのアイコン（同上）
+    private IntPtr _paused;         // 一時停止中の「赤い丸＋一時停止マーク」のアイコン（同上）
     private bool _ownsIcon;
-    private bool _recording;
-    private bool _standby;
+    private TrayState _state = TrayState.Idle;
     private bool _visible;
     private string _tip = "";
 
@@ -88,7 +92,8 @@ public sealed class TrayIcon : IDisposable
         _window = window;
         _window.AddHook(OnMessage);
         LoadAppIcon();
-        _appIcon = _icon;
+        _appIcon = _icon;   // 見やすい通常アイコンを作れなかったときの代わり
+        UpdateIcon();
     }
 
     /// <summary>exe に埋め込んだアプリのアイコンを取り出す（取れなければ Windows 標準のアイコン）。</summary>
@@ -109,45 +114,35 @@ public sealed class TrayIcon : IDisposable
         _icon = LoadIcon(IntPtr.Zero, new IntPtr(32512));   // IDI_APPLICATION
     }
 
-    /// <summary>録音中は、アイコンをLED風の大きい赤丸にする。録音中でなければ（待機中なら黄色いリング、それ以外は）アプリのアイコンへ戻す。</summary>
-    public void SetRecording(bool recording)
+    /// <summary>状態に合わせてアイコンを変える（録音中＝赤い丸／一時停止中＝赤い丸＋一時停止マーク／待機中＝黄色いリング／通常＝アプリのアイコンの見やすい版）。</summary>
+    public void SetState(TrayState state)
     {
-        if (recording == _recording) return;
-        _recording = recording;
+        if (state == _state) return;
+        _state = state;
         UpdateIcon();
     }
 
-    /// <summary>音を待っている待機中は、アイコンを黄色いリングにする（録音中の赤丸が優先）。</summary>
-    public void SetStandby(bool standby)
+    /// <summary>アイコンは初めて必要になったときに作る。作れなければ、そのままアプリのアイコン。</summary>
+    private static IntPtr Make(ref IntPtr slot, Func<int, IntPtr> create)
     {
-        if (standby == _standby) return;
-        _standby = standby;
-        UpdateIcon();
+        if (slot == IntPtr.Zero)
+        {
+            try { slot = create(Math.Max(16, GetSystemMetrics(49))); }   // SM_CXSMICON（トレイの小アイコンの幅）
+            catch (Exception) { slot = IntPtr.Zero; }
+        }
+        return slot;
     }
 
-    /// <summary>いまの状態（録音中＞待機中＞通常）に合うアイコンへ差し替える。作れなければ、そのままアプリのアイコン。</summary>
     private void UpdateIcon()
     {
-        var next = _appIcon;
-        if (_recording)
+        var next = _state switch
         {
-            if (_led == IntPtr.Zero)
-            {
-                try { _led = LedIcon.Create(Math.Max(16, GetSystemMetrics(49))); }   // SM_CXSMICON（トレイの小アイコンの幅）
-                catch (Exception) { _led = IntPtr.Zero; }
-            }
-            if (_led != IntPtr.Zero) next = _led;
-            else _recording = false;
-        }
-        if (!_recording && _standby)
-        {
-            if (_amber == IntPtr.Zero)
-            {
-                try { _amber = LedIcon.CreateStandby(Math.Max(16, GetSystemMetrics(49))); }
-                catch (Exception) { _amber = IntPtr.Zero; }
-            }
-            if (_amber != IntPtr.Zero) next = _amber;
-        }
+            TrayState.Recording => Make(ref _led, LedIcon.Create),
+            TrayState.Paused => Make(ref _paused, LedIcon.CreatePaused),
+            TrayState.Standby => Make(ref _amber, LedIcon.CreateStandby),
+            _ => Make(ref _idle, LedIcon.CreateIdle),
+        };
+        if (next == IntPtr.Zero) next = _appIcon;
         if (next == _icon) return;
         _icon = next;
         if (!_visible) return;
@@ -235,8 +230,8 @@ public sealed class TrayIcon : IDisposable
     {
         Visible = false;
         if (_ownsIcon && _appIcon != IntPtr.Zero) DestroyIcon(_appIcon);
-        if (_led != IntPtr.Zero) DestroyIcon(_led);
-        if (_amber != IntPtr.Zero) DestroyIcon(_amber);
-        _appIcon = _led = _amber = _icon = IntPtr.Zero;
+        foreach (var h in new[] { _idle, _led, _amber, _paused })
+            if (h != IntPtr.Zero) DestroyIcon(h);
+        _appIcon = _idle = _led = _amber = _paused = _icon = IntPtr.Zero;
     }
 }

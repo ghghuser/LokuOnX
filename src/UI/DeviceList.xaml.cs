@@ -162,7 +162,7 @@ public partial class DeviceList : UserControl
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = w < 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(w) });
 
         row.Use.Style = (Style)Application.Current.FindResource("LampCheck");
-        row.Use.IsChecked = enabled;
+        row.Use.IsChecked = key.Length > 0 && enabled;   // 空き行（デバイス未選択）は消灯。初期状態で点灯するのは1行目だけ
         row.Use.VerticalAlignment = VerticalAlignment.Center;
         row.Use.Margin = new Thickness(0, 0, 6, 0);
         row.Use.ToolTip = "消灯にすると、このデバイスは録音しません（設定は残ります。録音中は変えられません）";
@@ -221,7 +221,14 @@ public partial class DeviceList : UserControl
         row.Combo.SelectionChanged += (_, _) =>
         {
             if (_loading) return;
-            if (row.Combo.SelectedItem is AudioDeviceInfo d) row.Key = d.Key;
+            if (row.Combo.SelectedItem is AudioDeviceInfo d)
+            {
+                bool wasEmpty = row.Key.Length == 0;
+                row.Key = d.Key;
+                // 空き行にデバイスを選んだらランプを点ける（「（未選択）」に戻したら消す）
+                if (wasEmpty && d.Key.Length > 0) row.Use.IsChecked = true;
+                else if (d.Key.Length == 0) row.Use.IsChecked = false;
+            }
             _touched = true;
             UpdateLayout2();
             SaveNow();

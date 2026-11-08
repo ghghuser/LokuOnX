@@ -117,14 +117,15 @@
 
                 <TabControl x:Name="LowerTabs">
                     <TabItem Header="保存先・ファイル名">
-                        <StackPanel Margin="2,8,0,6">
+                        <!-- 項目名の列（FormLabel）は、保存先と下の DetailPanel でそろえる -->
+                        <StackPanel Margin="2,8,0,6" Grid.IsSharedSizeScope="True">
                             <Grid Margin="0,0,0,6">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="FormLabel"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="保存先" VerticalAlignment="Center"/>
+                                <TextBlock Text="保存先：" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <TextBox x:Name="FolderBox" Grid.Column="1" Margin="0,0,8,0"
                                          VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
                                 <Button x:Name="BrowseButton" Grid.Column="2" Content="参照..."
