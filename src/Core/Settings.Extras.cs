@@ -53,10 +53,10 @@ public sealed partial class Settings
         set => Set("Preset", value);
     }
 
-    /// <summary>"auto"（Windowsの設定に合わせる・既定）/ "light" / "dark" / "soft"（試作）。</summary>
+    /// <summary>"auto"（Windowsの設定に合わせる・既定）/ "light" / "dark" / "soft" / "softdark"（試作）。</summary>
     public string Theme
     {
-        get { var t = Get("Theme", "auto"); return t is "light" or "dark" or "soft" ? t : "auto"; }
+        get { var t = Get("Theme", "auto"); return t is "light" or "dark" or "soft" or "softdark" ? t : "auto"; }
         set => Set("Theme", value);
     }
 

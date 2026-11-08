@@ -7,22 +7,23 @@ using Microsoft.Win32;
 namespace Recorder.UI;
 
 /// <summary>
-/// 画面の色（自動／ライト／ダーク）。ライトは Windows 標準の見た目のまま、ダークは色のリソースを差し替える（PROJECT.md §3-6）。
+/// 画面の色（自動／ライト／ダーク／ソフト（ライト・ダーク））。ライトは Windows 標準の見た目のまま、ダークは色のリソースを差し替える（PROJECT.md §3-6）。
 /// 読み込みに失敗したらライトのまま動く。
 /// </summary>
 public static class ThemeManager
 {
     private static readonly List<ResourceDictionary> Current = new();
 
-    /// <summary>mode は "auto" / "light" / "dark" / "soft"（ニューモーフィズム風の試作。ライトの上に色とボタンを重ねる）。</summary>
+    /// <summary>mode は "auto" / "light" / "dark" / "soft"（ニューモーフィズム風・ライト）/ "softdark"（同・ダーク）。</summary>
     public static void Apply(string mode)
     {
-        var dark = mode == "dark" || (mode == "auto" && SystemUsesDark());
+        var dark = IsDark(mode);
+        var soft = IsSoft(mode);
         var app = Application.Current;
         if (app == null) return;
         foreach (var d in Current) app.Resources.MergedDictionaries.Remove(d);
         Current.Clear();
-        foreach (var name in dark ? new[] { "Dark", "DarkControls", "DarkList" } : mode == "soft" ? new[] { "Light", "Soft", "SoftControls" } : new[] { "Light" })
+        foreach (var name in Files(mode))
         {
             try
             {
@@ -32,15 +33,29 @@ public static class ThemeManager
             }
             catch (Exception) { /* 色の読み込みに失敗してもライトの見た目で動く */ }
         }
-        foreach (Window w in app.Windows) Style(w, dark);
+        foreach (Window w in app.Windows) Style(w, dark, soft);
     }
 
     /// <summary>ウィンドウを開くとき（SourceInitialized）に、タイトルバーの色も合わせる。</summary>
     public static void Attach(Window w, string mode)
     {
-        var dark = mode == "dark" || (mode == "auto" && SystemUsesDark());
-        w.SourceInitialized += (_, _) => Style(w, dark);
+        var dark = IsDark(mode);
+        var soft = IsSoft(mode);
+        w.SourceInitialized += (_, _) => Style(w, dark, soft);
     }
+
+    private static bool IsDark(string mode) => mode is "dark" or "softdark" || (mode == "auto" && SystemUsesDark());
+
+    private static bool IsSoft(string mode) => mode is "soft" or "softdark";
+
+    /// <summary>読み込む色・部品の定義（後ろのものが前のものを上書きする）。コンボボックスとタブは全テーマ共通。</summary>
+    private static string[] Files(string mode) => mode switch
+    {
+        "soft" => new[] { "Light", "Soft", "ComboControls", "TabControls", "SoftControls" },
+        "softdark" => new[] { "Dark", "SoftDark", "ComboControls", "TabControls", "DarkControls", "DarkList", "SoftControlsDark" },
+        _ when IsDark(mode) => new[] { "Dark", "ComboControls", "TabControls", "DarkControls", "DarkList" },
+        _ => new[] { "Light", "ComboControls", "TabControls" },
+    };
 
     private static bool SystemUsesDark()
     {
@@ -65,7 +80,7 @@ public static class ThemeManager
     /// タイトルバーの色と、ダークのときの半透明の背景（Windows 11 のアクリル）を合わせる。
     /// アクリルが使えない環境（Windows 10 など）では、不透明のダークのまま。
     /// </summary>
-    private static void Style(Window w, bool dark)
+    private static void Style(Window w, bool dark, bool soft)
     {
         try
         {
@@ -73,17 +88,18 @@ public static class ThemeManager
             if (handle == IntPtr.Zero) return;
             var on = dark ? 1 : 0;
             DwmSetWindowAttribute(handle, 20, ref on, sizeof(int));   // DWMWA_USE_IMMERSIVE_DARK_MODE
+            var translucent = dark && !soft;   // ソフト（ダーク）は影の見え方のため、半透明にしない
             var ok = false;
             if (HwndSource.FromHwnd(handle) is { CompositionTarget: { } target })
             {
-                var m = new Margins { Left = dark ? -1 : 0, Right = dark ? -1 : 0, Top = dark ? -1 : 0, Bottom = dark ? -1 : 0 };
-                var backdrop = dark ? 3 : 1;   // DWMWA_SYSTEMBACKDROP_TYPE: 3＝アクリル、1＝なし
+                var m = new Margins { Left = translucent ? -1 : 0, Right = translucent ? -1 : 0, Top = translucent ? -1 : 0, Bottom = translucent ? -1 : 0 };
+                var backdrop = translucent ? 3 : 1;   // DWMWA_SYSTEMBACKDROP_TYPE: 3＝アクリル、1＝なし
                 var hr = DwmSetWindowAttribute(handle, 38, ref backdrop, sizeof(int));
                 if (hr == 0)
                 {
-                    target.BackgroundColor = dark ? Colors.Transparent : SystemColors.WindowColor;
+                    target.BackgroundColor = translucent ? Colors.Transparent : SystemColors.WindowColor;
                     DwmExtendFrameIntoClientArea(handle, ref m);
-                    ok = dark;
+                    ok = translucent;
                 }
             }
             // 半透明にできたウィンドウだけ、背景色を半透明にする（できなければ不透明のまま）

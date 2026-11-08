@@ -1,0 +1,65 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- ソフト（ダーク）用の ボタン と 入力欄。ダーク版（色は SoftDark.xaml と Dark.xaml。影の色だけはこのファイルの DropShadowEffect に直接書いてある）。
+         ボタン＝同じ形の面を2枚重ね、下の面に左上の白い光、上の面に右下の影を付ける。押すと影を消してへこんだ見た目にする -->
+    <ControlTemplate x:Key="SoftButtonTemplate" TargetType="ButtonBase">
+        <Grid Margin="3">
+            <Border x:Name="Light" CornerRadius="8" Background="{DynamicResource SoftFace}">
+                <Border.Effect>
+                    <DropShadowEffect Color="#454A54" Direction="135" ShadowDepth="3" BlurRadius="7" Opacity="0.9"/>
+                </Border.Effect>
+            </Border>
+            <Border x:Name="Face" CornerRadius="8" Background="{DynamicResource SoftFace}" Padding="{TemplateBinding Padding}">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0C0D0F" Direction="315" ShadowDepth="3" BlurRadius="7" Opacity="0.85"/>
+                </Border.Effect>
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="{DynamicResource SoftFaceHover}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="{DynamicResource SoftFacePressed}"/>
+                <Setter TargetName="Light" Property="Effect" Value="{x:Null}"/>
+                <Setter TargetName="Face" Property="Effect" Value="{x:Null}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource SoftDisabledFg}"/>
+                <Setter TargetName="Face" Property="Opacity" Value="0.7"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
+        <Setter Property="Template" Value="{StaticResource SoftButtonTemplate}"/>
+    </Style>
+
+    <!-- 入力欄: 面より少し暗い「へこみ」風（内側が暗く、縁は細い影色） -->
+    <Style TargetType="TextBox">
+        <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
+        <Setter Property="Background" Value="{DynamicResource LaneBg}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource LaneBorder}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1,1,0,0" CornerRadius="6" SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Padding="{TemplateBinding Padding}"
+                                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource GroupFg}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

@@ -94,31 +94,45 @@ public static class LedIcon
         return bmp.GetHicon();
     }
 
-    /// <summary>録音を一時停止しているときのトレイ用アイコン。黄色い丸の中に白い一時停止マーク（2本の縦棒）。</summary>
+    /// <summary>
+    /// 録音を一時停止しているときのトレイ用アイコン。黄色い丸の中に白い一時停止マーク（2本の縦棒。濃い茶色の細い縁取り付き）。
+    /// 丸と棒の位置が描画のくせで半ピクセルずれないよう、8倍の大きさで描いてから縮小する。
+    /// </summary>
     public static IntPtr CreatePaused(int size)
     {
         size = Math.Clamp(size, 16, 64);
-        using var bmp = new System.Drawing.Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        const int K = 8;
+        // 棒の大きさ（アイコンの1ピクセル単位）。全体の幅・高さの偶奇を size にそろえ、中心に置く
+        int bw = (int)Math.Round(size * 0.17f), gap = (int)Math.Round(size * 0.14f);
+        if ((size - (2 * bw + gap)) % 2 != 0) gap++;
+        int h = (int)Math.Round(size * 0.50f);
+        if ((size - h) % 2 != 0) h++;
+        int left = (size - (2 * bw + gap)) / 2, top = (size - h) / 2;
+        int big = size * K;
+        using var hi = new System.Drawing.Bitmap(big, big, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using (var g = System.Drawing.Graphics.FromImage(hi))
         {
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.Clear(System.Drawing.Color.Transparent);
-            float c = size / 2f, r = size / 2f - 0.5f;
-            using var amber = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 226, 140, 0));
-            g.FillEllipse(amber, c - r, c - r, r * 2, r * 2);
-            // 白い2本の縦棒（濃い黄色の丸の上で見えるよう、濃い茶色の細い縁取りを付ける）。全体の幅・高さの偶奇をアイコンの大きさにそろえ、整数の位置に置いて中心からずらさない
-            int bw = (int)Math.Round(size * 0.17f), gap = (int)Math.Round(size * 0.14f);
-            if ((size - (2 * bw + gap)) % 2 != 0) gap++;
-            int h = (int)Math.Round(size * 0.50f);
-            if ((size - h) % 2 != 0) h++;
-            int left = (size - (2 * bw + gap)) / 2, top = (size - h) / 2;
-            using var white = new System.Drawing.SolidBrush(System.Drawing.Color.White);
+            using var amber = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 255, 184, 28));
+            g.FillEllipse(amber, K / 2f, K / 2f, big - K, big - K);
             using var edge = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 110, 60, 0));
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-            g.FillRectangle(edge, left - 1, top - 1, bw + 2, h + 2);
-            g.FillRectangle(edge, left + bw + gap - 1, top - 1, bw + 2, h + 2);
-            g.FillRectangle(white, left, top, bw, h);
-            g.FillRectangle(white, left + bw + gap, top, bw, h);
+            using var white = new System.Drawing.SolidBrush(System.Drawing.Color.White);
+            foreach (var x in new[] { left, left + bw + gap })
+            {
+                g.FillRectangle(edge, (x - 1) * K, (top - 1) * K, (bw + 2) * K, (h + 2) * K);
+                g.FillRectangle(white, x * K, top * K, bw * K, h * K);
+            }
+        }
+        using var bmp = new System.Drawing.Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.Clear(System.Drawing.Color.Transparent);
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+            using var attrs = new System.Drawing.Imaging.ImageAttributes();
+            attrs.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
+            g.DrawImage(hi, new System.Drawing.Rectangle(0, 0, size, size), 0, 0, big, big, System.Drawing.GraphicsUnit.Pixel, attrs);
         }
         return bmp.GetHicon();
     }
