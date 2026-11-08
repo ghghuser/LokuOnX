@@ -34,12 +34,21 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Force -Path ffmpeg_dl | Out-Null
-          try {
-            Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile ffmpeg_dl/ffmpeg.zip
-          } catch {
-            Write-Host "FFMPEG_URL failed ($($_.Exception.Message)). Using fallback."
-            Invoke-WebRequest -Uri $env:FFMPEG_URL_FALLBACK -OutFile ffmpeg_dl/ffmpeg.zip
+          # 一時的な 502/503 に備えて、各URLを最大5回（待ち時間を伸ばしながら）試す。だめなら次のURLへ
+          $ok = $false
+          foreach ($u in @($env:FFMPEG_URL, $env:FFMPEG_URL_FALLBACK)) {
+            for ($i = 1; $i -le 5 -and -not $ok; $i++) {
+              try {
+                Invoke-WebRequest -Uri $u -OutFile ffmpeg_dl/ffmpeg.zip
+                $ok = $true
+              } catch {
+                Write-Host "Download failed ($u, try $i/5): $($_.Exception.Message)"
+                Start-Sleep -Seconds (10 * $i)
+              }
+            }
+            if ($ok) { break }
           }
+          if (-not $ok) { throw 'FFmpeg download failed' }
           Expand-Archive -Path ffmpeg_dl/ffmpeg.zip -DestinationPath ffmpeg_dl/x
           $exe = Get-ChildItem -Path ffmpeg_dl/x -Recurse -Filter ffmpeg.exe | Select-Object -First 1
           if (-not $exe) { throw 'ffmpeg.exe not found in archive' }
