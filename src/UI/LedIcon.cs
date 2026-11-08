@@ -84,11 +84,17 @@ public static class LedIcon
                 g.FillPath(blue, bar);
                 x += bw + gap;
             }
+            // アプリのアイコンと同じ、右上の赤い丸。背景色の縁を付けて波形の棒と分け、16pxでも潰れない大きさにする
+            float dr = size * 0.20f, dx = size * 0.74f, dy = size * 0.26f, ring = Math.Max(1f, size * 0.06f);
+            using (var edge = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 28, 34, 52)))
+                g.FillEllipse(edge, dx - dr - ring, dy - dr - ring, (dr + ring) * 2, (dr + ring) * 2);
+            using (var dot = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 232, 36, 40)))
+                g.FillEllipse(dot, dx - dr, dy - dr, dr * 2, dr * 2);
         }
         return bmp.GetHicon();
     }
 
-    /// <summary>録音を一時停止しているときのトレイ用アイコン。赤い丸の中に白い一時停止マーク（2本の縦棒）。</summary>
+    /// <summary>録音を一時停止しているときのトレイ用アイコン。黄色い丸の中に白い一時停止マーク（2本の縦棒）。</summary>
     public static IntPtr CreatePaused(int size)
     {
         size = Math.Clamp(size, 16, 64);
@@ -98,15 +104,18 @@ public static class LedIcon
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.Clear(System.Drawing.Color.Transparent);
             float c = size / 2f, r = size / 2f - 0.5f;
-            using var red = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 232, 36, 40));
-            g.FillEllipse(red, c - r, c - r, r * 2, r * 2);
-            // 白い2本の縦棒（整数の位置にそろえて、にじませない）
-            float bw = (float)Math.Round(size * 0.17f), gap = (float)Math.Round(size * 0.14f);
-            float h = 2f * (float)Math.Round(size * 0.25f);
+            using var amber = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 255, 184, 28));
+            g.FillEllipse(amber, c - r, c - r, r * 2, r * 2);
+            // 白い2本の縦棒。全体の幅・高さの偶奇をアイコンの大きさにそろえ、整数の位置に置いて中心からずらさない
+            int bw = (int)Math.Round(size * 0.17f), gap = (int)Math.Round(size * 0.14f);
+            if ((size - (2 * bw + gap)) % 2 != 0) gap++;
+            int h = (int)Math.Round(size * 0.50f);
+            if ((size - h) % 2 != 0) h++;
+            int left = (size - (2 * bw + gap)) / 2, top = (size - h) / 2;
             using var white = new System.Drawing.SolidBrush(System.Drawing.Color.White);
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-            g.FillRectangle(white, c - gap / 2f - bw, c - h / 2f, bw, h);
-            g.FillRectangle(white, c + gap / 2f, c - h / 2f, bw, h);
+            g.FillRectangle(white, left, top, bw, h);
+            g.FillRectangle(white, left + bw + gap, top, bw, h);
         }
         return bmp.GetHicon();
     }
