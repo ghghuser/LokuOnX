@@ -29,6 +29,7 @@ public sealed class DeviceStream
     private float _gain = 1f;
     private float _gainTarget = 1f;
     private float _peak;
+    private float _peakL, _peakR;               // 左右別のピーク（ゲイン後。個別メーターのL/R用）
     private bool _closed;
 
     public DeviceStream(int rate, int channels, Func<double> now, double gainDb)
@@ -80,6 +81,18 @@ public sealed class DeviceStream
             var p = _peak;
             _peak = 0;
             return p;
+        }
+    }
+
+    /// <summary>ゲインを掛けたあとの、前回取得以降の左右のピークを返してリセットする（モノは左右同じ）。</summary>
+    public (float L, float R) TakePeakLR()
+    {
+        lock (_lock)
+        {
+            var l = _peakL;
+            var r = _ch > 1 ? _peakR : _peakL;
+            _peakL = _peakR = 0;
+            return (l, r);
         }
     }
 
@@ -158,6 +171,7 @@ public sealed class DeviceStream
                 if (a > peak) peak = a;
             }
             _peak = peak;
+            TrackChannels(f, frames);
             return;
         }
         for (int n = 0; n < frames; n++)
@@ -173,6 +187,26 @@ public sealed class DeviceStream
             }
         }
         _peak = peak;
+        TrackChannels(f, frames);
+    }
+
+    /// <summary>左右別のピーク（ゲインを掛けたあとの f から）。</summary>
+    private void TrackChannels(float[] f, int frames)
+    {
+        float l = _peakL, r = _peakR;
+        for (int n = 0; n < frames; n++)
+        {
+            int i = n * _ch;
+            float a = Math.Abs(f[i]);
+            if (a > l) l = a;
+            if (_ch > 1)
+            {
+                float b = Math.Abs(f[i + 1]);
+                if (b > r) r = b;
+            }
+        }
+        _peakL = l;
+        _peakR = r;
     }
 
     private void AppendSilence(long frames)

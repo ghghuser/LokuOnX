@@ -11,6 +11,7 @@ public sealed class LevelMonitor : IDisposable
     private readonly List<IAudioSource> _sources = new();
     private readonly float[] _gain;
     private readonly float[] _peaks;
+    private readonly float[] _peakL, _peakR;   // デバイスごとの左右のピーク（ゲイン後）
     private readonly object _lock = new();
     private float _master = 1f;
     private float _chL, _chR;   // 出力のL/Rのピーク（デバイスごとのゲインを掛けたあとの最大。全体ゲインは取り出すときに掛ける）
@@ -21,6 +22,8 @@ public sealed class LevelMonitor : IDisposable
         _inputs = inputs;
         _gain = inputs.Select(i => GainMath.DbToLinear(i.GainDb)).ToArray();   // 最小＝ミュート（0）
         _peaks = new float[inputs.Count];
+        _peakL = new float[inputs.Count];
+        _peakR = new float[inputs.Count];
     }
 
     /// <summary>デバイスを開く。開けた台数を返す。1台も開けなければ例外。</summary>
@@ -47,6 +50,8 @@ public sealed class LevelMonitor : IDisposable
                     lock (_lock)
                     {
                         if (p > _peaks[index]) _peaks[index] = p;
+                        if (l > _peakL[index]) _peakL[index] = l;
+                        if (r > _peakR[index]) _peakR[index] = r;
                         if (l > _chL) _chL = l;
                         if (r > _chR) _chR = r;
                     }
@@ -83,6 +88,19 @@ public sealed class LevelMonitor : IDisposable
             var r = _chR * _master;
             _chL = _chR = 0;
             return (l, r);
+        }
+    }
+
+    /// <summary>デバイスごとの、前回取得以降の左右のピーク（inputs の順）を返してリセットする。</summary>
+    public (float L, float R)[] TakePeakPairs()
+    {
+        lock (_lock)
+        {
+            var copy = new (float L, float R)[_peakL.Length];
+            for (int i = 0; i < copy.Length; i++) copy[i] = (_peakL[i], _peakR[i]);
+            Array.Clear(_peakL, 0, _peakL.Length);
+            Array.Clear(_peakR, 0, _peakR.Length);
+            return copy;
         }
     }
 

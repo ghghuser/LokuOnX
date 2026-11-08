@@ -33,6 +33,8 @@ public partial class MainWindow : Window
         _loading = true;
         FolderBox.Text = settings.Folder;
         SplitBox.Text = SplitTime.Format(settings.SplitSeconds);
+        CheckHolder.Child = null;
+        Devices.AddFooterLeading(InputCheckBox);   // 入力デバイス欄の下の行の左端へ
         InputCheckBox.IsChecked = settings.InputCheck;
         LoadDevices();
         Devices.AttachMaster(OutMeter.Gain, OutMeter.GainText);   // 全体ゲインは出力メーターと一体（Init の前に）

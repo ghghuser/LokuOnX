@@ -12,7 +12,7 @@
     <SolidColorBrush x:Key="Pastel" Color="#2F80ED"/>
     <SolidColorBrush x:Key="DisabledFg" Color="#6B7079"/>
     <SolidColorBrush x:Key="TabSelBg" Color="#B3FFFFFF"/>
-    <SolidColorBrush x:Key="LampOff" Color="#6F7885"/>
+    <SolidColorBrush x:Key="LampOnRing" Color="#12803A"/>   <!-- 点灯時の輪（緑の面より濃くして、はっきり見せる） -->
     <SolidColorBrush x:Key="NewFileFg" Color="#1565C0"/>
     <SolidColorBrush x:Key="OldFileFg" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="MarkFg" Color="#5F6368"/>

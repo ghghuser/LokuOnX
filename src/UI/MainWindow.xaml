@@ -24,6 +24,13 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
+        <!-- 「インジケーター(常時)」のチェックは、起動時に入力デバイス欄の下の行（デバイス再取得の左）へ移す -->
+        <Border x:Name="CheckHolder" Grid.Row="0" Visibility="Collapsed">
+            <CheckBox x:Name="InputCheckBox" Content="インジケーター(常時)" FontSize="12"
+                                  ToolTip="録音していないあいだも、選んだデバイスの音量をメーター・波形・各デバイスのレベルに出します（ファイルには何も書きません）。オフにすると、録音するまでデバイスを開きません"
+                                  Checked="InputCheck_Changed" Unchecked="InputCheck_Changed"/>
+        </Border>
+
         <!-- 最上段: プリセット ｜ ログ（保存しました など。常に2行分の高さ） ｜ 設定の歯車 -->
         <Grid Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
@@ -74,9 +81,7 @@
                     </StackPanel>
                     <Grid Margin="0,0,0,8">
                         <TextBlock x:Name="StateText" Text="待機中" Opacity="0.7" Margin="2,0,0,0" VerticalAlignment="Center"/>
-                        <CheckBox x:Name="InputCheckBox" Content="待機中もレベル表示" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                  ToolTip="録音していないあいだも、選んだデバイスの音量をメーター・波形・各デバイスのレベルに出します（ファイルには何も書きません）。オフにすると、録音するまでデバイスを開きません"
-                                  Checked="InputCheck_Changed" Unchecked="InputCheck_Changed"/>
+
                     </Grid>
                     <!-- 全体波形（録音する音全体。右端が最新） -->
                     <ui:BigWave x:Name="OverallWave" Margin="0,0,0,10"

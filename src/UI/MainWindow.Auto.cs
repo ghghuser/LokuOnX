@@ -154,7 +154,7 @@ public partial class MainWindow
         if (_monitor is not { } monitor) return;
         var peaks = monitor.TakePeaks();
         var peak = peaks.Length == 0 ? 0f : peaks.Max();
-        Devices.SetLevels(peaks);
+        Devices.SetLevels(monitor.TakePeakPairs());
         Devices.PushWave(peaks);
         var (left, right) = monitor.TakeChannelPeaks();
         OutMeter.Update(left, right);
@@ -194,7 +194,7 @@ public partial class MainWindow
         if (inputs.Count == 0)
         {
             StopCheckMonitor();
-            Devices.SetLevels(Array.Empty<float>());
+            Devices.SetLevels(Array.Empty<(float, float)>());
             OutMeter.Fade();
             return;
         }
@@ -221,7 +221,7 @@ public partial class MainWindow
         }
         for (int i = 0; i < inputs.Count; i++) _checkMon.SetGain(i, inputs[i].GainDb);   // ゲインのスライダーも反映
         var peaks = _checkMon.TakePeaks();
-        Devices.SetLevels(peaks);
+        Devices.SetLevels(_checkMon.TakePeakPairs());
         Devices.PushWave(peaks);
         var (left, right) = _checkMon.TakeChannelPeaks();
         OutMeter.Update(left, right);

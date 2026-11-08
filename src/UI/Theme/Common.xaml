@@ -52,8 +52,8 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent" Width="20" Height="20" SnapsToDevicePixels="True">
                         <Ellipse x:Name="Lamp" Width="14" Height="14" StrokeThickness="1.5"
-                                 Stroke="{DynamicResource LampOff}" Fill="Transparent"/>
-                        <Ellipse x:Name="Ring" Width="14" Height="14" StrokeThickness="1.5" Stroke="{DynamicResource LampOn}"
+                                 Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
+                        <Ellipse x:Name="Ring" Width="14" Height="14" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
                                  Fill="Transparent" Visibility="Collapsed">
                             <Ellipse.Effect>
                                 <DropShadowEffect Color="#34D96B" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
@@ -63,7 +63,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampOn}"/>
-                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampOn}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampOnRing}"/>
                             <Setter TargetName="Lamp" Property="Effect">
                                 <Setter.Value>
                                     <DropShadowEffect Color="#34D96B" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>

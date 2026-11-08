@@ -93,6 +93,9 @@ public sealed class MixedSource : IAudioSource
     /// <summary>デバイスごとの、ゲインを掛けたあとの前回取得以降のピーク。</summary>
     public float[] TakeDevicePeaks() => _inputs.Select(i => i.Stream.TakePeak()).ToArray();
 
+    /// <summary>デバイスごとの、ゲインを掛けたあとの前回取得以降の左右のピーク。</summary>
+    public (float L, float R)[] TakeDevicePeakPairs() => _inputs.Select(i => i.Stream.TakePeakLR()).ToArray();
+
     public void Start()
     {
         _clock.Start();

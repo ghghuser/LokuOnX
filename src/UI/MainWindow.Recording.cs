@@ -185,7 +185,7 @@ public partial class MainWindow
         _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}" + ScheduleTip());
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
-        Devices.SetLevels(devicePeaks);
+        Devices.SetLevels(s.TakeDevicePeakPairs());
         if (!s.Paused) Devices.PushWave(devicePeaks);
         var wave = s.TakeWave();
         if (!s.Paused) OverallWave.Push(wave);

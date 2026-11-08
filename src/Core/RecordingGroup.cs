@@ -183,6 +183,9 @@ public sealed class RecordingGroup : IDisposable
     /// <summary>デバイスごと（選んだ順）の、ゲインを掛けたあとのピーク。</summary>
     public float[] TakeDevicePeaks() => _sources.SelectMany(x => x.TakeDevicePeaks()).ToArray();
 
+    /// <summary>デバイスごと（選んだ順）の、左右のピーク。</summary>
+    public (float L, float R)[] TakeDevicePeakPairs() => _sources.SelectMany(x => x.TakeDevicePeakPairs()).ToArray();
+
     /// <summary>録音中にゲインを変える（index は選んだ順）。</summary>
     public void SetGain(int index, double gainDb)
     {

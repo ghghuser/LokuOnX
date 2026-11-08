@@ -52,9 +52,7 @@ public sealed class BigWave : FrameworkElement
     {
         double w = ActualWidth, h = ActualHeight;
         if (w <= 4 || h <= 4) return;
-        var bg = TryFindResource("LaneBg") as Brush ?? Brushes.Transparent;
-        var border = TryFindResource("LaneBorder") as Brush ?? Brushes.Gray;
-        dc.DrawRoundedRectangle(bg, new Pen(border, 1), new Rect(0.5, 0.5, w - 1, h - 1), 8, 8);
+        dc.DrawRoundedRectangle(MeterColors.WaveBg, new Pen(MeterColors.WaveBorder, 1), new Rect(0.5, 0.5, w - 1, h - 1), 8, 8);
         double cy = h / 2, half = h / 2 - 4;
         var faint = new Pen(new SolidColorBrush(Color.FromArgb(0x28, 0x80, 0x80, 0x80)), 1);
         foreach (var a in new[] { 0.25, 0.5 })

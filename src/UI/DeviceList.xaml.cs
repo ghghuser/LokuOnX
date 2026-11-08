@@ -21,7 +21,7 @@ public partial class DeviceList : UserControl
         public readonly Grid Panel = new();
         public readonly CheckBox Use = new();
         public readonly ComboBox Combo = new();
-        public readonly GainMeter Gain = new(1, 12);
+        public readonly GainMeter Gain = new(2, 6);   // 左右2本の細いメーター＋1つのつまみ
         public readonly TextBlock GainText = new();
         public LevelBar Level => Gain.Bar;
         public readonly WaveView Wave = new();
@@ -50,6 +50,14 @@ public partial class DeviceList : UserControl
     public event Action? RefreshRequested;
 
     private void Refresh_Click(object sender, RoutedEventArgs e) => RefreshRequested?.Invoke();
+
+    /// <summary>下の行（デバイス再取得…）の左端に部品（「インジケーター(常時)」のチェック）を入れる。</summary>
+    public void AddFooterLeading(FrameworkElement element)
+    {
+        element.Margin = new Thickness(0, 0, 22, 0);
+        element.VerticalAlignment = VerticalAlignment.Center;
+        FooterRow.Children.Insert(0, element);
+    }
 
     /// <summary>ゲインが変わった（デバイスの順番, dB）。録音中も使える。</summary>
     public event Action<int, double>? GainChanged;
@@ -182,8 +190,8 @@ public partial class DeviceList : UserControl
         row.Lane.Height = 38;
         row.Lane.Margin = new Thickness(0, 0, 12, 0);
         row.Lane.ClipToBounds = true;
-        row.Lane.SetResourceReference(Border.BackgroundProperty, "LaneBg");
-        row.Lane.SetResourceReference(Border.BorderBrushProperty, "LaneBorder");
+        row.Lane.Background = MeterColors.WaveBg;   // 波形欄は、テーマに関係なく暗い背景（青い波形を見やすくする）
+        row.Lane.BorderBrush = MeterColors.WaveBorder;
         row.Lane.ToolTip = "このデバイスの波形（録音中、右から左へ流れます）";
         Grid.SetColumn(row.Lane, 2);
 
@@ -191,7 +199,7 @@ public partial class DeviceList : UserControl
         row.Gain.Maximum = Settings.MaxGainDb;
         row.Gain.Value = Math.Clamp(gainDb, Settings.MinGainDb, Settings.MaxGainDb);
         row.Gain.VerticalAlignment = VerticalAlignment.Center;
-        row.Gain.ToolTip = "メーター＝このデバイスの音量（ゲインを掛けたあと。白い線＝直近の最大値、右端の四角が赤＝クリップ）。縦長のつまみ＝ゲイン（左端＝ミュート、ダブルクリックで 0 dB。録音中も調整可能）";
+        row.Gain.ToolTip = "メーター＝このデバイスの音量（左右。ゲインを掛けたあと。白い線＝直近の最大値、右端の四角が赤＝クリップ）。縦長のつまみ＝ゲイン（左端＝ミュート、ダブルクリックで 0 dB。録音中も調整可能）";
         Grid.SetColumn(row.Gain, 3);
 
         row.GainText.Text = GainLabel(row.Gain.Value);
@@ -377,7 +385,7 @@ public partial class DeviceList : UserControl
         {
             r.Combo.IsEnabled = !recording;
             r.Use.IsEnabled = !recording;
-            if (!recording) r.Level.Reset();
+            if (!recording) r.Gain.Reset();
         }
         UpdateLayout2();
     }
@@ -409,12 +417,16 @@ public partial class DeviceList : UserControl
     }
 
     /// <summary>デバイスごとのピーク（上から順）を、行のメーターに出す。</summary>
-    public void SetLevels(float[] peaks)
+    public void SetLevels((float L, float R)[] peaks)
     {
         var active = Active();
-        foreach (var r in _rows.Where(r => !active.Contains(r))) r.Level.Reset();
+        foreach (var r in _rows.Where(r => !active.Contains(r))) r.Gain.Reset();
         for (int i = 0; i < active.Count; i++)
-            active[i].Level.Update(i < peaks.Length ? peaks[i] : 0f);
+        {
+            var (l, r) = i < peaks.Length ? peaks[i] : (0f, 0f);
+            active[i].Gain.Bars[0].Update(l);
+            active[i].Gain.Bars[1].Update(r);
+        }
     }
 
     /// <summary>全体ゲイン（dB）。</summary>
