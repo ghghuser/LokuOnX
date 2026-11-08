@@ -19,7 +19,7 @@ public partial class SettingsWindow : Window
 
     private static readonly ThemeChoice[] Themes =
     {
-        new("auto", "自動（Windowsに合わせる）"), new("light", "ライト"), new("dark", "ダーク"),
+        new("auto", "自動（Windowsに合わせる）"), new("light", "ライト"), new("dark", "ダーク"), new("soft", "ソフト（試作）"),
     };
 
     private readonly Settings _s;

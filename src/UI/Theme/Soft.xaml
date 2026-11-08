@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- ソフト（ニューモーフィズム風の試作。M9）: ライトをもとに、背景と同じ色のやわらかい面＋左上の白い光・右下の影で立体感を出す。
+         文字は濃い色のままで、コントラストは落とさない。色はここを書き換えて調整できます -->
+    <SolidColorBrush x:Key="WindowBg" Color="#E4E8EE"/>
+    <SolidColorBrush x:Key="WindowFg" Color="#1F2430"/>
+    <SolidColorBrush x:Key="NewFileFg" Color="#0D4FA8"/>
+    <SolidColorBrush x:Key="OldFileFg" Color="#3A404C"/>
+    <SolidColorBrush x:Key="MarkFg" Color="#5A6070"/>
+    <SolidColorBrush x:Key="CardBg" Color="#EDF0F5"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="LaneBg" Color="#D5DAE3"/>
+    <SolidColorBrush x:Key="LaneBorder" Color="#C5CBD6"/>
+    <SolidColorBrush x:Key="StartFg" Color="#1E5A36"/>
+    <SolidColorBrush x:Key="StopFg" Color="#1D4580"/>
+    <SolidColorBrush x:Key="RecDot" Color="#C94A86"/>
+    <SolidColorBrush x:Key="SectionFg" Color="#1A5FB4"/>
+    <SolidColorBrush x:Key="SectionBar" Color="#9DB9E0"/>
+    <SolidColorBrush x:Key="ScheduleOnFg" Color="#B34700"/>
+    <SolidColorBrush x:Key="ScheduleOnBg" Color="#FFD9B0"/>
+    <SolidColorBrush x:Key="GroupFg" Color="#7A5F00"/>
+    <SolidColorBrush x:Key="ToggleOn" Color="#E3B400"/>
+    <SolidColorBrush x:Key="ToggleOff" Color="#B4BAC5"/>
+    <SolidColorBrush x:Key="ToggleKnobOff" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="ToggleKnobOn" Color="#FFFFFF"/>
+    <!-- ボタンの面・光・影 -->
+    <SolidColorBrush x:Key="SoftFace" Color="#E4E8EE"/>
+    <SolidColorBrush x:Key="SoftFaceHover" Color="#EAEEF4"/>
+    <SolidColorBrush x:Key="SoftFacePressed" Color="#D8DDE6"/>
+    <SolidColorBrush x:Key="SoftDisabledFg" Color="#8A909C"/>
+    <Style TargetType="RadioButton">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.35"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

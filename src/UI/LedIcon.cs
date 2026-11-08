@@ -104,16 +104,19 @@ public static class LedIcon
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.Clear(System.Drawing.Color.Transparent);
             float c = size / 2f, r = size / 2f - 0.5f;
-            using var amber = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 255, 184, 28));
+            using var amber = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 226, 140, 0));
             g.FillEllipse(amber, c - r, c - r, r * 2, r * 2);
-            // 白い2本の縦棒。全体の幅・高さの偶奇をアイコンの大きさにそろえ、整数の位置に置いて中心からずらさない
+            // 白い2本の縦棒（濃い黄色の丸の上で見えるよう、濃い茶色の細い縁取りを付ける）。全体の幅・高さの偶奇をアイコンの大きさにそろえ、整数の位置に置いて中心からずらさない
             int bw = (int)Math.Round(size * 0.17f), gap = (int)Math.Round(size * 0.14f);
             if ((size - (2 * bw + gap)) % 2 != 0) gap++;
             int h = (int)Math.Round(size * 0.50f);
             if ((size - h) % 2 != 0) h++;
             int left = (size - (2 * bw + gap)) / 2, top = (size - h) / 2;
             using var white = new System.Drawing.SolidBrush(System.Drawing.Color.White);
+            using var edge = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 110, 60, 0));
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+            g.FillRectangle(edge, left - 1, top - 1, bw + 2, h + 2);
+            g.FillRectangle(edge, left + bw + gap - 1, top - 1, bw + 2, h + 2);
             g.FillRectangle(white, left, top, bw, h);
             g.FillRectangle(white, left + bw + gap, top, bw, h);
         }

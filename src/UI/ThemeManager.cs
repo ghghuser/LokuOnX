@@ -14,7 +14,7 @@ public static class ThemeManager
 {
     private static readonly List<ResourceDictionary> Current = new();
 
-    /// <summary>mode は "auto" / "light" / "dark"。</summary>
+    /// <summary>mode は "auto" / "light" / "dark" / "soft"（ニューモーフィズム風の試作。ライトの上に色とボタンを重ねる）。</summary>
     public static void Apply(string mode)
     {
         var dark = mode == "dark" || (mode == "auto" && SystemUsesDark());
@@ -22,7 +22,7 @@ public static class ThemeManager
         if (app == null) return;
         foreach (var d in Current) app.Resources.MergedDictionaries.Remove(d);
         Current.Clear();
-        foreach (var name in dark ? new[] { "Dark", "DarkControls", "DarkList" } : new[] { "Light" })
+        foreach (var name in dark ? new[] { "Dark", "DarkControls", "DarkList" } : mode == "soft" ? new[] { "Light", "Soft", "SoftControls" } : new[] { "Light" })
         {
             try
             {
