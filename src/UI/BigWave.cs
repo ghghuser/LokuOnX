@@ -16,14 +16,6 @@ public sealed class BigWave : FrameworkElement
     private readonly List<(float Min, float Max)> _cols = new();
     private DateTime _drawn = DateTime.MinValue;
 
-    /// <summary>全体波形の色（RGB 96,196,255）。個別の波形（WaveView）はこれより少し濃い色。</summary>
-    private static readonly Brush OverallBlue = Freeze(new SolidColorBrush(Color.FromRgb(96, 196, 255)));
-
-    private static Brush Freeze(Brush b)
-    {
-        b.Freeze();
-        return b;
-    }
 
     public BigWave() => Height = 86;
 
@@ -52,7 +44,7 @@ public sealed class BigWave : FrameworkElement
     {
         double w = ActualWidth, h = ActualHeight;
         if (w <= 4 || h <= 4) return;
-        dc.DrawRoundedRectangle(MeterColors.WaveBg, new Pen(MeterColors.WaveBorder, 1), new Rect(0.5, 0.5, w - 1, h - 1), 8, 8);
+        dc.DrawRoundedRectangle(TryFindResource("WaveBg") as Brush ?? Brushes.Black, new Pen(TryFindResource("WaveBorder") as Brush ?? Brushes.Gray, 1), new Rect(0.5, 0.5, w - 1, h - 1), 8, 8);
         double cy = h / 2, half = h / 2 - 4;
         var faint = new Pen(new SolidColorBrush(Color.FromArgb(0x28, 0x80, 0x80, 0x80)), 1);
         foreach (var a in new[] { 0.25, 0.5 })
@@ -83,7 +75,7 @@ public sealed class BigWave : FrameworkElement
         }
         blue.Freeze();
         red.Freeze();
-        dc.DrawGeometry(null, new Pen(OverallBlue, 1), blue);
+        dc.DrawGeometry(null, new Pen(MeterColors.WaveBlue, 1), blue);
         dc.DrawGeometry(null, new Pen(MeterColors.Red, 1), red);
     }
 }

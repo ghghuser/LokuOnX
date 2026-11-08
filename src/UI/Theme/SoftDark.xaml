@@ -9,6 +9,7 @@
     <SolidColorBrush x:Key="CardBg" Color="#2C3036"/>
     <SolidColorBrush x:Key="CardBorder" Color="#3A3F47"/>
     <SolidColorBrush x:Key="LaneBg" Color="#1E2126"/>
+    <SolidColorBrush x:Key="MeterBg" Color="#1A1D21"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#181A1E"/>
     <SolidColorBrush x:Key="PanelBorder" Color="#3A3F47"/>
     <SolidColorBrush x:Key="SoftFace" Color="#282B31"/>

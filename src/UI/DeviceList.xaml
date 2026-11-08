@@ -33,7 +33,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="1" Text="入力デバイス" ToolTip="PC内部音（🔊）・マイク（🎤）。最大4台を同時に録音できます（使う行だけデバイスを選んでください）"/>
             <TextBlock Grid.Column="2" Text="波形" Margin="2,0,0,0"/>
-            <ui:LevelScale Grid.Column="3" ToolTip="dB目盛り（-60〜0 dB）。メーター＝音量（左右）、縦長のつまみ＝ゲイン。録音中も調整できます。ダブルクリックで 0 dB"/>
+            <TextBlock Grid.Column="3" Text="レベル・ゲイン" ToolTip="メーター＝音量（左右。下の数字は dB）、縦長のつまみ＝ゲイン。録音中も調整できます。ダブルクリックで 0 dB"/>
         </Grid>
 
         <StackPanel Grid.Row="1">
@@ -42,7 +42,7 @@
 
         <!-- 下段（コンソールの底にそろえる） -->
         <StackPanel x:Name="FooterPanel" Grid.Row="3" Margin="0,4,0,0" VerticalAlignment="Bottom" TextElement.FontSize="12">
-            <StackPanel x:Name="FooterRow" Orientation="Horizontal">
+            <DockPanel x:Name="FooterRow" LastChildFill="False">
                 <Button x:Name="RefreshButton" Content="デバイス再取得" Padding="12,2" Margin="0,0,24,0"
                         ToolTip="接続されているデバイスの一覧を読み直します（3秒ごとの自動更新もあります）"
                         Click="Refresh_Click"/>
@@ -52,7 +52,7 @@
                              Margin="0,0,16,0" VerticalAlignment="Center" Checked="Mode_Checked"/>
                 <RadioButton x:Name="SeparateRadio" Content="デバイスごとに別ファイル" GroupName="DeviceMode"
                              VerticalAlignment="Center" Checked="Mode_Checked"/>
-            </StackPanel>
+            </DockPanel>
         </StackPanel>
         <TextBlock x:Name="ErrorText" Grid.Row="4" Foreground="#D33" TextWrapping="Wrap" Visibility="Collapsed"
                    Margin="0,6,0,0"/>

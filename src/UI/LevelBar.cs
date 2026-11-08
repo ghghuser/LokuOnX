@@ -9,9 +9,8 @@ public static class MeterColors
     public static readonly Brush Green = Frozen(new SolidColorBrush(Color.FromRgb(0x3D, 0xCB, 0x5C)));
     public static readonly Brush Red = Frozen(new SolidColorBrush(Color.FromRgb(0xE0, 0x3C, 0x3C)));
     public static readonly Brush Blue = Frozen(new SolidColorBrush(Color.FromRgb(0x7D, 0xCB, 0xFF)));   // 波形（明るめの青）
-    /// <summary>波形欄の背景と枠（暗い青みの色。全体波形・個別波形で共通）。</summary>
-    public static readonly Brush WaveBg = Frozen(new SolidColorBrush(Color.FromRgb(0x15, 0x1A, 0x24)));
-    public static readonly Brush WaveBorder = Frozen(new SolidColorBrush(Color.FromRgb(0x2B, 0x33, 0x44)));
+    /// <summary>波形の色（RGB 96,196,255）。全体波形・個別波形で共通。</summary>
+    public static readonly Brush WaveBlue = Frozen(new SolidColorBrush(Color.FromRgb(96, 196, 255)));
     public static readonly Brush Yellow = Frozen(new SolidColorBrush(Color.FromRgb(0xF2, 0xC9, 0x4C)));
     /// <summary>ミュート中の色（ゲインの数値・スライダー・メーター）。</summary>
     public static readonly Brush Muted = Frozen(new SolidColorBrush(Color.FromRgb(0xE5, 0x6B, 0x4A)));
@@ -107,7 +106,7 @@ public sealed class LevelBar : FrameworkElement
         if (w <= ClipWidth + Gap || h <= 0) return;
         double barW = w - ClipWidth - Gap;
         double r = Math.Min(Radius, h / 2);
-        dc.DrawRoundedRectangle(_muted ? MeterColors.MutedBg : (TryFindResource("LaneBg") as Brush ?? Back), null, new Rect(0, 0, barW, h), r, r);
+        dc.DrawRoundedRectangle(_muted ? MeterColors.MutedBg : ((TryFindResource("MeterBg") ?? TryFindResource("LaneBg")) as Brush ?? Back), null, new Rect(0, 0, barW, h), r, r);
         if (!_muted && _level > 0.001)
         {
             // 棒の角は丸めたまま、中を 緑・黄・赤 の帯で塗り分ける

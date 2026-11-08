@@ -26,6 +26,11 @@
     <SolidColorBrush x:Key="CardBorder" Color="#3A3D42"/>
     <SolidColorBrush x:Key="LaneBg" Color="#40000000"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#34373C"/>
+    <SolidColorBrush x:Key="MeterBg" Color="#4A000000"/>
+    <!-- 波形欄: 使うデバイスの行（WaveBg）は少し明るく、使わない行（WaveBgOff）は少し暗く -->
+    <SolidColorBrush x:Key="WaveBg" Color="#151A24"/>
+    <SolidColorBrush x:Key="WaveBgOff" Color="#10141C"/>
+    <SolidColorBrush x:Key="WaveBorder" Color="#2B3344"/>
     <!-- 録音ボタンの文字色（白にうっすら緑／青）と、録音中の●の色（赤紫） -->
     <SolidColorBrush x:Key="StartFg" Color="#E3F3E8"/>
     <SolidColorBrush x:Key="StopFg" Color="#DEE8FA"/>

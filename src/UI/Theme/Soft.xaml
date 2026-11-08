@@ -10,6 +10,11 @@
     <SolidColorBrush x:Key="CardBg" Color="#EDF0F5"/>
     <SolidColorBrush x:Key="CardBorder" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="LaneBg" Color="#DDE2EA"/>
+    <SolidColorBrush x:Key="MeterBg" Color="#D5DAE3"/>
+    <!-- ニューモーフィズム・ライトの波形欄は、暗い背景 -->
+    <SolidColorBrush x:Key="WaveBg" Color="#151A24"/>
+    <SolidColorBrush x:Key="WaveBgOff" Color="#10141C"/>
+    <SolidColorBrush x:Key="WaveBorder" Color="#2B3344"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#C5CBD6"/>
     <SolidColorBrush x:Key="StartFg" Color="#1E5A36"/>
     <SolidColorBrush x:Key="StopFg" Color="#1D4580"/>

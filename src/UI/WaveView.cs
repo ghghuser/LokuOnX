@@ -13,7 +13,7 @@ public sealed class WaveView : FrameworkElement
     private const int ColumnWidth = 1;
     private const int MaxColumns = 3000;
 
-    private static readonly Brush Green = Freeze(new SolidColorBrush(Color.FromRgb(70, 168, 238)));   // 波形は青（クリップだけ赤）。全体波形（96,196,255）より少し濃く
+    private static readonly Brush Green = MeterColors.WaveBlue;   // 波形は青（96,196,255。全体波形と同じ。クリップだけ赤）
     private static readonly Brush Red = MeterColors.Red;
     private static readonly Brush Line = Freeze(new SolidColorBrush(Color.FromArgb(0x50, 0x80, 0x80, 0x80)));
     private static readonly Pen GreenPen = FreezePen(new Pen(Green, ColumnWidth));
