@@ -6,12 +6,19 @@
         <Grid Margin="3">
             <Border x:Name="Light" CornerRadius="8" Background="{DynamicResource SoftFace}">
                 <Border.Effect>
-                    <DropShadowEffect Color="#454A54" Direction="135" ShadowDepth="3" BlurRadius="7" Opacity="0.9"/>
+                    <DropShadowEffect Color="#4A505B" Direction="135" ShadowDepth="2.5" BlurRadius="8" Opacity="0.55"/>
                 </Border.Effect>
             </Border>
-            <Border x:Name="Face" CornerRadius="8" Background="{DynamicResource SoftFace}" Padding="{TemplateBinding Padding}">
+            <Border x:Name="Face" CornerRadius="8" Background="{DynamicResource SoftFace}" Padding="{TemplateBinding Padding}" BorderThickness="1">
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#40FFFFFF" Offset="0"/>
+                        <GradientStop Color="#10FFFFFF" Offset="0.5"/>
+                        <GradientStop Color="#30000000" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
                 <Border.Effect>
-                    <DropShadowEffect Color="#0C0D0F" Direction="315" ShadowDepth="3" BlurRadius="7" Opacity="0.85"/>
+                    <DropShadowEffect Color="#16181C" Direction="315" ShadowDepth="2.5" BlurRadius="8" Opacity="0.5"/>
                 </Border.Effect>
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>

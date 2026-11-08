@@ -53,6 +53,12 @@
                     <Grid Background="Transparent" Width="20" Height="20" SnapsToDevicePixels="True">
                         <Ellipse x:Name="Lamp" Width="14" Height="14" StrokeThickness="1.5"
                                  Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
+                        <Ellipse x:Name="Ring" Width="14" Height="14" StrokeThickness="1.5" Stroke="{DynamicResource LampOn}"
+                                 Fill="Transparent" Visibility="Collapsed">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#34D96B" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
@@ -70,6 +76,16 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>
                         </Trigger>
+                        <!-- 録音中などで変更できないとき: 全体は薄くなるが、ON のランプは縁だけ緑に光らせて「使っている」と分かるようにする -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEnabled" Value="False"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Opacity" Value="1"/>
+                            <Setter TargetName="Lamp" Property="Opacity" Value="0.5"/>
+                            <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                        </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
