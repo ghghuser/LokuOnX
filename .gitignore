@@ -7,3 +7,4 @@ dist/
 *.suo
 settings.ini
 ffmpeg/
+lokuonx-crash.log

@@ -3,6 +3,11 @@ name: build
 on:
   push:
     branches: [main]
+    # 文書だけの変更（PROJECT.md・docs・txt）ではビルドしない（成果物の入れ替わりと時間の節約）。タグ(v*)の push には適用されない
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.txt'
     tags: ['v*']
   workflow_dispatch:
 

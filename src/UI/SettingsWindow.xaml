@@ -83,6 +83,9 @@
                     <TextBlock TextAlignment="Center" Margin="0,0,0,14">
                         <Hyperlink x:Name="GitHubLink" NavigateUri="https://github.com/ghghuser/LokuOnX" RequestNavigate="Link_Navigate">GitHub のリポジトリ</Hyperlink>
                     </TextBlock>
+                    <TextBlock TextAlignment="Center" Margin="0,0,0,14">
+                        <Hyperlink x:Name="FolderLink" Click="OpenFolder_Click">設定ファイル・ログのフォルダを開く</Hyperlink>
+                    </TextBlock>
                 </StackPanel>
             </TabItem>
         </TabControl>

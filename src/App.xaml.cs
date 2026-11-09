@@ -7,15 +7,27 @@ namespace Recorder;
 
 public partial class App : Application
 {
+    private bool _errorDialogOpen;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        // 想定外のエラーは lokuonx-crash.log に記録する。画面の処理の例外は握りつぶして、録音（別スレッド）は続ける
         DispatcherUnhandledException += (_, args) =>
         {
-            MessageBox.Show("予期しないエラーが発生しました。\n" + args.Exception.Message,
-                AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
+            CrashLog.Write("UI: " + args.Exception);
             args.Handled = true;
+            if (_errorDialogOpen) return;   // タイマーなどで同じ例外が続いても、ダイアログを重ねない
+            _errorDialogOpen = true;
+            try
+            {
+                MessageBox.Show($"予期しないエラーが発生しました。録音は続行されています。\n{args.Exception.Message}\n\n詳細は {CrashLog.FileName} に記録しました。",
+                    AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally { _errorDialogOpen = false; }
         };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) => CrashLog.Write("AppDomain: " + args.ExceptionObject);
+        TaskScheduler.UnobservedTaskException += (_, args) => { CrashLog.Write("Task: " + args.Exception); args.SetObserved(); };
 
         // メイン画面の入力欄は、Enter で確定する（欄から離れたときと同じ処理が走る）
         EventManager.RegisterClassHandler(typeof(TextBox), UIElement.PreviewKeyDownEvent, new KeyEventHandler(OnTextBoxKeyDown));
