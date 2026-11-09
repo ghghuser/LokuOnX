@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Recorder.Core;
 
-/// <summary>単純な ini（[セクション] と キー=値）の読み書き。UTF-8。保存は一時ファイル→置換で破損を防ぐ（PROJECT.md §5-15）。</summary>
+/// <summary>単純な ini（[セクション] と キー=値）の読み書き。UTF-8。保存は一時ファイル→置換で破損を防ぎ、直前の内容は .bak に残す（読めなければ .bak から読む。PROJECT.md §5-15）。</summary>
 public sealed class IniFile
 {
     private readonly string _path;
@@ -16,10 +16,17 @@ public sealed class IniFile
         _path = path;
         if (!File.Exists(path)) return;
         Existed = true;
+        Load(path);
+        // 空・壊れていて1項目も読めなかったときは、直前の保存（.bak）から読む（次の保存で ini が作り直される）
+        if (_values.Count == 0 && File.Exists(path + ".bak")) Load(path + ".bak");
+    }
+
+    private void Load(string file)
+    {
         try
         {
             string section = "";
-            foreach (var raw in File.ReadAllLines(path, Encoding.UTF8))
+            foreach (var raw in File.ReadAllLines(file, Encoding.UTF8))
             {
                 var line = raw.Trim();
                 if (line.Length == 0 || line[0] == ';' || line[0] == '#') continue;
@@ -70,6 +77,9 @@ public sealed class IniFile
         }
         var tmp = _path + ".tmp";
         File.WriteAllText(tmp, sb.ToString(), new UTF8Encoding(false));
+        // 置き換える前の ini を .bak に残す（空のものは残さない＝良い控えを上書きしない）。失敗しても保存は続ける
+        try { if (new FileInfo(_path) is { Exists: true, Length: > 0 }) File.Copy(_path, _path + ".bak", true); }
+        catch (Exception) { }
         File.Move(tmp, _path, overwrite: true);
     }
 }

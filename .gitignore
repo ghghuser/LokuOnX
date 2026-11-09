@@ -8,3 +8,4 @@ dist/
 settings.ini
 ffmpeg/
 lokuonx-crash.log
+settings.ini.bak
