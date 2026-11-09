@@ -101,8 +101,8 @@ LokuOnX M11「出力とエフェクト」 完成予定の仕様 ＋ 現在の内
 [M11への影響]
  ・DeviceStream.Push は ApplyGainAndPeak の直後が「エフェクトを掛ける位置」(「録音に反映」用。ピーク・無音判定のDryは掛ける前に測る)。録音のスレッド・ロックの中なので軽く作る。
  ・MixedSource の0.2秒遅れ・壁時計方式は出力には使えない(遅延が大きい)。出力は出力デバイスのコールバックで引く方式(LokuOnの OutputRenderer)が必要。
- ・LokuOnXは既に「待機・入力チェック」で録音外にデバイスを開く(LevelMonitor)。出力はこれとも独立させる(A1)と安全。
- ・ASIOは専有・1行のみ。出力の入力には使わない(A1)。
+ ・LokuOnXは既に「待機・入力チェック」で録音外にデバイスを開く(LevelMonitor)。A2では入力の持ち主を1つにまとめ、録音・待機・出力が同じ入力を共有する(開き直さない)。
+ ・ASIOは専有・1行のみ。A2ではASIOの入力も出力に送れる(タップ方式)。
  ・UIの追加場所: ⚙の左に🔊、DeviceListの各行にFXとメーターのダブルクリック、トレイの状態表示。ホットキー・予約・分割は録音側のまま。
  ・Linux移植の規則(Coreは WPF/Windows API に依存しない)を守る: OutputDevice と WASAPI出力は Core/Win に置く。
 [ビルド] GitHub Actions(windows-latest)。Linuxでは Core のみビルド・テスト可(WPFは不可)。docs/・*.md・*.txt だけの変更ではビルドしない。成果物は直近2件。
