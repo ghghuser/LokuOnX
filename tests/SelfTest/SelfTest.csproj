@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 自己テスト（Linux/Windowsどちらでも動く。PROJECT.md §6-3: Core の純粋ロジックだけを対象にする）。
+       dotnet run --project tests/SelfTest -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Recorder.SelfTest</RootNamespace>
+  </PropertyGroup>
+
+  <!-- テスト対象は src/Core の純粋ロジックをリンクで取り込む（WPF のプロジェクトは参照できないため）。対象が増えたらここへ足す -->
+  <ItemGroup>
+    <Compile Include="..\..\src\Core\EffectSetting.cs" Link="Core\EffectSetting.cs" />
+    <Compile Include="..\..\src\Core\EffectChain.cs" Link="Core\EffectChain.cs" />
+    <Compile Include="..\..\src\Core\EqMath.cs" Link="Core\EqMath.cs" />
+    <Compile Include="..\..\src\Core\OutputFxSetting.cs" Link="Core\OutputFxSetting.cs" />
+    <Compile Include="..\..\src\Core\OutputFxChain.cs" Link="Core\OutputFxChain.cs" />
+    <Compile Include="..\..\src\Core\Routing.cs" Link="Core\Routing.cs" />
+    <Compile Include="..\..\src\Core\SourceBuffer.cs" Link="Core\SourceBuffer.cs" />
+    <Compile Include="..\..\src\Core\TrimResampler.cs" Link="Core\TrimResampler.cs" />
+  </ItemGroup>
+
+</Project>

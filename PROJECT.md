@@ -112,6 +112,7 @@
 ├─ src/                  ← コードはすべてここ（LokuOnX.csproj、App.xaml、Core/、UI/ ほか）
 ├─ assets/
 │   └─ icon/LokuOnX.ico      ← アプリアイコン（ここ。差し替えるときは同名で上書き）
+├─ tests/SelfTest/      ← 自己テスト（Coreの純粋ロジック。Actionsの test ジョブで実行。M11-1で追加）
 ├─ PROJECT.md
 └─ .gitignore
 ```
@@ -211,13 +212,15 @@ LokuOnX/
 §2、§3、§4、§5の対策方針。アプリ名は **LokuOnX（仮）**、表示名は `AppInfo.Name` の1か所で管理、名前空間は `Recorder` のまま（改名で全ファイルを触らないため）。UIは日本語（Yu Gothic UI、なければ Meiryo UI）。
 
 ## 11. 現在の状態（毎回更新する）
-- 状態: **M10 完了（2026-11-09。LokuOnとのすり合わせのみ。下の「M10の結果」）。次は新規チャットで「今回はM11」（11-1：土台）**。M9 完了（確認は全項目OK）。M9で入れたもの＝トレイアイコン調整、ニューモーフィズム・ライト／ダーク、角丸タブ・ライトのプルダウン／ボタン・青系アクセント、README、ゲインとレベルの融合メーター（個別はL/R・全体はL/R＋1つのつまみ、すべてdB目盛り付き）、全体波形、録音・一時停止・分割を同じ行、インジケーター(常時)。ビルド確認は Actions の結果で行う（この環境には dotnet が無い）。**次は新規チャットで「今回はM10」**（ユーザーが微調整を指示。波形の細かさの情報もここ。M11＝出力とエフェクトに関する情報が含まれる見込みなので念頭に置く）。M12＝長時間テスト・ASIO実機確認・保留の確認（録音中にデバイスを抜く／抜き差し）・総点検。明るいタスクバーでの一時停止アイコンの見え方は未確認（保留）。（以下は以前の状態の記録）
+- 状態: **M11 進行中（2026-11-09 開始。M10の最終確認2項目は問題なし）。11-1（土台）を実装してpush済み＝Actionsの test ジョブとビルドの結果待ち。次は新規チャットで「今回はM11（11-2）」**。（以下は M10 完了時の状態の記録）
+- 状態（M10完了時）: **M10 完了（2026-11-09。LokuOnとのすり合わせのみ。下の「M10の結果」）。次は新規チャットで「今回はM11」（11-1：土台）**。M9 完了（確認は全項目OK）。M9で入れたもの＝トレイアイコン調整、ニューモーフィズム・ライト／ダーク、角丸タブ・ライトのプルダウン／ボタン・青系アクセント、README、ゲインとレベルの融合メーター（個別はL/R・全体はL/R＋1つのつまみ、すべてdB目盛り付き）、全体波形、録音・一時停止・分割を同じ行、インジケーター(常時)。ビルド確認は Actions の結果で行う（この環境には dotnet が無い）。**次は新規チャットで「今回はM10」**（ユーザーが微調整を指示。波形の細かさの情報もここ。M11＝出力とエフェクトに関する情報が含まれる見込みなので念頭に置く）。M12＝長時間テスト・ASIO実機確認・保留の確認（録音中にデバイスを抜く／抜き差し）・総点検。明るいタスクバーでの一時停止アイコンの見え方は未確認（保留）。（以下は以前の状態の記録）
 - **M11の計画（2026-11-09。M10で準備。未実装）**: 詳細は `LokuOnX-M11-spec.txt`（完成予定の仕様＋現在の内部仕様）。
   - 元: 別リポジトリ **ghghuser/LokuOn**（公開。Core=`LokuOn.Core`、段階1〜6実装済み・自己テスト310件。docs/ に DECISIONS-summary・SPEC-output-routing・SUMMARY-additions・INVESTIGATION-vst・SPEC-waveform）。LokuOnXには出力・エフェクトは未実装。
   - 内容: 出力デバイス最大4（出力ウィンドウ＝カード、⚙の左の🔊）、入力ごとのエフェクト（ゲート→ローカット→10バンドEQ→4バンドパラメトリック→エコー→リバーブ）と「録音に反映／出力に反映」、出力ごとのエフェクト（ローカット・EQ・リミッター）、入力・出力の名前、プリセット対応（旧プリセット互換）。VSTは保留、簡単モニターは再検討候補（M11では作らない）。
   - 取り込み: MixBus・EffectChain・OutputFx はほぼそのまま移せる（名前空間 Recorder.Core）。OutputRenderer・OutputDevice・SourceBuffer・Trim付きリサンプラ（LokuOnXの `StreamResampler` とは別物→別名で）は手を入れて移す。画面はLokuOnXのテーマに合わせて作り直す。自己テスト（tests/）を新設しActionsで実行。
   - 進め方（推奨）: 11-1 土台（Core移植＋自己テスト）→ 11-2 出力1台＋時計ズレ補正 → 11-3 複数出力・ウィンドウ・入力名・トレイ → 11-4 入力エフェクト（録音経路に触れる唯一の段階。`DeviceStream.Push` の `ApplyGainAndPeak` 直後）→ 11-5 出力エフェクト。
   - **決定（M10でユーザー回答）**: A＝**A2**（LokuOnと同じ。入力を開いたままにして出力用のタップを取る。ASIOも出力可。録音の開始・終了で入力を開き直さない仕組みが必要＝LokuOnの SourceReuse 相当）／B 入力名のラベルは小さく各入力デバイスのプルダウンの上／C 簡単モニターは作らない／D 別ファイル録音時のFXは推奨案どおり／E プリセット適用時は出力を止める（将来「止めない」オプションを足すかもしれない）／波形は今のまま。仕様は `docs/M11-spec.txt`。
+- **M11-1で入れたもの（2026-11-09）**: 画面・録音は一切変えていない（既存コードは未変更）。①`src/Core/` にLokuOnのCoreを移植（名前空間 `Recorder.Core`、中身はLokuOn段階1〜6のまま）: `EffectSetting.cs`・`EffectChain.cs`・`EqMath.cs`（`ParamBand`/`EqBands`/`EqMath`）＝入力ごとのエフェクト、`OutputFxSetting.cs`・`OutputFxChain.cs`（`Limiter` 含む）＝出力ごとのエフェクト、`Routing.cs`（`MixBus`/`MixStats`）、`SourceBuffer.cs`（タップ付きバッファ。`AddTap`/`RemoveTap`/`Push`/`Read`/`DiscardTo`）、`TrimResampler.cs`（LokuOnの `StreamResampler`。`Trim` で±の時計ずれ補正。LokuOnXの既存 `StreamResampler`＝録音側とは別物なので別名）。どれもWPF・Windows APIに依存しない（§6-3）。名前の衝突は無いことを確認済み。②`tests/SelfTest/`（コンソール、net8.0。`SelfTest.csproj` が src/Core の上記ファイルをリンクで取り込む。対象が増えたら csproj の `Compile` を足す）: LokuOnから移した `RoutingTests`（ミックスが従来計算とビット一致）・`EffectTests`・`GateTests`・`OutputFxTests`（設定の保存・プリセット・`OutputRenderer` 組み込みの確認は、その部品が入る段階でテストごと戻す）と、新規 `BufferTests`（SourceBuffer・TrimResampler）。`dotnet run --project tests/SelfTest` で実行、失敗があれば終了コード1。③`.github/workflows/build.yml` に `test` ジョブ（ubuntu-latest）を追加し、`build` は `needs: test`（テストが落ちたらビルド・配布へ進まない）。④この環境には dotnet が無く、**ビルドもテストも未実行**（Actionsの結果が最初の確認）。⑤次の段階（11-2）で必要になる部品（未移植）: `OutputRenderer`・`OutputDevice`（Core/Win）・入力の持ち主を1つにまとめる仕組み（A2。LokuOnの `SourceReuse` 相当）・LokuOnの `OutputTests`/`ReuseTests`。
 - **M10の結果（2026-11-09。LokuOnとのすり合わせのみ）**: ①エラーの記録 `Core/CrashLog.cs`（`lokuonx-crash.log`をexeの隣、書けなければ %LocalAppData%\LokuOnX。1MB超で古い半分を捨てる）。`App` で UI・AppDomain・未観測Taskの例外を記録、エラーのダイアログは重ねない（タイマー等で同じ例外が続いても1つだけ）、録音は続行 ②設定ウィンドウ「バージョン情報」に「設定ファイル・ログのフォルダを開く」リンク ③build.yml: 文書だけの変更（docs/・*.md・*.txt）ではビルドしない（タグは対象外）④.gitignoreに crash.log ⑤`docs/M11-spec.txt` を追加 ⑥`settings.ini.bak`（保存の直前のiniを残す。空のiniでは上書きしない。iniが空・壊れて1項目も読めないときは.bakから読む。`Core/IniFile.cs`）。**最適化は、安全に効くものが見つからなかったので入れていない**（メーター・トレイ・一覧の更新はすでに「同じ値なら何もしない」、最小化中の描画省略もあり）。LokuOnXの方が優れている点（LokuOn側へ戻す候補）: FFmpeg取得の再試行（各URL最大5回）、エンコーダー検査の厳密さ（ZIPのReleases添付は両方にある）。LokuOn由来で見送った点: 録音ジャーナルによる復旧名の復元（§3-1で復旧名は固定と決定済み）、プロジェクトの3分割（LokuOnXは1プロジェクト＋Core/の規則で足りる）、WSOLA自作の速度変更（atempo採用済み）。実機確認が必要: 設定ウィンドウのリンク（クリックでエクスプローラーが開く）。
 - 初版の指摘（M0で対応済み）: ZIPの二重化／直下ファイルが多い／言語フォルダが多い／リポジトリ直下が多い。M1で対応: スピーカー（ループバック）が出ない／現在設定が折りたたみで見えない／別フォルダのexeでも多重起動扱い。
 - M0（完了）: 単一ファイル発行で動作確認済み（`app/` 方式は不要）。FFmpegのURLは n8.1 → 404 なら master へ自動切替。Releases の ZIP 添付は**未確認**（タグ `v*` を作ると `LokuOnX-win-x64.zip` が添付される設計。初回Release作成時に確認）。

@@ -1,0 +1,111 @@
+namespace Recorder.Core;
+
+/// <summary>
+/// ストリーム用のサンプルレート変換(窓関数付きsinc補間)。
+/// 入力を少しずつ渡して Process を呼ぶと、変換済みの出力が得られる。
+/// </summary>
+public sealed class TrimResampler
+{
+    private const int Oversample = 512;
+    private const int ZeroCrossings = 16;
+
+    private readonly int channels;
+    private readonly double step;           // 出力1サンプルあたりの入力位置の進み
+    private readonly int halfWidth;         // 片側のタップ数(入力サンプル単位)
+    private readonly float[] table;         // カーネルの表(0..halfWidth)
+    private readonly double tableScale;
+    private readonly float[] weights;       // 出力1フレーム分のタップの重み(全チャンネルで共通なので1回だけ計算する)
+
+    private float[] buf = new float[0];     // 入力フレームのバッファ(インターリーブ)
+    private int bufFrames;
+    private long baseIndex;                 // buf[0] の絶対入力フレーム番号
+    private double pos;                     // 次に出力するサンプルの絶対入力位置
+
+    public bool IsPassThrough { get; }
+
+    /// <summary>変換比の微調整(0=そのまま、+0.001=入力を0.1%速く消費する)。デバイスどうしのクロックのずれの補正に使う。</summary>
+    public double Trim { get; set; }
+
+    /// <param name="allowTrim">true のとき、同じレートでも素通しにせず Trim が効くようにする。</param>
+    public TrimResampler(int inRate, int outRate, int channels, bool allowTrim = false)
+    {
+        this.channels = channels;
+        IsPassThrough = inRate == outRate && !allowTrim;
+        step = (double)inRate / outRate;
+        double cutoff = 0.5 * Math.Min(1.0, (double)outRate / inRate) * 0.97;   // 入力サンプル間隔あたりのカットオフ
+        halfWidth = (int)Math.Ceiling(ZeroCrossings / (2 * cutoff));
+        tableScale = Oversample;
+        table = new float[halfWidth * Oversample + 2];
+        for (int i = 0; i < table.Length; i++)
+        {
+            double t = (double)i / Oversample;
+            double x = 2 * cutoff * t;
+            double sinc = t == 0 ? 1.0 : Math.Sin(Math.PI * x) / (Math.PI * x);
+            double w = t >= halfWidth ? 0 : 0.42 + 0.5 * Math.Cos(Math.PI * t / halfWidth) + 0.08 * Math.Cos(2 * Math.PI * t / halfWidth);
+            table[i] = (float)(2 * cutoff * sinc * w);
+        }
+        weights = new float[halfWidth * 2];
+        // 最初の入力の前は無音として扱う
+        baseIndex = -halfWidth;
+        buf = new float[(halfWidth + 4096) * channels];
+        bufFrames = halfWidth;
+    }
+
+    /// <summary>input(インターリーブ)を渡し、変換結果を output に追加して返す。</summary>
+    public void Process(float[] input, int inputFrames, List<float> output)
+    {
+        if (IsPassThrough)
+        {
+            for (int i = 0; i < inputFrames * channels; i++) output.Add(input[i]);
+            return;
+        }
+        int need = (bufFrames + inputFrames) * channels;
+        if (buf.Length < need) Array.Resize(ref buf, Math.Max(need, buf.Length * 2));
+        Array.Copy(input, 0, buf, bufFrames * channels, inputFrames * channels);
+        bufFrames += inputFrames;
+
+        long endIndex = baseIndex + bufFrames;   // 絶対位置で endIndex 未満のフレームが使える
+        double curStep = step * (1.0 + Trim);
+        while (true)
+        {
+            long i0 = (long)Math.Floor(pos);
+            if (i0 + halfWidth >= endIndex) break;
+            double frac = pos - i0;
+
+            // 重みは位置(frac)だけで決まりチャンネルに依存しないので、フレームごとに1回だけ求める。
+            // (k は -halfWidth+1 〜 halfWidth。通常は表の範囲外にならないが、念のため従来どおり範囲外は重み0にする)
+            for (int t = 0; t < weights.Length; t++)
+            {
+                int k = t - halfWidth + 1;
+                double ti = Math.Abs(k - frac) * tableScale;
+                int ii = (int)ti;
+                weights[t] = ii >= table.Length - 1 ? 0f : table[ii] + (table[ii + 1] - table[ii]) * (float)(ti - ii);
+            }
+
+            int first = (int)(i0 - halfWidth + 1 - baseIndex) * channels;
+            for (int ch = 0; ch < channels; ch++)
+            {
+                double sum = 0;
+                int idx = first + ch;
+                for (int t = 0; t < weights.Length; t++)
+                {
+                    sum += buf[idx] * weights[t];
+                    idx += channels;
+                }
+                output.Add((float)sum);
+            }
+            pos += curStep;
+        }
+
+        // 不要になった過去分を捨てる
+        long keepFrom = (long)Math.Floor(pos) - halfWidth;
+        int drop = (int)(keepFrom - baseIndex);
+        if (drop > 0)
+        {
+            int remain = bufFrames - drop;
+            Array.Copy(buf, drop * channels, buf, 0, remain * channels);
+            bufFrames = remain;
+            baseIndex += drop;
+        }
+    }
+}

@@ -21,7 +21,21 @@ env:
   FFMPEG_URL_FALLBACK: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip
 
 jobs:
+  # Core の純粋ロジックの自己テスト（tests/SelfTest）。落ちたらビルド・配布へ進まない
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Self test
+        run: dotnet run --project tests/SelfTest -c Release
+
   build:
+    needs: test
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
