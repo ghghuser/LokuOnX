@@ -18,6 +18,8 @@
     <Compile Include="..\..\src\Core\EqMath.cs" Link="Core\EqMath.cs" />
     <Compile Include="..\..\src\Core\OutputFxSetting.cs" Link="Core\OutputFxSetting.cs" />
     <Compile Include="..\..\src\Core\OutputFxChain.cs" Link="Core\OutputFxChain.cs" />
+    <Compile Include="..\..\src\Core\IniFile.cs" Link="Core\IniFile.cs" />
+    <Compile Include="..\..\src\Core\IniSection.cs" Link="Core\IniSection.cs" />
     <Compile Include="..\..\src\Core\Routing.cs" Link="Core\Routing.cs" />
     <Compile Include="..\..\src\Core\SourceBuffer.cs" Link="Core\SourceBuffer.cs" />
     <Compile Include="..\..\src\Core\TrimResampler.cs" Link="Core\TrimResampler.cs" />

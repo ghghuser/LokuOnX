@@ -15,6 +15,7 @@ EffectTests.Run(new CheckFn(Check), Section);
 OutputFxTests.Run(new CheckFn(Check), Section);
 GateTests.Run(new CheckFn(Check), Section);
 BufferTests.Run(new CheckFn(Check), Section);
+IniTests.Run(new CheckFn(Check), Section);
 
 Console.WriteLine($"\n結果: {passes} 件成功 / {fails} 件失敗");
 return fails == 0 ? 0 : 1;
