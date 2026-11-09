@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- 自己テスト（Linux/Windowsどちらでも動く。PROJECT.md §6-3: Core の純粋ロジックだけを対象にする）。
-       dotnet run --project tests/SelfTest -->
+       実行は dotnet run のあとに project オプションで tests/SelfTest を指定 -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
