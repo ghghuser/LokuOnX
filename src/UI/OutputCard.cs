@@ -20,6 +20,12 @@ public interface IOutputHost
     /// <summary>index 番目の設定を差し替える（エンジンへ即反映し、設定ファイルへは少し遅れて保存する）。</summary>
     void Update(int index, OutputConfig config);
 
+    /// <summary>入力の名前を変える（メイン画面の入力欄にも反映される。空＝既定の「入力N」）。</summary>
+    void RenameInput(int slot, string name);
+
+    /// <summary>この出力先は、いま選んでいる入力の「🔊 ○○」（PC内部音）と同じデバイスか（音が回るので使えない）。</summary>
+    bool IsLoopOutput(string id);
+
     bool AddOutput();
 
     void RemoveOutput(int index);
@@ -52,6 +58,7 @@ public sealed class OutputCard : Border
     private readonly Expander _inputs = new();
     private bool _loading = true;
     private string _inputSig = "\0";
+    private int _slotCount;
 
     private OutputEngine Engine => _host.Hub[_index];
     private OutputConfig Cfg => _host.Configs[_index];
@@ -106,8 +113,9 @@ public sealed class OutputCard : Border
         dev.Children.Add(new TextBlock { Text = "出力先", Width = 52, VerticalAlignment = VerticalAlignment.Center });
         _device.ItemTemplate = deviceTemplate;
         _device.IsEnabled = false;
-        _device.ToolTip = "音を送る再生デバイス。「入力のPC内部音（🔊）」と同じデバイスは、音が回ってしまうので使えません（赤文字で知らせます）";
+        _device.ToolTip = "音を送る再生デバイス。「入力のPC内部音（🔊）」と同じデバイスは、音が回ってしまうので使えません（一覧で赤文字になります。選ぶことはできますが、出力は始まらず理由が出ます）";
         _device.SelectionChanged += (_, _) => OnDeviceChanged();
+        _device.DropDownOpened += (_, _) => UpdateLoopWarnings();
         dev.Children.Add(_device);
         root.Children.Add(dev);
 
@@ -130,7 +138,7 @@ public sealed class OutputCard : Border
         root.Children.Add(_meter);
 
         // 入力ごとの送り
-        _inputs.Header = "入力（送り）";
+        _inputs.Header = "入力（送り）";   // 畳んだときも分かるよう、オンの数を後ろに付ける（ShowInputsHeader）
         _inputs.FontSize = 12;
         _inputs.Margin = new Thickness(0, 10, 0, 0);
         _inputs.IsExpanded = !_host.Folded(_index);
@@ -224,7 +232,15 @@ public sealed class OutputCard : Border
         _device.SelectedItem = items.FirstOrDefault(d => d.Id == saved) ?? None;
         _device.IsEnabled = true;
         _loading = false;
+        UpdateLoopWarnings();
         ShowState();
+    }
+
+    /// <summary>プルダウンのうち、いまの入力と組み合わせると音が回る出力先を赤文字にする（選ぶこと自体はできる）。</summary>
+    private void UpdateLoopWarnings()
+    {
+        if (_device.ItemsSource is not IEnumerable<OutputDeviceInfo> items) return;
+        _device.Tag = items.Where(d => d.Id.Length > 0 && _host.IsLoopOutput(d.Id)).Select(d => d.Id).ToHashSet();
     }
 
     // ---- 入力ごとの送り ----
@@ -241,14 +257,62 @@ public sealed class OutputCard : Border
         if (slots.Count == 0)
             _inputsPanel.Children.Add(new TextBlock { Text = "入力デバイスが選ばれていません（メイン画面で選んでください）", Opacity = 0.6, FontSize = 12, Margin = new Thickness(0, 4, 0, 0) });
         foreach (var (slot, name) in slots) _inputsPanel.Children.Add(MakeSendRow(slot, name));
+        _slotCount = slots.Count;
         _loading = was;
+        ShowInputsHeader();
+        UpdateLoopWarnings();   // 入力が変わると、音が回る出力先も変わる
+    }
+
+    /// <summary>入力欄の見出し。畳んでいても、いくつの入力がこの出力へ送られているか分かるようにする。</summary>
+    private void ShowInputsHeader()
+    {
+        if (_slotCount == 0) { _inputs.Header = "入力（送り）"; return; }
+        var on = _host.InputSlots().Count(s => Cfg.SendAt(s.Slot).On);
+        _inputs.Header = $"入力（送り）　オン {on} / {_slotCount}";
     }
 
     private UIElement MakeSendRow(int slot, string name)
     {
         var send = Cfg.SendAt(slot);
         var row = new DockPanel { Margin = new Thickness(0, 6, 0, 0), Height = 24 };
-        var check = new CheckBox { Content = name, IsChecked = send.On, Width = 110, VerticalAlignment = VerticalAlignment.Center, ToolTip = "この入力をこの出力へ送る" };
+        var check = new CheckBox { IsChecked = send.On, Width = 24, VerticalAlignment = VerticalAlignment.Center, ToolTip = "この入力をこの出力へ送る" };
+        // 名前（ダブルクリックか右クリックで変更。メイン画面の入力の名前と同じもの）
+        var label = new TextBlock
+        {
+            Text = name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, Cursor = Cursors.IBeam,
+            ToolTip = "入力の名前（ダブルクリックか右クリックで変更。12文字まで。メイン画面にも反映されます）",
+        };
+        var edit = new TextBox { MaxLength = OutputConfig.MaxNameLength, Visibility = Visibility.Collapsed, VerticalAlignment = VerticalAlignment.Center, Padding = new Thickness(1, 0, 1, 0) };
+        var nameHost = new Grid { Width = 86 };
+        nameHost.Children.Add(label);
+        nameHost.Children.Add(edit);
+        void Begin()
+        {
+            edit.Text = name == OutputConfig.DefaultInputName(slot) ? "" : name;
+            label.Visibility = Visibility.Collapsed;
+            edit.Visibility = Visibility.Visible;
+            edit.Focus();
+            edit.SelectAll();
+        }
+        void End(bool apply)
+        {
+            if (edit.Visibility != Visibility.Visible) return;
+            var text = edit.Text;
+            edit.Visibility = Visibility.Collapsed;
+            label.Visibility = Visibility.Visible;
+            // 名前が変わると入力欄ごと作り直されるので、この操作が終わってから反映する
+            if (apply) Dispatcher.BeginInvoke(new Action(() => _host.RenameInput(slot, text)));
+        }
+        label.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) { Begin(); e.Handled = true; } };
+        var rename = new MenuItem { Header = "名前を変更" };
+        rename.Click += (_, _) => Begin();
+        label.ContextMenu = new ContextMenu { Items = { rename } };
+        edit.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter) { End(true); e.Handled = true; }
+            else if (e.Key == Key.Escape) { End(false); e.Handled = true; }
+        };
+        edit.LostFocus += (_, _) => End(true);
         var text = new TextBlock { Width = 62, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
         var slider = new Slider
         {
@@ -261,6 +325,7 @@ public sealed class OutputCard : Border
             Show();
             if (_loading) return;
             _host.Update(_index, Cfg.WithSend(slot, new OutSend(check.IsChecked == true, slider.Value)));
+            ShowInputsHeader();
         }
         check.Checked += (_, _) => Commit();
         check.Unchecked += (_, _) => Commit();
@@ -269,7 +334,9 @@ public sealed class OutputCard : Border
         Show();
         DockPanel.SetDock(check, Dock.Left);
         DockPanel.SetDock(text, Dock.Right);
+        DockPanel.SetDock(nameHost, Dock.Left);
         row.Children.Add(check);
+        row.Children.Add(nameHost);
         row.Children.Add(text);
         row.Children.Add(slider);
         return row;

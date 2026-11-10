@@ -21,7 +21,6 @@ public partial class MainWindow : IOutputHost
     private List<OutputConfig> _outCfgs = new();
     private readonly DispatcherTimer _outTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer _outSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
-    private readonly DispatcherTimer _outMenuTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
 
     OutputHub IOutputHost.Hub => _outHub;
 
@@ -42,14 +41,6 @@ public partial class MainWindow : IOutputHost
         _outTimer.Tick += (_, _) => UpdateOutputButton();
         _outTimer.Start();
         _outSaveTimer.Tick += (_, _) => { _outSaveTimer.Stop(); _settings.Outputs = _outCfgs; };
-        _outMenuTimer.Tick += (_, _) => { _outMenuTimer.Stop(); ShowOutputMenu(); };
-        OutputButton.PreviewMouseLeftButtonDown += (_, e) =>
-        {
-            if (e.ClickCount < 2) return;
-            _outMenuTimer.Stop();   // ダブルクリックは、メニューを出さずに出力ウィンドウを開く
-            OpenOutputWindow();
-            e.Handled = true;
-        };
     }
 
     /// <summary>メイン画面で選ばれている入力を出力へ渡す（入力・出力先が変わると、出力が開き直す）。</summary>
@@ -131,16 +122,30 @@ public partial class MainWindow : IOutputHost
         _settings.Outputs = _outCfgs;
     }
 
+    void IOutputHost.RenameInput(int slot, string name) => Devices.SetInputName(slot, name);
+
+    /// <summary>この出力先が、いま選んでいる入力の「🔊 ○○」（PC内部音）と同じデバイスか（音が回るので出力できない組み合わせ）。</summary>
+    bool IOutputHost.IsLoopOutput(string id)
+    {
+        if (id.Length == 0) return false;
+        string? defaultRender;
+        try { defaultRender = _provider.DefaultRenderKey(); }
+        catch (Exception) { defaultRender = null; }
+        return OutputGuard.IsLoop(id, defaultRender, Devices.Inputs.Select(i => RealInputKey(i.Key)));
+    }
+
     bool IOutputHost.Folded(int index) => _settings.OutputFolded(index);
 
     void IOutputHost.SetFolded(int index, bool folded) => _settings.SetOutputFolded(index, folded);
 
     // ---- ⇶ボタン ----
-    private void Output_Click(object sender, RoutedEventArgs e)
+    /// <summary>左クリック＝出力ウィンドウ（待たずにすぐ開く）。右クリック＝メニュー（出力ごとのオン/オフ・すべて停止・すべて再開）。</summary>
+    private void Output_Click(object sender, RoutedEventArgs e) => OpenOutputWindow();
+
+    private void Output_RightClick(object sender, MouseButtonEventArgs e)
     {
-        // 1回クリック＝メニュー（ダブルクリックと区別するため0.3秒待つ）。ダブルクリック＝出力ウィンドウ
-        _outMenuTimer.Stop();
-        _outMenuTimer.Start();
+        ShowOutputMenu();
+        e.Handled = true;
     }
 
     private void ShowOutputMenu()
@@ -193,9 +198,9 @@ public partial class MainWindow : IOutputHost
         bool running = _outHub.AnyRunning;
         if (running)
         {
-            OutputButton.SetResourceReference(Control.ForegroundProperty, "Pastel");
+            OutputButton.SetResourceReference(Control.ForegroundProperty, "LampOn");   // 入力デバイスのランプがオンのときと同じ緑
             var names = _outHub.Engines.Select((e, i) => (e, i)).Where(x => x.e.Running && x.i < _outCfgs.Count).Select(x => _outCfgs[x.i].Name);
-            OutputButton.ToolTip = "出力中: " + string.Join("、", names) + "（クリックでメニュー、ダブルクリックで出力ウィンドウ）";
+            OutputButton.ToolTip = "出力中: " + string.Join("、", names) + "（クリックで出力ウィンドウ、右クリックでメニュー）";
         }
         else
         {
@@ -203,7 +208,7 @@ public partial class MainWindow : IOutputHost
             var err = _outHub.Engines.Select(e => e.Error).FirstOrDefault(m => m.Length > 0) ?? "";
             OutputButton.ToolTip = err.Length > 0
                 ? "出力: " + err
-                : "出力（クリックでメニュー、ダブルクリックで出力ウィンドウ）";
+                : "出力（クリックで出力ウィンドウ、右クリックでメニュー）";
         }
         if (running != _outShown)
         {
@@ -216,7 +221,6 @@ public partial class MainWindow : IOutputHost
     private void ShutdownOutput()
     {
         _outTimer.Stop();
-        _outMenuTimer.Stop();
         if (_outSaveTimer.IsEnabled) { _outSaveTimer.Stop(); _settings.Outputs = _outCfgs; }
         try { _outWindow?.Close(); } catch (Exception) { }
         try { Task.Run(() => { _outHub.Shutdown(); _hub.Dispose(); }).Wait(3000); } catch (Exception) { }

@@ -9,6 +9,15 @@ public partial class MainWindow
     private const string AsioOneRowMessage =
         "ASIOは同時に1行しか使えません（ドライバを専有するため）。他の行はマイクやスピーカー（WASAPI）にするか、チェックを外してください。";
 
+    private const string DuplicateMessage = "同じデバイスが重複しています（「既定のデバイス（変更に追従）」と、その実際のデバイスも同じ扱いです）。どちらかを外してください。";
+
+    /// <summary>デバイスを選んだ（チェックを変えた）時点で、同じデバイスの重複を赤文字で知らせる（録音の開始時にも調べる）。</summary>
+    private void CheckDuplicateRows()
+    {
+        var inputs = Devices.Inputs;
+        if (inputs.Count > 1 && HasDuplicateDevice(inputs)) Devices.ShowError(DuplicateMessage);
+    }
+
     /// <summary>ASIOの行が2つ以上選ばれたら、選んだ時点で赤文字を出す（録音開始時にも同じ確認をする）。</summary>
     private void CheckAsioRows()
     {
@@ -46,7 +55,7 @@ public partial class MainWindow
         }
         if (HasDuplicateDevice(inputs))
         {
-            Devices.ShowError("同じデバイスが重複しています（「既定のデバイス（変更に追従）」と、その実際のデバイスも同じ扱いです）。どちらかを外してください。");
+            Devices.ShowError(DuplicateMessage);
             return false;
         }
         if (inputs.Count(i => AsioKey.Is(i.Key)) > 1)

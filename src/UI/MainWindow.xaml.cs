@@ -38,11 +38,13 @@ public partial class MainWindow : Window
         Devices.AddFooterTrailing(InputCheckBox);   // 入力デバイス欄の下の行の右端へ
         InputCheckBox.IsChecked = settings.InputCheck;
         LoadDevices();
+        Devices.Resolve = RealInputKey;
         Devices.AttachMaster(OutMeter.Gain, OutMeter.GainText);   // 全体ゲインは出力メーターと一体（Init の前に）
         Devices.Init(settings, _devices, DefaultCaptureKey());
         SyncOutputInputs();
-        Devices.Changed += () => { Devices.ClearError(); CheckAsioRows(); UpdateInfo(); SyncOutputInputs(); };
+        Devices.Changed += () => { Devices.ClearError(); CheckDuplicateRows(); CheckAsioRows(); UpdateInfo(); SyncOutputInputs(); };
         Devices.NamesChanged += () => _outWindow?.RefreshInputs();
+        CheckDuplicateRows();
         CheckAsioRows();
         Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
         Devices.GainChanged += (index, db) => { _session?.SetGain(index, db); OnInputGain(index, db); };
@@ -63,6 +65,7 @@ public partial class MainWindow : Window
         Presets.Acting += ClearErrors;
         Presets.Error += ShowError;
         Presets.Applied += ReloadFromSettings;
+        Presets.Stored += UpdateInfo;   // 保存・削除では、画面も出力も作り直さない（出力中でも止まらない）
         if (settings.RecentFolders.Count == 0) settings.AddRecentFolder(settings.Folder);
         Files.Init(settings, AppPaths.Ffmpeg);
         Player.Init(AppPaths.Ffmpeg);

@@ -246,14 +246,14 @@ public partial class MainWindow
     }
 
     /// <summary>「既定のデバイス」は実際のデバイスに置き換えて、同じデバイスが2回選ばれていないか調べる。</summary>
-    private bool HasDuplicateDevice(IReadOnlyList<InputSetting> inputs)
+    private bool HasDuplicateDevice(IReadOnlyList<InputSetting> inputs) =>
+        inputs.Select(i => RealInputKey(i.Key)).Distinct().Count() != inputs.Count;
+
+    /// <summary>「既定のデバイス（変更に追従）」を、いま実際に使われるデバイスの Key に置き換える（それ以外はそのまま）。</summary>
+    private string RealInputKey(string key)
     {
-        string Real(string key)
-        {
-            try { return _provider.Resolve(key) ?? key; }
-            catch (Exception) { return key; }
-        }
-        return inputs.Select(i => Real(i.Key)).Distinct().Count() != inputs.Count;
+        try { return _provider.Resolve(key) ?? key; }
+        catch (Exception) { return key; }
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

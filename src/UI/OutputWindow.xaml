@@ -8,10 +8,11 @@
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
     <Window.Resources>
         <ui:DeviceIconBrushConverter x:Key="IconBrush"/>
+        <ui:WarnBrushConverter x:Key="WarnBrush"/>
         <!-- 出力先の1項目: 入力デバイスと同じ色のアイコン・名前・既定の ＊ -->
         <DataTemplate x:Key="OutItem">
             <TextBlock>
-                <Run Text="{Binding Icon, Mode=OneWay}" Foreground="{Binding Icon, Mode=OneWay, Converter={StaticResource IconBrush}}"/><Run Text="{Binding LabelAfterIcon, Mode=OneWay}"/><Run Text="{Binding DefaultMark, Mode=OneWay}" Foreground="{DynamicResource DefaultMarkFg}"/>
+                <Run Text="{Binding Icon, Mode=OneWay}" Foreground="{Binding Icon, Mode=OneWay, Converter={StaticResource IconBrush}}"/><Run Text="{Binding LabelAfterIcon, Mode=OneWay}"><Run.Foreground><MultiBinding Converter="{StaticResource WarnBrush}"><Binding Path="Id"/><Binding Path="Tag" RelativeSource="{RelativeSource AncestorType=ComboBox}"/></MultiBinding></Run.Foreground></Run><Run Text="{Binding DefaultMark, Mode=OneWay}" Foreground="{DynamicResource DefaultMarkFg}"/>
             </TextBlock>
         </DataTemplate>
     </Window.Resources>

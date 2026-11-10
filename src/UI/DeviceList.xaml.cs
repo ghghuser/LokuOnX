@@ -48,6 +48,9 @@ public partial class DeviceList : UserControl
     /// <summary>入力の名前を変えた（メイン画面・出力カード・エフェクトの見出しで共通に使う）。</summary>
     public event Action? NamesChanged;
 
+    /// <summary>「既定のデバイス」を実際のデバイスに置き換える（MainWindow が設定する）。同じデバイスの重複を赤文字で知らせるのに使う。</summary>
+    public Func<string, string>? Resolve { get; set; }
+
     /// <summary>録音に使う行（デバイスが選ばれていて有効）の、行の番号（0始まり）と表示名。上から順。</summary>
     public IReadOnlyList<(int Slot, string Name)> ActiveInputs =>
         _rows.Select((r, i) => (r, i)).Where(x => x.r.Key.Length > 0 && x.r.Use.IsChecked == true)
@@ -194,6 +197,7 @@ public partial class DeviceList : UserControl
         Grid.SetColumn(row.Use, 0);
 
         row.Combo.ItemTemplate = (DataTemplate)Resources["DeviceItem"];
+        row.Combo.DropDownOpened += (_, _) => UpdateWarnings();
         row.Combo.VerticalAlignment = VerticalAlignment.Center;
         // 入力の名前（小さいラベル）をプルダウンの上に置く。ダブルクリック／右クリックで変更
         var slot = _rows.Count;
@@ -323,14 +327,48 @@ public partial class DeviceList : UserControl
         var text = row.NameBox.Text;
         row.NameBox.Visibility = Visibility.Collapsed;
         row.NameText.Visibility = Visibility.Visible;
-        if (!apply || slot < 0 || _s == null) return;
+        if (!apply) return;
+        SetInputName(slot, text);
+    }
+
+    /// <summary>入力の名前を変える（slot＝行の番号。メイン画面の入力欄・出力ウィンドウのどちらからでも）。空・既定と同じ名前は「未設定」。</summary>
+    public void SetInputName(int slot, string text)
+    {
+        if (slot < 0 || slot >= _rows.Count || _s == null) return;
         var name = OutputConfig.CleanName(text, "");
-        if (name == OutputConfig.DefaultInputName(slot)) name = "";   // 既定と同じ名前は「未設定」にする
+        if (name == OutputConfig.DefaultInputName(slot)) name = "";
         if (name == (_names[slot] ?? "")) return;
         _names[slot] = name;
-        row.NameText.Text = OutputConfig.InputLabel(_names, slot);
+        _rows[slot].NameText.Text = OutputConfig.InputLabel(_names, slot);
         _s.InputNames = _names.ToList();
         NamesChanged?.Invoke();
+    }
+
+    // ---- プルダウンの注意（赤文字） ----
+    /// <summary>この行のプルダウンで、選ぶと注意が出る項目（ほかの有効な行と同じデバイス・ASIOの2行目）のキー。</summary>
+    private HashSet<string> WarnFor(Row row)
+    {
+        var warn = new HashSet<string>();
+        var others = _rows.Where(r => r != row && r.Key.Length > 0 && r.Use.IsChecked == true).Select(r => r.Key).ToList();
+        if (others.Count == 0) return warn;
+        string Real(string k)
+        {
+            try { return Resolve?.Invoke(k) ?? k; }
+            catch (Exception) { return k; }
+        }
+        var otherReal = others.Select(Real).ToHashSet();
+        bool otherAsio = others.Any(AsioKey.Is);
+        foreach (var d in _devices)
+        {
+            if (d.Key.Length == 0) continue;
+            if (otherReal.Contains(Real(d.Key)) || (otherAsio && AsioKey.Is(d.Key))) warn.Add(d.Key);
+        }
+        return warn;
+    }
+
+    private void UpdateWarnings()
+    {
+        foreach (var r in _rows) r.Combo.Tag = WarnFor(r);
     }
 
     private static string GainLabel(double db) => GainMath.IsMuted(db)
@@ -425,6 +463,7 @@ public partial class DeviceList : UserControl
         RefreshButton.IsEnabled = !_recording;
         // ミックス／別ファイルの切替は常に表示し、有効なデバイスが2台未満のとき（と録音中）はグレーアウトする
         MixRadio.IsEnabled = SeparateRadio.IsEnabled = !_recording && Active().Count > 1;
+        UpdateWarnings();
     }
 
     /// <summary>デバイス欄のすぐ下に、赤文字でエラーを出す（ポップアップは出さない）。</summary>

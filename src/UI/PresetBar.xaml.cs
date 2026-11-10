@@ -14,6 +14,9 @@ public partial class PresetBar : UserControl
     /// <summary>プリセットを読み込んだ・保存した（画面の設定を読み直す）。</summary>
     public event Action? Applied;
 
+    /// <summary>保存・削除をした（設定の値は変わっていないので、画面や出力は作り直さない）。</summary>
+    public event Action? Stored;
+
     /// <summary>何かの操作を始めた（前のエラーを消す）。</summary>
     public event Action? Acting;
 
@@ -65,7 +68,7 @@ public partial class PresetBar : UserControl
         if (_s.SaveError != null) { Error?.Invoke("プリセットを保存できませんでした: " + _s.SaveError); return; }
         _s.CurrentPreset = name;
         Reload(name);
-        Applied?.Invoke();
+        Stored?.Invoke();
     }
 
     private void Delete_Click(object sender, RoutedEventArgs e)
@@ -80,7 +83,7 @@ public partial class PresetBar : UserControl
         _s.DeletePreset(name);
         if (_s.CurrentPreset == name) _s.CurrentPreset = "";
         Reload("");
-        Applied?.Invoke();
+        Stored?.Invoke();
     }
 
     /// <summary>プルダウンを開くとき、フォルダに入れた・消したファイルを反映する。</summary>
