@@ -32,6 +32,7 @@ public sealed class InputHub : IDisposable
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private readonly object _lock = new();
     private readonly Dictionary<string, Entry> _entries = new();
+    private readonly Dictionary<string, EffectSetting> _fx = new();   // 入力（デバイスの Key）ごとのエフェクト設定（M11-4）。入力を開いたときに渡す
     private bool _disposed;
 
     /// <summary>通知に使う表示名を返す（Key → 名前）。未設定なら Key をそのまま使う。</summary>
@@ -64,6 +65,7 @@ public sealed class InputHub : IDisposable
             }
             var label = LabelOf?.Invoke(key) ?? key;
             var stream = new DeviceStream(48000, 2, Now, gainDb);
+            if (_fx.TryGetValue(key, out var fx)) stream.SetEffect(fx);
             var input = new DeviceInput(_provider, key, label, stream, _autoResume());
             var entry = new Entry(key, label, input) { Refs = 1 };
             _entries[key] = entry;
@@ -96,6 +98,27 @@ public sealed class InputHub : IDisposable
         Entry? e;
         lock (_lock) _entries.TryGetValue(key, out e);
         e?.Stream.SetGainDb(gainDb);
+    }
+
+    /// <summary>
+    /// 入力ごとのエフェクト設定を丸ごと入れ替える（M11-4）。ここに無いデバイスは「かけない」になる。
+    /// 開いている入力へ即反映し、あとから開く入力にも開いたときに渡す（録音中・出力中でも効く）。
+    /// </summary>
+    public void SetEffects(IEnumerable<(string Key, EffectSetting Fx)> list)
+    {
+        List<Entry> open;
+        var plain = new EffectSetting();
+        var fx = new Dictionary<string, EffectSetting>();
+        foreach (var (key, setting) in list)
+            if (key.Length > 0) fx[key] = setting.Clone();
+        lock (_lock)
+        {
+            _fx.Clear();
+            foreach (var kv in fx) _fx[kv.Key] = kv.Value;
+            open = _entries.Values.ToList();
+        }
+        foreach (var e in open)
+            e.Stream.SetEffect(fx.TryGetValue(e.Key, out var s) ? s : plain);
     }
 
     /// <summary>いま開いている入力の数（診断・テスト用）。</summary>

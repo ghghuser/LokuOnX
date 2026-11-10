@@ -30,6 +30,7 @@
     <Compile Include="..\..\src\Core\FloatRing.cs" Link="Core\FloatRing.cs" />
     <Compile Include="..\..\src\Core\StreamResampler.cs" Link="Core\StreamResampler.cs" />
     <Compile Include="..\..\src\Core\DeviceStream.cs" Link="Core\DeviceStream.cs" />
+    <Compile Include="..\..\src\Core\DeviceStream.Fx.cs" Link="Core\DeviceStream.Fx.cs" />
     <Compile Include="..\..\src\Core\DeviceInput.cs" Link="Core\DeviceInput.cs" />
     <Compile Include="..\..\src\Core\InputTap.cs" Link="Core\InputTap.cs" />
     <Compile Include="..\..\src\Core\InputHub.cs" Link="Core\InputHub.cs" />

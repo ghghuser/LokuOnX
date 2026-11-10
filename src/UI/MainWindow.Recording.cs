@@ -185,11 +185,12 @@ public partial class MainWindow
         _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}" + ScheduleTip());
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
-        Devices.SetLevels(s.TakeDevicePeakPairs());
+        var devicePairs = s.TakeDevicePeakPairs();
+        Devices.SetLevels(devicePairs);
         if (!s.Paused) Devices.PushWave(devicePeaks);
         var wave = s.TakeWave();
         if (!s.Paused) OverallWave.Push(wave);
-        FeedSilence(s, s.TakePeak());
+        FeedSilence(s, SilencePeak(s.TakePeak(), devicePairs));   // 無音検出はエフェクト前（Dry）の音で（M11-4）
         var (left, right) = s.TakeChannelPeaks();
         OutMeter.Update(left, right);   // 出力レベル（L・R。白い線＝最大値、右端＝クリップ）
     }

@@ -43,7 +43,7 @@ public partial class MainWindow : Window
         Devices.Init(settings, _devices, DefaultCaptureKey());
         SyncOutputInputs();
         Devices.Changed += () => { Devices.ClearError(); CheckDuplicateRows(); CheckAsioRows(); UpdateInfo(); SyncOutputInputs(); };
-        Devices.NamesChanged += () => _outWindow?.RefreshInputs();
+        Devices.NamesChanged += () => { _outWindow?.RefreshInputs(); _fxWindow?.RefreshSlots(); };
         CheckDuplicateRows();
         CheckAsioRows();
         Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
@@ -157,6 +157,7 @@ public partial class MainWindow : Window
         Split_LostFocus(this, new RoutedEventArgs());
         Detail.CommitAll();
         FlushOutputs();   // 出力の設定も、プリセットに入る前に保存しておく
+        FlushFx();        // 入力ごとのエフェクトも
     }
 
     /// <summary>プリセットを読み込んだあと、画面の各欄を設定の値で読み直す。</summary>
@@ -170,7 +171,9 @@ public partial class MainWindow : Window
         Devices.Rebuild(DefaultCaptureKey());
         CheckDuplicateRows();   // 読み込み後の設定でも、同じデバイスの重複などは赤文字で出し続ける（再読込で消えない）
         CheckAsioRows();
+        LoadFx();   // プリセットの入力エフェクトを読み直す（M11-4。SyncOutputInputs が開いている入力へ渡す）
         SyncOutputInputs();
+        _fxWindow?.Reload();
         ReloadOutputsFromSettings();   // プリセットの出力設定を反映（動いている出力は止める）
         Presets.Reload(null);
         UpdateInfo();

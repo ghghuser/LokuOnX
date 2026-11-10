@@ -33,6 +33,7 @@ public partial class MainWindow : IOutputHost
         {
             LabelOf = key => _devices.FirstOrDefault(d => d.Key == key)?.Label ?? key,
         };
+        InitFx();   // 入力ごとのエフェクト（M11-4）。保存された設定を読み込み、入力を開くときに渡す
         _outProvider = new WasapiOutputProvider();
         _outHub = new OutputHub(_hub, _outProvider, _provider);
         _outCfgs = _settings.Outputs.ToList();
@@ -46,9 +47,11 @@ public partial class MainWindow : IOutputHost
     /// <summary>メイン画面で選ばれている入力を出力へ渡す（入力・出力先が変わると、出力が開き直す）。</summary>
     private void SyncOutputInputs()
     {
+        SyncEffects();   // 入力（行）が変わったので、エフェクトも渡し直す（出力・録音が入力を開く前に）
         _outHub.SetInputs(Devices.Inputs);
         for (int i = 0; i < _outCfgs.Count && i < _outHub.Count; i++) ApplySends(i);
         _outWindow?.RefreshInputs();
+        _fxWindow?.RefreshSlots();
     }
 
     /// <summary>入力のゲインを変えた（index は選ばれている入力の順）。録音・待機・出力のどれが開いていても効く。</summary>
@@ -236,6 +239,7 @@ public partial class MainWindow : IOutputHost
     private void ShutdownOutput()
     {
         _outTimer.Stop();
+        ShutdownFx();
         if (_outSaveTimer.IsEnabled) { _outSaveTimer.Stop(); _settings.Outputs = _outCfgs; }
         try { _outWindow?.Close(); } catch (Exception) { }
         try { Task.Run(() => { _outHub.Shutdown(); _hub.Dispose(); }).Wait(3000); } catch (Exception) { }

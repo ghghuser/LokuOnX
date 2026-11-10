@@ -9,7 +9,7 @@ namespace Recorder.Core;
 ///   ゲイン・ピーク・出力用のタップだけを処理し、時間軸（ring）には溜めない。録音に Attach すると、ringを空にして壁時計に合わせ直す。
 /// WPF や Windows API には依存しない（§6-3）。
 /// </summary>
-public sealed class DeviceStream
+public sealed partial class DeviceStream
 {
     private const double HardLagSec = 0.08;     // これ以上遅れたら（無音区間の後など）無音で埋めて壁時計に合わせ直す
     private const double HardAheadSec = 0.5;    // これ以上進みすぎたら（時計が大きく速いデバイス）、届いたブロックを捨てて壁時計に合わせ直す
@@ -161,8 +161,9 @@ public sealed class DeviceStream
             if (_closed || fmt == null) return;
             var f = PcmConvert.ToFloat(buf, count, fmt, _ch, out int frames);
             if (frames <= 0) return;
-            ApplyGainAndPeak(f, frames);
-            PushTaps(f, frames, fmt.SampleRate);
+            ApplyGainAndPeak(f, frames);   // ピーク（メーター・無音検出・自動開始）はここ＝エフェクトの前（Dry）で測る
+            var (recSrc, tapSrc) = ApplyEffect(f, frames, fmt.SampleRate);   // M11-4: 録音・出力へ反映するときだけエフェクト後の音
+            PushTaps(tapSrc, frames, fmt.SampleRate);
             if (!_attached) return;
 
             // 伸縮が必要なとき、またはサンプリング周波数が違うときだけ変換する
@@ -170,7 +171,7 @@ public sealed class DeviceStream
             int n;
             if (fmt.SampleRate == _rate && _slew == 0)
             {
-                r = f;
+                r = recSrc;
                 n = frames;
                 _rs = null;
             }
@@ -178,7 +179,7 @@ public sealed class DeviceStream
             {
                 _rs ??= new StreamResampler(_ch);
                 double ratio = 1.0 + _slew * SlewRate;   // 出力フレーム数 ÷ 入力フレーム数
-                r = _rs.Process(f, frames, (double)fmt.SampleRate / _rate / ratio, out n);
+                r = _rs.Process(recSrc, frames, (double)fmt.SampleRate / _rate / ratio, out n);
             }
             if (n <= 0) return;
 

@@ -54,6 +54,9 @@ public sealed class PresetData
 
     /// <summary>入力の名前（入力1〜4。空＝既定）。null＝旧プリセット（いまの名前を変えない）。</summary>
     public List<string>? InputNames { get; set; }
+
+    /// <summary>入力ごとのエフェクト（M11-4。入力1〜4。「録音に反映」「出力に反映」を含む）。null＝旧プリセット（いまの設定を変えない）。</summary>
+    public List<EffectSetting>? InputEffects { get; set; }
 }
 
 /// <summary>プリセットと JSON の変換。WPF には依存しない（§6-3）。</summary>

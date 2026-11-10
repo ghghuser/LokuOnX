@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Recorder.Core;
 
 /// <summary>入力1本ぶんのエフェクト設定(ノイズゲート → ローカット/イコライザ → エコー → リバーブ の順に通す)。プリセットに保存される。</summary>
@@ -45,8 +47,10 @@ public sealed class EffectSetting
 
 
     /// <summary>効果が実際にかかるか(バイパスでなく、どれかがオン)。</summary>
+    [JsonIgnore]
     public bool IsActive => !Bypass && HasAny;
     /// <summary>設定が1つでも入っているか(FXボタンの色づけ用。バイパス中でも true)。</summary>
+    [JsonIgnore]
     public bool HasAny => GateOn || EqOn || HpfHz >= 20 || ParamOn || EchoOn || ReverbOn;
 
     public EffectSetting Clone()
@@ -75,7 +79,28 @@ public sealed class EffectSetting
     }
 
     /// <summary>設定が初期値のままか(iniに書かなくてよいか)。</summary>
+    [JsonIgnore]
     public bool IsDefault => SameSound(new EffectSetting()) && ToRecording == false && ToOutput == true;
+
+    /// <summary>効果の中身（ゲート・ローカット・EQ・エコー・リバーブとバイパス）だけを o からコピーする。録音・出力への反映先（ToRecording / ToOutput）は変えない（コピー・貼り付け用）。</summary>
+    public void CopySoundFrom(EffectSetting o)
+    {
+        var c = o.Clone();
+        Bypass = c.Bypass;
+        GateOn = c.GateOn; GateThresholdDb = c.GateThresholdDb; GateReleaseMs = c.GateReleaseMs; GateReductionDb = c.GateReductionDb;
+        EqOn = c.EqOn; HpfHz = c.HpfHz; Bands = c.Bands;
+        ParamOn = c.ParamOn; Params = c.Params;
+        EchoOn = c.EchoOn; EchoMs = c.EchoMs; EchoFeedback = c.EchoFeedback; EchoMix = c.EchoMix;
+        ReverbOn = c.ReverbOn; ReverbRoom = c.ReverbRoom; ReverbDamp = c.ReverbDamp; ReverbMix = c.ReverbMix;
+        Normalize();
+    }
+
+    /// <summary>WriteTo が書く項目名（prefix の後ろ）。初期値に戻ったとき、ini から消すのに使う。</summary>
+    public static readonly string[] IniKeys =
+    {
+        "Bypass", "ToRecording", "ToOutput", "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "EqOn", "HpfHz", "EqBands",
+        "ParamOn", "ParamBands", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
+    };
 
     public void WriteTo(IniSection s, string prefix, bool comment)
     {

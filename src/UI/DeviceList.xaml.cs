@@ -24,6 +24,7 @@ public partial class DeviceList : UserControl
         public readonly StackPanel Left = new();     // 名前の小さいラベル＋プルダウン
         public readonly TextBlock NameText = new();  // 入力の名前（ダブルクリックで変更）
         public readonly TextBox NameBox = new();     // 名前の入力欄（変更中だけ出す）
+        public readonly Button FxButton = new();     // この入力のエフェクトを開く（M11-4）
         public readonly GainMeter Gain = new(2, 6);   // 左右2本の細いメーター＋1つのつまみ
         public readonly StackPanel MeterBox = new();   // メーター＋その下のdB目盛り
         public readonly TextBlock GainText = new();
@@ -47,6 +48,34 @@ public partial class DeviceList : UserControl
 
     /// <summary>入力の名前を変えた（メイン画面・出力カード・エフェクトの見出しで共通に使う）。</summary>
     public event Action? NamesChanged;
+
+    /// <summary>この行（入力N。行の番号・0始まり）のエフェクトを開く操作（「FX」ボタン・右クリックの「エフェクト…」）。</summary>
+    public event Action<int>? FxRequested;
+
+    /// <summary>入力1〜4（行）すべての、名前と「デバイスが選ばれて使われているか」。エフェクトウィンドウの入力の切り替えに使う。</summary>
+    public IReadOnlyList<(int Slot, string Name, bool Active)> AllSlots() =>
+        _rows.Select((r, i) => (i, OutputConfig.InputLabel(_names, i), r.Key.Length > 0 && r.Use.IsChecked == true)).ToList();
+
+    /// <summary>行の「FX」ボタンの見た目。効果が設定されているとき（any）は強調色の太字、バイパス中は薄く。</summary>
+    public void SetFxState(int slot, bool any, bool bypass)
+    {
+        if (slot < 0 || slot >= _rows.Count) return;
+        var b = _rows[slot].FxButton;
+        if (any) b.SetResourceReference(Control.ForegroundProperty, "Pastel");
+        else b.ClearValue(Control.ForegroundProperty);
+        b.FontWeight = any ? FontWeights.Bold : FontWeights.Normal;
+        b.Opacity = any && bypass ? 0.55 : 1.0;
+        b.ToolTip = any
+            ? (bypass ? "この入力のエフェクト（設定あり・いまはバイパス中）" : "この入力のエフェクト（設定あり）") + "。クリックで開きます"
+            : "この入力のエフェクト（ゲート・ローカット・EQ・エコー・リバーブ）。クリックで開きます。名前・波形・メーターの右クリックでも開けます";
+    }
+
+    private MenuItem FxItem(Row row)
+    {
+        var item = new MenuItem { Header = "エフェクト…" };
+        item.Click += (_, _) => FxRequested?.Invoke(_rows.IndexOf(row));
+        return item;
+    }
 
     /// <summary>「既定のデバイス」を実際のデバイスに置き換える（MainWindow が設定する）。同じデバイスの重複を赤文字で知らせるのに使う。</summary>
     public Func<string, string>? Resolve { get; set; }
@@ -215,7 +244,7 @@ public partial class DeviceList : UserControl
         row.NameText.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) BeginRename(row); };
         var rename = new MenuItem { Header = "名前を変更" };
         rename.Click += (_, _) => BeginRename(row);
-        row.NameText.ContextMenu = new ContextMenu { Items = { rename } };
+        row.NameText.ContextMenu = new ContextMenu { Items = { rename, FxItem(row) } };
         row.NameBox.KeyDown += (_, e) =>
         {
             if (e.Key == Key.Enter) { CommitRename(row, true); e.Handled = true; }
@@ -224,8 +253,20 @@ public partial class DeviceList : UserControl
         row.NameBox.LostFocus += (_, _) => CommitRename(row, true);
         row.Left.Margin = new Thickness(0, 0, 10, 0);
         row.Left.VerticalAlignment = VerticalAlignment.Center;
-        row.Left.Children.Add(row.NameText);
-        row.Left.Children.Add(row.NameBox);
+        // 名前ラベルの行の右端に「FX」ボタン（M11-4）
+        row.FxButton.Content = "FX";
+        row.FxButton.FontSize = 10;
+        row.FxButton.Height = 17;
+        row.FxButton.MinWidth = 0;
+        row.FxButton.Padding = new Thickness(7, 0, 7, 0);
+        row.FxButton.Margin = new Thickness(6, 0, 0, 1);
+        row.FxButton.Click += (_, _) => FxRequested?.Invoke(_rows.IndexOf(row));
+        DockPanel.SetDock(row.FxButton, Dock.Right);
+        var nameRow = new DockPanel { LastChildFill = true };
+        nameRow.Children.Add(row.FxButton);
+        nameRow.Children.Add(row.NameText);
+        nameRow.Children.Add(row.NameBox);
+        row.Left.Children.Add(nameRow);
         row.Left.Children.Add(row.Combo);
         Grid.SetColumn(row.Left, 1);
 
@@ -264,6 +305,8 @@ public partial class DeviceList : UserControl
         g.Children.Add(row.Lane);
         g.Children.Add(row.MeterBox);
         g.Children.Add(row.GainText);
+        row.Lane.ContextMenu = new ContextMenu { Items = { FxItem(row) } };
+        row.MeterBox.ContextMenu = new ContextMenu { Items = { FxItem(row) } };
 
         ShowMute(row);
         Bind(row);
