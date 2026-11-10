@@ -145,7 +145,7 @@ public sealed class OutputEngine : IDisposable
             if (id.Length == 0) problem = "出力先のデバイスを選んでください。";
             else if (keys.Count == 0) problem = "入力デバイスが選ばれていません（メイン画面で入力を選んでください）。";
             else if (OutputGuard.IsLoop(id, SafeDefaultRenderKey(), keys.Select(RealKey)))
-                problem = "出力先が、入力の「🔊 ○○」（PC内部音）と同じデバイスです。音が回ってしまうため出力できません。別の出力先にするか、その入力を外してください。";
+                problem = OutputGuard.LoopMessage;
         }
         if (!_on || problem != null)
         {

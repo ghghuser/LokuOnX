@@ -59,6 +59,7 @@ public sealed class OutputCard : Border
     private bool _loading = true;
     private string _inputSig = "\0";
     private int _slotCount;
+    private bool _loopWarn;   // 選んでいる出力先が、いまの入力と同じ（音が回る）。「出力する」がオフでも赤文字で知らせる
 
     private OutputEngine Engine => _host.Hub[_index];
     private OutputConfig Cfg => _host.Configs[_index];
@@ -179,6 +180,7 @@ public sealed class OutputCard : Border
     {
         if (_loading || _device.SelectedItem is not OutputDeviceInfo d) return;
         _host.Update(_index, Cfg with { DeviceId = d.Id });
+        UpdateLoopWarnings();
         ShowState();
     }
 
@@ -239,6 +241,7 @@ public sealed class OutputCard : Border
     /// <summary>プルダウンのうち、いまの入力と組み合わせると音が回る出力先を赤文字にする（選ぶこと自体はできる）。</summary>
     private void UpdateLoopWarnings()
     {
+        _loopWarn = _host.IsLoopOutput(Cfg.DeviceId);
         if (_device.ItemsSource is not IEnumerable<OutputDeviceInfo> items) return;
         _device.Tag = items.Where(d => d.Id.Length > 0 && _host.IsLoopOutput(d.Id)).Select(d => d.Id).ToHashSet();
     }
@@ -248,8 +251,9 @@ public sealed class OutputCard : Border
     public void RefreshInputs()
     {
         var slots = _host.InputSlots();
+        UpdateLoopWarnings();   // 入力の行が同じでも、行のデバイスが変わると音が回るかどうかが変わる
         var sig = string.Join("|", slots.Select(s => s.Slot + ":" + s.Name));
-        if (sig == _inputSig) return;
+        if (sig == _inputSig) { ShowState(); return; }
         _inputSig = sig;
         var was = _loading;
         _loading = true;
@@ -375,6 +379,7 @@ public sealed class OutputCard : Border
         var e = Engine;
         _state.Text = _device.IsEnabled ? e.State : "読み込み中…";
         var error = e.Error;
+        if (error.Length == 0 && _loopWarn) error = OutputGuard.LoopMessage;   // 「出力する」がオフでも、選んだ時点で理由を出す
         _error.Text = error;
         _error.Visibility = error.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         _info.Text = e.Running ? e.Describe() : "";

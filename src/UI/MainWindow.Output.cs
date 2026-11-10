@@ -211,10 +211,13 @@ public partial class MainWindow : IOutputHost
                 : "出力（クリックで出力ウィンドウ、右クリックでメニュー）";
         }
         int count = running ? _outHub.Engines.Count(e => e.Running) : 0;
-        if (count != _outShown)
+        int total = _outHub.Count;
+        int shown = count * 10 + total;   // 枚数かカード数が変わったときだけ文字を書き換える
+        if (shown != _outShown)
         {
-            _outShown = count;
-            OutputButton.Content = count > 0 ? $"⇶ 出力中 {count}" : "⇶";   // 右の数字＝いま出力している出力（カード）の数
+            _outShown = shown;
+            // 出力中の枚数 / カードの枚数。カードが1枚のときは数字を出さない
+            OutputButton.Content = count == 0 ? "⇶" : total <= 1 ? "⇶ 出力中" : $"⇶ 出力中 {count} / {total}";
         }
     }
 
