@@ -21,6 +21,9 @@ public partial class DeviceList : UserControl
         public readonly Grid Panel = new();
         public readonly CheckBox Use = new();
         public readonly ComboBox Combo = new();
+        public readonly StackPanel Left = new();     // 名前の小さいラベル＋プルダウン
+        public readonly TextBlock NameText = new();  // 入力の名前（ダブルクリックで変更）
+        public readonly TextBox NameBox = new();     // 名前の入力欄（変更中だけ出す）
         public readonly GainMeter Gain = new(2, 6);   // 左右2本の細いメーター＋1つのつまみ
         public readonly StackPanel MeterBox = new();   // メーター＋その下のdB目盛り
         public readonly TextBlock GainText = new();
@@ -40,6 +43,15 @@ public partial class DeviceList : UserControl
     private bool _masterDirty;
     private GainMeter? _master;
     private TextBlock? _masterText;
+    private readonly string[] _names = new string[Settings.MaxInputs];   // 入力の名前（空＝既定の「入力N」）
+
+    /// <summary>入力の名前を変えた（メイン画面・出力カード・エフェクトの見出しで共通に使う）。</summary>
+    public event Action? NamesChanged;
+
+    /// <summary>録音に使う行（デバイスが選ばれていて有効）の、行の番号（0始まり）と表示名。上から順。</summary>
+    public IReadOnlyList<(int Slot, string Name)> ActiveInputs =>
+        _rows.Select((r, i) => (r, i)).Where(x => x.r.Key.Length > 0 && x.r.Use.IsChecked == true)
+            .Select(x => (x.i, OutputConfig.InputLabel(_names, x.i))).ToList();
 
     /// <summary>全体ゲインが変わった（dB）。録音中も使える。</summary>
     public event Action<double>? MasterGainChanged;
@@ -95,6 +107,8 @@ public partial class DeviceList : UserControl
         _loading = true;
         _touched = false;
         _saveTimer.Stop();
+        var saved = _s.InputNames;
+        for (int n = 0; n < _names.Length; n++) _names[n] = n < saved.Count ? saved[n] : "";
         RowsPanel.Children.Clear();
         _rows.Clear();
         var inputs = _s.Inputs.ToList();
@@ -180,9 +194,36 @@ public partial class DeviceList : UserControl
         Grid.SetColumn(row.Use, 0);
 
         row.Combo.ItemTemplate = (DataTemplate)Resources["DeviceItem"];
-        row.Combo.Margin = new Thickness(0, 0, 10, 0);
         row.Combo.VerticalAlignment = VerticalAlignment.Center;
-        Grid.SetColumn(row.Combo, 1);
+        // 入力の名前（小さいラベル）をプルダウンの上に置く。ダブルクリック／右クリックで変更
+        var slot = _rows.Count;
+        row.NameText.Text = OutputConfig.InputLabel(_names, slot);
+        row.NameText.FontSize = 10;
+        row.NameText.Opacity = 0.7;
+        row.NameText.Margin = new Thickness(2, 0, 0, 1);
+        row.NameText.Cursor = Cursors.IBeam;
+        row.NameText.ToolTip = "入力の名前（ダブルクリックか右クリックで変更。12文字まで。出力カードにも同じ名前が出ます）";
+        row.NameBox.FontSize = 10;
+        row.NameBox.Height = 17;
+        row.NameBox.Padding = new Thickness(1, 0, 1, 0);
+        row.NameBox.MaxLength = OutputConfig.MaxNameLength;
+        row.NameBox.Visibility = Visibility.Collapsed;
+        row.NameText.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) BeginRename(row); };
+        var rename = new MenuItem { Header = "名前を変更" };
+        rename.Click += (_, _) => BeginRename(row);
+        row.NameText.ContextMenu = new ContextMenu { Items = { rename } };
+        row.NameBox.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter) { CommitRename(row, true); e.Handled = true; }
+            else if (e.Key == Key.Escape) { CommitRename(row, false); e.Handled = true; }
+        };
+        row.NameBox.LostFocus += (_, _) => CommitRename(row, true);
+        row.Left.Margin = new Thickness(0, 0, 10, 0);
+        row.Left.VerticalAlignment = VerticalAlignment.Center;
+        row.Left.Children.Add(row.NameText);
+        row.Left.Children.Add(row.NameBox);
+        row.Left.Children.Add(row.Combo);
+        Grid.SetColumn(row.Left, 1);
 
         // 波形（この行のデバイスだけ。丸みのある暗い枠の中に出す）
         row.Wave.ClipToBounds = true;
@@ -215,7 +256,7 @@ public partial class DeviceList : UserControl
         Grid.SetColumn(row.GainText, 4);
 
         g.Children.Add(row.Use);
-        g.Children.Add(row.Combo);
+        g.Children.Add(row.Left);
         g.Children.Add(row.Lane);
         g.Children.Add(row.MeterBox);
         g.Children.Add(row.GainText);
@@ -261,6 +302,35 @@ public partial class DeviceList : UserControl
         _rows.Add(row);
         RowsPanel.Children.Add(g);
         return row;
+    }
+
+    // ---- 入力の名前 ----
+    private void BeginRename(Row row)
+    {
+        var slot = _rows.IndexOf(row);
+        if (slot < 0) return;
+        row.NameBox.Text = _names[slot] ?? "";
+        row.NameText.Visibility = Visibility.Collapsed;
+        row.NameBox.Visibility = Visibility.Visible;
+        row.NameBox.Focus();
+        row.NameBox.SelectAll();
+    }
+
+    private void CommitRename(Row row, bool apply)
+    {
+        if (row.NameBox.Visibility != Visibility.Visible) return;
+        var slot = _rows.IndexOf(row);
+        var text = row.NameBox.Text;
+        row.NameBox.Visibility = Visibility.Collapsed;
+        row.NameText.Visibility = Visibility.Visible;
+        if (!apply || slot < 0 || _s == null) return;
+        var name = OutputConfig.CleanName(text, "");
+        if (name == OutputConfig.DefaultInputName(slot)) name = "";   // 既定と同じ名前は「未設定」にする
+        if (name == (_names[slot] ?? "")) return;
+        _names[slot] = name;
+        row.NameText.Text = OutputConfig.InputLabel(_names, slot);
+        _s.InputNames = _names.ToList();
+        NamesChanged?.Invoke();
     }
 
     private static string GainLabel(double db) => GainMath.IsMuted(db)

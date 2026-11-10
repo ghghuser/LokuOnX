@@ -18,6 +18,7 @@ BufferTests.Run(new CheckFn(Check), Section);
 OutputTests.Run(new CheckFn(Check), Section);
 HubTests.Run(new CheckFn(Check), Section);
 EngineTests.Run(new CheckFn(Check), Section);
+OutputHubTests.Run(new CheckFn(Check), Section);
 IniTests.Run(new CheckFn(Check), Section);
 
 Console.WriteLine($"\n結果: {passes} 件成功 / {fails} 件失敗");

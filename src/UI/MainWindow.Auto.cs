@@ -42,7 +42,7 @@ public partial class MainWindow
     }
 
     /// <summary>トレイのツールチップの末尾に付ける予約の表示（予約が有効なときだけ）。</summary>
-    private string ScheduleTip() => _scheduleAt is { } at ? $"　⏰ 予約 {at:HH:mm}" : "";
+    private string ScheduleTip() => (_scheduleAt is { } at ? $"　⏰ 予約 {at:HH:mm}" : "") + OutputTip();
 
     /// <summary>50msごと。予約の時刻になっていれば録音を始める。</summary>
     private void CheckSchedule()

@@ -96,6 +96,14 @@ public sealed partial class Settings
         DateFolder = DateFolder,
         DateFolderFormat = DateFolderFormat,
         Tags = Tags,
+        Outputs = Outputs.Select(o => new PresetOutput
+        {
+            Name = o.Name,
+            DeviceId = o.DeviceId,
+            VolumeDb = o.VolumeDb,
+            Sends = Enumerable.Range(0, OutputConfig.InputSlots).Select(i => new PresetSend { On = o.SendAt(i).On, Db = o.SendAt(i).Db }).ToList(),
+        }).ToList(),
+        InputNames = InputNames.ToList(),
     };
 
     /// <summary>プリセットの内容を設定へ書き込む（保存先フォルダと番号は変えない）。値は読み出し側で範囲に丸められる。</summary>
@@ -115,6 +123,10 @@ public sealed partial class Settings
         DateFolder = p.DateFolder;
         DateFolderFormat = string.IsNullOrWhiteSpace(p.DateFolderFormat) ? FileNamer.DefaultDateFormat : p.DateFolderFormat;
         Tags = p.Tags ?? TagInfo.Empty;
+        if (p.InputNames != null) InputNames = p.InputNames;
+        if (p.Outputs is { Count: > 0 })
+            Outputs = p.Outputs.Take(OutputConfig.MaxOutputs).Select((o, i) => new OutputConfig(o.Name, o.DeviceId, o.VolumeDb,
+                Enumerable.Range(0, OutputConfig.InputSlots).Select(k => k < (o.Sends?.Count ?? 0) ? new OutSend(o.Sends![k].On, o.Sends[k].Db) : new OutSend()).ToList()).Normalize(i)).ToList();
         CurrentPreset = p.Name;
     }
 }

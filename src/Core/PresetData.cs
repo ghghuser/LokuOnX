@@ -11,6 +11,22 @@ public sealed class PresetInput
     public bool Enabled { get; set; } = true;
 }
 
+/// <summary>プリセット内の、入力1つからの送り。</summary>
+public sealed class PresetSend
+{
+    public bool On { get; set; } = true;
+    public double Db { get; set; }
+}
+
+/// <summary>プリセット内の出力カード1枚分（M11-3。「出力する」のON/OFFは含めない）。</summary>
+public sealed class PresetOutput
+{
+    public string Name { get; set; } = "";
+    public string DeviceId { get; set; } = "";
+    public double VolumeDb { get; set; }
+    public List<PresetSend> Sends { get; set; } = new();
+}
+
 /// <summary>
 /// プリセット1件。音の設定一式（形式・音質・圧縮率・入力デバイスとゲイン・ミックス/別ファイル・自動分割・
 /// ファイル名テンプレート・日付フォルダ・タグ）。保存先フォルダと番号（No/Track）は含めない。
@@ -32,6 +48,12 @@ public sealed class PresetData
     public bool DateFolder { get; set; } = true;
     public string DateFolderFormat { get; set; } = FileNamer.DefaultDateFormat;
     public TagInfo Tags { get; set; } = TagInfo.Empty;
+
+    /// <summary>出力カード（M11-3）。null＝この項目が無い旧プリセット（読み込んでも、いまの出力設定は変えない）。</summary>
+    public List<PresetOutput>? Outputs { get; set; }
+
+    /// <summary>入力の名前（入力1〜4。空＝既定）。null＝旧プリセット（いまの名前を変えない）。</summary>
+    public List<string>? InputNames { get; set; }
 }
 
 /// <summary>プリセットと JSON の変換。WPF には依存しない（§6-3）。</summary>

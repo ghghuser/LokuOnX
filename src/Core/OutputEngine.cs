@@ -20,6 +20,8 @@ public sealed class OutputEngine : IDisposable
     private volatile bool _on;
     private volatile string _deviceId = "";
     private volatile IReadOnlyList<InputSetting> _inputs = Array.Empty<InputSetting>();
+    private volatile IReadOnlyList<OutSend> _sends = Array.Empty<OutSend>();
+    private volatile string[] _runKeys = Array.Empty<string>();   // 運転中の入力（複製先の順）
     private double _volumeDb;
     private volatile string _state = "停止中";
     private volatile string _error = "";
@@ -69,6 +71,29 @@ public sealed class OutputEngine : IDisposable
 
     /// <summary>送る入力（メイン画面で選ばれている入力。上から順）。入力が変わると出力を開き直す。</summary>
     public void SetInputs(IReadOnlyList<InputSetting> inputs) => _inputs = inputs;
+
+    /// <summary>入力ごとの送り（オンオフ・音量）。SetInputs の入力と同じ順。動作中でも変えられる（開き直さない）。</summary>
+    public void SetSends(IReadOnlyList<OutSend> sends)
+    {
+        _sends = sends;
+        ApplySends();
+    }
+
+    private void ApplySends()
+    {
+        var r = _renderer;
+        var keys = _runKeys;
+        if (r == null) return;
+        var inputs = _inputs;
+        var sends = _sends;
+        for (int k = 0; k < keys.Length; k++)
+        {
+            int idx = -1;
+            for (int i = 0; i < inputs.Count; i++) if (inputs[i].Key == keys[k]) { idx = i; break; }
+            var s = idx >= 0 && idx < sends.Count ? sends[idx] : new OutSend();
+            r.Bus.SetSend(k, s.On, GainMath.DbToLinear(s.Db));
+        }
+    }
 
     /// <summary>いまの状態（「停止中」「出力中」など）。</summary>
     public string State => _state;
@@ -143,6 +168,7 @@ public sealed class OutputEngine : IDisposable
                 _nextTry = DateTime.Now.AddSeconds(RetrySeconds);
                 return;
             }
+            ApplySends();
             _state = "出力中";
             return;
         }
@@ -159,6 +185,7 @@ public sealed class OutputEngine : IDisposable
             return;
         }
         _runSig = sig;
+        ApplySends();
         _error = "";
         _state = "出力中";
     }
@@ -175,6 +202,7 @@ public sealed class OutputEngine : IDisposable
         {
             _entries = acquired.ToArray();   // 途中で例外になっても、借りた分は TearDown で返す
         }
+        _runKeys = keys.ToArray();
         _taps = _entries.Select(_ => new InputTap()).ToArray();
         for (int i = 0; i < _entries.Length; i++) _entries[i].Stream.AddTap(_taps[i]);
         var taps = _taps;
@@ -207,6 +235,7 @@ public sealed class OutputEngine : IDisposable
         _entries = Array.Empty<InputHub.Entry>();
         _taps = Array.Empty<InputTap>();
         _runSig = "";
+        _runKeys = Array.Empty<string>();
     }
 
     private string RealKey(string key)

@@ -39,6 +39,8 @@
     <Compile Include="..\..\src\Core\OutputGuard.cs" Link="Core\OutputGuard.cs" />
     <Compile Include="..\..\src\Core\OutputRenderer.cs" Link="Core\OutputRenderer.cs" />
     <Compile Include="..\..\src\Core\OutputEngine.cs" Link="Core\OutputEngine.cs" />
+    <Compile Include="..\..\src\Core\OutputConfig.cs" Link="Core\OutputConfig.cs" />
+    <Compile Include="..\..\src\Core\OutputHub.cs" Link="Core\OutputHub.cs" />
   </ItemGroup>
 
 </Project>

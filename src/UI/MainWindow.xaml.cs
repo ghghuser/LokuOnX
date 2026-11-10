@@ -42,6 +42,7 @@ public partial class MainWindow : Window
         Devices.Init(settings, _devices, DefaultCaptureKey());
         SyncOutputInputs();
         Devices.Changed += () => { Devices.ClearError(); CheckAsioRows(); UpdateInfo(); SyncOutputInputs(); };
+        Devices.NamesChanged += () => _outWindow?.RefreshInputs();
         CheckAsioRows();
         Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
         Devices.GainChanged += (index, db) => { _session?.SetGain(index, db); OnInputGain(index, db); };
@@ -152,6 +153,7 @@ public partial class MainWindow : Window
         FolderBox_LostFocus(this, new RoutedEventArgs());
         Split_LostFocus(this, new RoutedEventArgs());
         Detail.CommitAll();
+        FlushOutputs();   // 出力の設定も、プリセットに入る前に保存しておく
     }
 
     /// <summary>プリセットを読み込んだあと、画面の各欄を設定の値で読み直す。</summary>
@@ -164,6 +166,7 @@ public partial class MainWindow : Window
         _loading = false;
         Devices.Rebuild(DefaultCaptureKey());
         SyncOutputInputs();
+        ReloadOutputsFromSettings();   // プリセットの出力設定を反映（動いている出力は止める）
         Presets.Reload(null);
         UpdateInfo();
     }

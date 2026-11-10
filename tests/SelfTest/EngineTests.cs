@@ -4,7 +4,7 @@ using Recorder.Core;
 /// <summary>出力エンジン（OutputEngine）と、出力先の検査（OutputGuard）のテスト。デバイスは偽物（Fakes.cs）。</summary>
 static class EngineTests
 {
-    static bool WaitFor(Func<bool> cond, int ms = 4000)
+    internal static bool WaitFor(Func<bool> cond, int ms = 4000)
     {
         var sw = Stopwatch.StartNew();
         while (sw.ElapsedMilliseconds < ms)
