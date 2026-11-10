@@ -187,7 +187,7 @@ public partial class MainWindow : IOutputHost
         w.Show();
     }
 
-    private bool _outShown;
+    private int _outShown;   // 出力中の枚数（0＝出力中なし。表示が変わったときだけ文字を書き換える）
 
     /// <summary>トレイのツールチップの末尾に付ける出力の表示（出力中のときだけ）。</summary>
     private string OutputTip() => _outHub != null && _outHub.AnyRunning ? "　🔊 出力中" : "";
@@ -210,10 +210,11 @@ public partial class MainWindow : IOutputHost
                 ? "出力: " + err
                 : "出力（クリックで出力ウィンドウ、右クリックでメニュー）";
         }
-        if (running != _outShown)
+        int count = running ? _outHub.Engines.Count(e => e.Running) : 0;
+        if (count != _outShown)
         {
-            _outShown = running;
-            OutputButton.Content = running ? "⇶ 出力中" : "⇶";
+            _outShown = count;
+            OutputButton.Content = count > 0 ? $"⇶ 出力中 {count}" : "⇶";   // 右の数字＝いま出力している出力（カード）の数
         }
     }
 

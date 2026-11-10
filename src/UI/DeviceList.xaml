@@ -8,7 +8,7 @@
         <!-- プルダウンの1項目: アイコン（色付き）・名前・既定のデバイスの ＊（赤紫）。色は Theme/Common.xaml。注意が出る選択肢（同じデバイスの重複など）は名前が赤系（WarnBrushConverter） -->
         <DataTemplate x:Key="DeviceItem">
             <TextBlock>
-                <Run Text="{Binding Icon, Mode=OneWay}" Foreground="{Binding Icon, Mode=OneWay, Converter={StaticResource IconBrush}}"/><Run Text="{Binding LabelAfterIcon, Mode=OneWay}"><Run.Foreground><MultiBinding Converter="{StaticResource WarnBrush}"><Binding Path="Key"/><Binding Path="Tag" RelativeSource="{RelativeSource AncestorType=ComboBox}"/></MultiBinding></Run.Foreground></Run><Run Text="{Binding DefaultMark, Mode=OneWay}" Foreground="{DynamicResource DefaultMarkFg}"/>
+                <Run Text="{Binding Icon, Mode=OneWay}" Foreground="{Binding Icon, Mode=OneWay, Converter={StaticResource IconBrush}}"/><Run Text="{Binding LabelAfterIcon, Mode=OneWay}"><Run.Foreground><MultiBinding Converter="{StaticResource WarnBrush}"><Binding Path="Key"/><Binding Path="Tag" RelativeSource="{RelativeSource AncestorType=ComboBox}"/><Binding Path="Foreground" RelativeSource="{RelativeSource AncestorType=ComboBoxItem}"/><Binding Path="Foreground" RelativeSource="{RelativeSource AncestorType=ComboBox}"/></MultiBinding></Run.Foreground></Run><Run Text="{Binding DefaultMark, Mode=OneWay}" Foreground="{DynamicResource DefaultMarkFg}"/>
             </TextBlock>
         </DataTemplate>
     </UserControl.Resources>
