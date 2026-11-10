@@ -135,8 +135,17 @@ static class OutputTests
             rend.Bus.MasterGain = 1f;
             var big = new float[480];
             Array.Fill(big, 2.0f);
-            for (int k = 0; k < 3; k++) { buf.Push(big, 0, 480); rend.Render(o, 0, 480); }
-            check(o.Max() <= 1f && rend.ReadPeaks().Clipped, "大きすぎる音は±1に切り詰めてクリップを記録");
+            // バッファには約190msぶんの古い音が先にたまっているので、大きい音が出てくるまで十分な回数を回す
+            float biggest = 0;
+            bool clippedSeen = false;
+            for (int k = 0; k < 40; k++)
+            {
+                buf.Push(big, 0, 480);
+                rend.Render(o, 0, 480);
+                biggest = Math.Max(biggest, o.Max());
+                if (rend.ReadPeaks().Clipped) clippedSeen = true;
+            }
+            check(biggest <= 1f && clippedSeen, "大きすぎる音は±1に切り詰めてクリップを記録", $"max={biggest} clipped={clippedSeen}");
             rend.Bus.SetSend(0, false);
             buf.Push(m, 0, 480);
             rend.Render(o, 0, 480);
