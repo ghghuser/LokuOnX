@@ -5,6 +5,8 @@ namespace Recorder.Core;
 /// ・データが来ない間（ループバックの無音・デバイス切断中）は壁時計に合わせて無音で埋める。
 /// ・デバイスの時計が壁時計より進む／遅れるときは、±0.1%のわずかな伸縮で少しずつ合わせる（PROJECT.md §5-3）。
 /// ・ゲイン（音量調整）は滑らかに変化させる。
+/// ・M11-2: 入力デバイスは録音の開始・終了で開き直さない（InputHub が持ち主）。録音につながっていない間（Attach 前・Detach 後）は、
+///   ゲイン・ピーク・出力用のタップだけを処理し、時間軸（ring）には溜めない。録音に Attach すると、ringを空にして壁時計に合わせ直す。
 /// WPF や Windows API には依存しない（§6-3）。
 /// </summary>
 public sealed class DeviceStream
@@ -17,9 +19,13 @@ public sealed class DeviceStream
     private const double LagAlpha = 0.02;       // 遅れの平滑化
 
     private readonly object _lock = new();
-    private readonly int _rate;
-    private readonly int _ch;
-    private readonly Func<double> _now;          // 壁時計（秒）
+    private int _rate;
+    private int _ch;
+    private readonly Func<double> _now;          // 壁時計（秒。InputHub の共通の時計）
+    private bool _attached;                      // 録音（MixedSource）につながっているか
+    private InputTap[] _taps = Array.Empty<InputTap>();   // 出力用の複製先（入力ゲインを掛けたあとの音）
+    private int _tapCh = 2;                      // 複製先のチャンネル数（デバイスのチャンネル数、最大2。録音の開始・終了で変えない＝出力が途切れない）
+    private float[] _tapScratch = Array.Empty<float>();
     private readonly FloatRing _ring = new();
     private AudioFormatInfo? _fmt;
     private StreamResampler? _rs;
@@ -42,6 +48,54 @@ public sealed class DeviceStream
 
     private static float DbToGain(double db) => GainMath.DbToLinear(db);
 
+    /// <summary>出力用の複製先を足す。複製先は、届いた音（入力ゲイン後・デバイス本来のサンプリング周波数・いまのチャンネル数）を受け取る。</summary>
+    public void AddTap(InputTap tap)
+    {
+        lock (_lock)
+        {
+            if (Array.IndexOf(_taps, tap) >= 0) return;
+            _taps = _taps.Append(tap).ToArray();
+        }
+    }
+
+    public void RemoveTap(InputTap tap)
+    {
+        lock (_lock)
+        {
+            _taps = _taps.Where(t => !ReferenceEquals(t, tap)).ToArray();
+            tap.Buffer = null;
+        }
+    }
+
+    /// <summary>録音につなぐ。共通のサンプリング周波数・チャンネル数に合わせ、時間軸を startSec（InputHub の時計）から始める。ringは空にする（録音の前にたまった音を混ぜない）。</summary>
+    public void Attach(int rate, int channels, double startSec)
+    {
+        lock (_lock)
+        {
+            _rate = Math.Max(1, rate);
+            _ch = Math.Max(1, channels);
+            _ring.Clear();
+            _written = (long)(startSec * _rate);
+            _lagEma = 0;
+            _slew = 0;
+            _rs = null;
+            _peak = _peakL = _peakR = 0;    // 録音の前にたまったピークは、録音のメーターに出さない
+            _attached = true;
+        }
+    }
+
+    /// <summary>録音から外す（デバイスは開いたまま）。</summary>
+    public void Detach()
+    {
+        lock (_lock)
+        {
+            _attached = false;
+            _ring.Clear();
+            _rs = null;
+            _ch = _tapCh;
+        }
+    }
+
     /// <summary>ゲイン（dB）。録音中も変えられる（滑らかに切り替わる）。</summary>
     public void SetGainDb(double db)
     {
@@ -59,6 +113,8 @@ public sealed class DeviceStream
             _rs = null;
             _lagEma = 0;
             _slew = 0;
+            _tapCh = Math.Max(1, Math.Min(2, fmt.Channels));
+            if (!_attached) _ch = _tapCh;   // 録音につながっていない間は、出力用に最大ステレオ
         }
     }
 
@@ -106,6 +162,8 @@ public sealed class DeviceStream
             var f = PcmConvert.ToFloat(buf, count, fmt, _ch, out int frames);
             if (frames <= 0) return;
             ApplyGainAndPeak(f, frames);
+            PushTaps(f, frames, fmt.SampleRate);
+            if (!_attached) return;
 
             // 伸縮が必要なとき、またはサンプリング周波数が違うときだけ変換する
             float[] r;
@@ -140,6 +198,44 @@ public sealed class DeviceStream
             _ring.Append(r, n * _ch);
             _written += n;
         }
+    }
+
+    /// <summary>出力用の複製先へ、ゲインを掛けたあとの音を渡す（複製先のバッファは、形式が変わっていたら作り直す）。
+    /// チャンネル数は録音の形式（_ch）ではなくデバイス本来（最大2）に固定し、録音の開始・終了で複製先を作り直さない。</summary>
+    private void PushTaps(float[] f, int frames, int rate)
+    {
+        var taps = _taps;
+        if (taps.Length == 0) return;
+        var src = _ch == _tapCh ? f : ToTapChannels(f, frames);
+        for (int i = 0; i < taps.Length; i++)
+        {
+            var b = taps[i].Buffer;
+            if (b == null || b.SampleRate != rate || b.Channels != _tapCh)
+            {
+                b = new SourceBuffer(rate, _tapCh);
+                taps[i].Buffer = b;
+            }
+            b.Push(src, 0, frames);
+        }
+    }
+
+    /// <summary>録音用のチャンネル数（_ch）の音を、複製先のチャンネル数（_tapCh）へ。モノ→左右に複製、ステレオ→モノは平均、3ch以上は先頭の2ch。</summary>
+    private float[] ToTapChannels(float[] f, int frames)
+    {
+        int n = frames * _tapCh;
+        if (_tapScratch.Length < n) _tapScratch = new float[n];
+        int sc = _ch, dc = _tapCh;
+        for (int i = 0; i < frames; i++)
+        {
+            int s = i * sc, d = i * dc;
+            if (dc == 1) _tapScratch[d] = sc > 1 ? (f[s] + f[s + 1]) * 0.5f : f[s];
+            else
+            {
+                _tapScratch[d] = f[s];
+                _tapScratch[d + 1] = sc > 1 ? f[s + 1] : f[s];
+            }
+        }
+        return _tapScratch;
     }
 
     private void UpdateSlew(double lag)

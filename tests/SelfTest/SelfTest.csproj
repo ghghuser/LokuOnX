@@ -23,6 +23,22 @@
     <Compile Include="..\..\src\Core\Routing.cs" Link="Core\Routing.cs" />
     <Compile Include="..\..\src\Core\SourceBuffer.cs" Link="Core\SourceBuffer.cs" />
     <Compile Include="..\..\src\Core\TrimResampler.cs" Link="Core\TrimResampler.cs" />
+    <Compile Include="..\..\src\Core\IAudioSource.cs" Link="Core\IAudioSource.cs" />
+    <Compile Include="..\..\src\Core\AudioKeys.cs" Link="Core\AudioKeys.cs" />
+    <Compile Include="..\..\src\Core\GainMath.cs" Link="Core\GainMath.cs" />
+    <Compile Include="..\..\src\Core\PcmConvert.cs" Link="Core\PcmConvert.cs" />
+    <Compile Include="..\..\src\Core\FloatRing.cs" Link="Core\FloatRing.cs" />
+    <Compile Include="..\..\src\Core\StreamResampler.cs" Link="Core\StreamResampler.cs" />
+    <Compile Include="..\..\src\Core\DeviceStream.cs" Link="Core\DeviceStream.cs" />
+    <Compile Include="..\..\src\Core\DeviceInput.cs" Link="Core\DeviceInput.cs" />
+    <Compile Include="..\..\src\Core\InputTap.cs" Link="Core\InputTap.cs" />
+    <Compile Include="..\..\src\Core\InputHub.cs" Link="Core\InputHub.cs" />
+    <Compile Include="..\..\src\Core\MixedSource.cs" Link="Core\MixedSource.cs" />
+    <Compile Include="..\..\src\Core\LevelMonitor.cs" Link="Core\LevelMonitor.cs" />
+    <Compile Include="..\..\src\Core\IOutputDevice.cs" Link="Core\IOutputDevice.cs" />
+    <Compile Include="..\..\src\Core\OutputGuard.cs" Link="Core\OutputGuard.cs" />
+    <Compile Include="..\..\src\Core\OutputRenderer.cs" Link="Core\OutputRenderer.cs" />
+    <Compile Include="..\..\src\Core\OutputEngine.cs" Link="Core\OutputEngine.cs" />
   </ItemGroup>
 
 </Project>

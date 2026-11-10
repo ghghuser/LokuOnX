@@ -9,7 +9,7 @@ namespace Recorder.UI;
 /// </summary>
 public sealed class OutputMeter : Grid
 {
-    private const string Tip = "出力の音量（左右）。白い線＝直近の最大値、右端の四角が赤＝クリップ。縦長のつまみ＝全体ゲイン（ミックス後・録音するファイルに掛かる。左端＝ミュート、ダブルクリックで 0 dB、録音中も調整可能）";
+    private const string DefaultTip = "出力の音量（左右）。白い線＝直近の最大値、右端の四角が赤＝クリップ。縦長のつまみ＝全体ゲイン（ミックス後・録音するファイルに掛かる。左端＝ミュート、ダブルクリックで 0 dB、録音中も調整可能）";
 
     private readonly GainMeter _gain = new(2, 11);
 
@@ -19,7 +19,14 @@ public sealed class OutputMeter : Grid
     /// <summary>全体ゲインの数値（+2.0 dB など）。見出しの右に出る。</summary>
     public TextBlock GainText { get; } = new() { FontSize = 12, HorizontalAlignment = HorizontalAlignment.Right };
 
-    public OutputMeter()
+    /// <summary>録音コンソール用（XAML から作られる。XAML は引数なしのコンストラクターが必須なので、省略可能な引数では代用できない）。</summary>
+    public OutputMeter() : this("出力レベル(dB)・全体ゲイン", null)
+    {
+    }
+
+    /// <param name="heading">見出し。</param>
+    /// <param name="tip">ツールチップ（null なら録音コンソール用の説明）。</param>
+    public OutputMeter(string heading, string? tip)
     {
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -28,7 +35,7 @@ public sealed class OutputMeter : Grid
         var head = new DockPanel { Margin = new Thickness(0, 0, 0, 3), LastChildFill = true };
         DockPanel.SetDock(GainText, Dock.Right);
         head.Children.Add(GainText);
-        head.Children.Add(new TextBlock { Text = "出力レベル(dB)・全体ゲイン", FontSize = 11, Opacity = 0.65, VerticalAlignment = VerticalAlignment.Center });
+        head.Children.Add(new TextBlock { Text = heading, FontSize = 11, Opacity = 0.65, VerticalAlignment = VerticalAlignment.Center });
         SetColumnSpan(head, 2);
         Add(head, 0, 0);
         Add(Label("L"), 1, 0);
@@ -38,7 +45,7 @@ public sealed class OutputMeter : Grid
         Add(_gain, 1, 1);
         var scale = new LevelScale { Margin = new Thickness(0, 2, 0, 0) };
         Add(scale, 3, 1);
-        ToolTip = Tip;
+        ToolTip = tip ?? DefaultTip;
     }
 
     private static TextBlock Label(string text) => new()

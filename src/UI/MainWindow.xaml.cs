@@ -26,6 +26,7 @@ public partial class MainWindow : Window
         Width = Math.Min(Width, SystemParameters.WorkArea.Width);
         _settings = settings;
         _provider = new AppDeviceProvider(() => settings.AsioEnabled);   // ASIOは設定でONのときだけ一覧に出る（M8）
+        InitOutput();   // 入力の持ち主（InputHub）と出力エンジン（M11-2）。録音・待機・出力が同じ入力を共有する
         SetRecordButton(false);
         SetPauseButton(false);
         Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
@@ -39,10 +40,11 @@ public partial class MainWindow : Window
         LoadDevices();
         Devices.AttachMaster(OutMeter.Gain, OutMeter.GainText);   // 全体ゲインは出力メーターと一体（Init の前に）
         Devices.Init(settings, _devices, DefaultCaptureKey());
-        Devices.Changed += () => { Devices.ClearError(); CheckAsioRows(); UpdateInfo(); };
+        SyncOutputInputs();
+        Devices.Changed += () => { Devices.ClearError(); CheckAsioRows(); UpdateInfo(); SyncOutputInputs(); };
         CheckAsioRows();
         Devices.RefreshRequested += () => Refresh_Click(this, new RoutedEventArgs());
-        Devices.GainChanged += (index, db) => _session?.SetGain(index, db);
+        Devices.GainChanged += (index, db) => { _session?.SetGain(index, db); OnInputGain(index, db); };
         Devices.MasterGainChanged += db =>
         {
             _session?.SetMasterGain(db);
@@ -100,6 +102,7 @@ public partial class MainWindow : Window
             _monitor = null;
             try { Task.Run(() => { monitor.Stop(); monitor.Dispose(); }).Wait(2000); } catch (Exception) { }
         }
+        ShutdownOutput();
         base.OnClosed(e);
     }
 
@@ -160,6 +163,7 @@ public partial class MainWindow : Window
         Detail.Reload();
         _loading = false;
         Devices.Rebuild(DefaultCaptureKey());
+        SyncOutputInputs();
         Presets.Reload(null);
         UpdateInfo();
     }

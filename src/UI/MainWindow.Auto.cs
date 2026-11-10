@@ -97,7 +97,7 @@ public partial class MainWindow
         StopCheckMonitor();
         try
         {
-            var monitor = new LevelMonitor(_provider, inputs);
+            var monitor = new LevelMonitor(_hub, inputs);
             monitor.Start();
             monitor.SetMasterGain(Devices.MasterGainDb);
             _monitor = monitor;
@@ -205,7 +205,7 @@ public partial class MainWindow
             if (DateTime.Now < _nextCheckTry) return;
             try
             {
-                var monitor = new LevelMonitor(_provider, inputs);
+                var monitor = new LevelMonitor(_hub, inputs);
                 monitor.Start();
                 monitor.SetMasterGain(Devices.MasterGainDb);
                 _checkMon = monitor;

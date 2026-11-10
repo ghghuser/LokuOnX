@@ -106,3 +106,15 @@ LokuOnX M11「出力とエフェクト」 完成予定の仕様 ＋ 現在の内
  ・UIの追加場所: ⚙の左に🔊、DeviceListの各行にFXとメーターのダブルクリック、トレイの状態表示。ホットキー・予約・分割は録音側のまま。
  ・Linux移植の規則(Coreは WPF/Windows API に依存しない)を守る: OutputDevice と WASAPI出力は Core/Win に置く。
 [ビルド] GitHub Actions(windows-latest)。Linuxでは Core のみビルド・テスト可(WPFは不可)。docs/・*.md・*.txt だけの変更ではビルドしない。成果物は直近2件。
+
+====================================================================
+6. 11-2 で確定・実装したこと（2026-11-10。詳細は PROJECT.md §3-9 と §11）
+====================================================================
+ ・入力の持ち主 = InputHub（参照カウント）。録音(MixedSource)・レベル表示(LevelMonitor)・出力(OutputEngine)が同じ入力を Acquire/Release で共有。
+   録音の開始 = DeviceStream.Attach（ringを空にする＝古い音を混ぜない）、終了 = Detach。出力用のタップは触らない＝途切れない。
+ ・出力に届く音 = 入力ゲイン後・デバイス本来の周波数・最大2ch（InputTap.Buffer。形式が変わると DeviceStream が作り直す）。
+ ・OutputRenderer = 出力デバイスのコールバックで引く。バッファ目標50ms、±0.5%のPI制御、足りなければ無音、250ms超は捨てる。
+ ・「出力する」は保存しない（起動のたびオフ）。出力先・音量は保存、プリセットには含めない（11-3）。
+ ・ループ防止 = OutputGuard.IsLoop（出力先 = 入力の🔊と同じデバイス、「既定」も実デバイスで判定）。
+ ・出力側の失敗は5秒ごとの再試行。録音は止めない。
+ ・自己テスト: OutputTests / HubTests / EngineTests（tests/SelfTest。偽デバイスは Fakes.cs、Settings の定数は Stubs.cs）。

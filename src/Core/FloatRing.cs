@@ -18,6 +18,14 @@ public sealed class FloatRing
         Count += count;
     }
 
+    /// <summary>溜まっているものをすべて捨てる。</summary>
+    public void Clear()
+    {
+        _chunks.Clear();
+        _headOffset = 0;
+        Count = 0;
+    }
+
     /// <summary>無音（0）を count 個足す。</summary>
     public void AppendZeros(long count)
     {

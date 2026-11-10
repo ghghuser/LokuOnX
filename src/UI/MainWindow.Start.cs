@@ -81,7 +81,7 @@ public partial class MainWindow
                 return false;
             }
             var no = _settings.NextNo;
-            group = RecordingGroup.Create(_provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now);
+            group = RecordingGroup.Create(_hub, _provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now);
             group.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
             group.Notice += OnNotice;
             group.Saved += path => Dispatcher.BeginInvoke(new Action(() =>

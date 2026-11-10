@@ -38,6 +38,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="プリセット" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -53,7 +54,11 @@
                     ToolTip="予約録音が有効です。予約の時刻までアプリを起動したままにしてください（設定はオプション欄の「予約録音」）">
                 <TextBlock x:Name="ScheduleBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ScheduleOnFg}"/>
             </Border>
-            <Button x:Name="SettingsButton" Grid.Column="3" Content="⚙" FontFamily="Segoe UI Symbol"
+            <!-- 出力（M11-2）: 出力ウィンドウを開く。出力中は色が変わる -->
+            <Button x:Name="OutputButton" Grid.Column="3" Content="🔊" FontFamily="Segoe UI Emoji, Segoe UI Symbol"
+                    FontSize="15" Width="34" Height="28" Padding="0" Margin="0,0,6,0" VerticalAlignment="Center"
+                    ToolTip="出力（ミックスした音を再生デバイスへ出す）" Click="Output_Click"/>
+            <Button x:Name="SettingsButton" Grid.Column="4" Content="⚙" FontFamily="Segoe UI Symbol"
                     FontSize="17" Width="34" Height="28" Padding="0" VerticalAlignment="Center"
                     ToolTip="設定とヘルプ（画面の色・スリープ防止・バージョン情報）" Click="Settings_Click"/>
         </Grid>

@@ -86,7 +86,7 @@ public sealed class RecordingGroup : IDisposable
     }
 
     /// <summary>画面で選ばれているデバイス（inputs）と設定から録音を組み立てる（まだ開始しない）。保存先フォルダも作る。</summary>
-    public static RecordingGroup Create(IAudioDeviceProvider provider, Settings s, IReadOnlyList<InputSetting> inputs,
+    public static RecordingGroup Create(InputHub hub, IAudioDeviceProvider provider, Settings s, IReadOnlyList<InputSetting> inputs,
         IReadOnlyList<AudioDeviceInfo> devices, string ffmpegPath, DateTime now)
     {
         if (inputs.Count == 0) throw new InvalidOperationException("入力デバイスを選んでください。");
@@ -118,7 +118,7 @@ public sealed class RecordingGroup : IDisposable
             {
                 var lane = lanes[idx];
                 var mixInputs = lane.Select(i => new MixInput(i.Key, LabelOf(i.Key), i.GainDb)).ToList();
-                var src = new MixedSource(provider, mixInputs, devices, s.AutoResume);
+                var src = new MixedSource(hub, mixInputs, devices);
                 src.SetMasterGain(s.MasterGainDb);
                 sources.Add(src);
                 var label = lane.Count == 1 ? LabelOf(lane[0].Key) : "ミックス";
