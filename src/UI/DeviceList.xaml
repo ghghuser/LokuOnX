@@ -42,7 +42,7 @@
         </StackPanel>
 
         <!-- 下段（コンソールの底にそろえる） -->
-        <StackPanel x:Name="FooterPanel" Grid.Row="3" Margin="0,4,0,0" VerticalAlignment="Bottom" TextElement.FontSize="12">
+        <StackPanel x:Name="FooterPanel" Grid.Row="4" Margin="0,4,0,0" VerticalAlignment="Bottom" TextElement.FontSize="12">
             <DockPanel x:Name="FooterRow" LastChildFill="False">
                 <Button x:Name="RefreshButton" Content="デバイス再取得" Padding="12,2" Margin="0,0,24,0"
                         ToolTip="接続されているデバイスの一覧を読み直します（3秒ごとの自動更新もあります）"
@@ -55,7 +55,8 @@
                              VerticalAlignment="Center" Checked="Mode_Checked"/>
             </DockPanel>
         </StackPanel>
-        <TextBlock x:Name="ErrorText" Grid.Row="4" Foreground="#D33" TextWrapping="Wrap" Visibility="Collapsed"
+        <!-- エラーは「デバイス再取得」の行のすぐ上に出す -->
+        <TextBlock x:Name="ErrorText" Grid.Row="3" Foreground="{DynamicResource WarnFg}" FontWeight="SemiBold" TextWrapping="Wrap" Visibility="Collapsed"
                    Margin="0,6,0,0"/>
     </Grid>
 </UserControl>

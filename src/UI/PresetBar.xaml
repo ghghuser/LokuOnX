@@ -7,6 +7,8 @@
                   SelectionChanged="Preset_Selected" DropDownOpened="Preset_DropDownOpened"/>
         <Button Content="保存" Padding="12,3" Margin="0,0,6,2" Click="Save_Click"/>
         <Button Content="削除" Padding="12,3" Margin="0,0,6,2" Click="Delete_Click"/>
+        <Button Content="再読込" Padding="12,3" Margin="0,0,6,2" Click="Revert_Click"
+                ToolTip="いま選んでいるプリセットを読み込み直します（保存せずに変えた設定を、プリセットの状態に戻せます）"/>
         <Button Content="Presetsフォルダを開く" Padding="12,3" Margin="0,0,0,2"
                 ToolTip="プリセットのJSONが入っているフォルダを開きます。ファイルを入れる・コピーする・消すだけで、プリセットを追加・共有・削除できます"
                 Click="OpenFolder_Click"/>

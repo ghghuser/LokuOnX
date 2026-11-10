@@ -5,6 +5,7 @@
     <SolidColorBrush x:Key="IconSpeakerFg" Color="#F08A4B"/>    <!-- 🔊 スピーカー（橙） -->
     <SolidColorBrush x:Key="IconAsioFg" Color="#9B6BE8"/>       <!-- 🎛 ASIO（紫） -->
     <SolidColorBrush x:Key="DefaultMarkFg" Color="#CC3D8C"/>    <!-- 既定のデバイスの ＊（赤紫） -->
+    <SolidColorBrush x:Key="WarnFg" Color="#E55757"/>            <!-- 注意・エラーの赤（エラー文字・プルダウンの注意項目で共通。WarnBrushConverter も同じ色） -->
     <SolidColorBrush x:Key="LampOn" Color="#34D96B"/>           <!-- 入力デバイスの「使う」ランプ（緑） -->
 
     <!-- 設定の「見出し」と「中身」を見分けやすくする共通スタイル（ライト・ダーク共通。色は Dark.xaml / Light.xaml の SectionFg・SectionBar）。

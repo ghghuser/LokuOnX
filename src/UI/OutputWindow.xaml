@@ -21,7 +21,7 @@
         <StackPanel Margin="16,14,4,8">
             <TextBlock Text="出力" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
             <TextBlock FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,12,10"
-                       Text="メイン画面で選んでいる入力を、録音とは別に再生デバイス（スピーカー・ヘッドホン・VB-CABLE など）へ出します。録音しなくても使えます。出力は最大4つで、出力ごとに入力の送りと音量を決められます。「出力する」は、起動のたびにオフから始まります。"/>
+                       Text="メイン画面で選んでいる入力を、録音とは別に再生デバイス（スピーカー・ヘッドホン・VB-CABLE など）へ出します。録音しなくても使えます。出力は最大4つで、出力ごとに入力の送りと音量を決められます。各カードの左端のランプをつけると出力が始まります（ランプは起動のたびに消えた状態から始まります）。"/>
             <WrapPanel x:Name="Cards"/>
             <Button x:Name="AddButton" Content="＋ 出力を追加" HorizontalAlignment="Left" Padding="14,4" Margin="0,0,0,12"
                     ToolTip="出力を増やします（最大4つ）" Click="Add_Click"/>

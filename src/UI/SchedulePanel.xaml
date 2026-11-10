@@ -19,7 +19,7 @@
                         ToolTip="時:分:秒。この長さがたつと自動で停止して保存します。00:00:00 は自動では止めません。最長 24:00:00"
                         LostFocus="Length_LostFocus"/>
             <TextBlock Text="(0＝止めない)" VerticalAlignment="Center" Margin="8,0,16,0" Opacity="0.75"/>
-            <ComboBox x:Name="RepeatBox" Width="150" SelectionChanged="Repeat_Changed">
+            <ComboBox x:Name="RepeatBox" Width="128" SelectionChanged="Repeat_Changed">
                 <ComboBoxItem Content="次の1回だけ"/>
                 <ComboBoxItem Content="毎日くり返す"/>
             </ComboBox>

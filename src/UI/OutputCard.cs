@@ -80,7 +80,7 @@ public sealed class OutputCard : Border
 
         var root = new StackPanel();
 
-        // 1行目: 名前 ... 出力する ✕
+        // 1行目: 「出力する」ランプ 名前 ... ✕
         var head = new DockPanel { Margin = new Thickness(0, 0, 0, 10) };
         var remove = new Button
         {
@@ -90,13 +90,15 @@ public sealed class OutputCard : Border
         remove.Click += (_, _) => AskRemove();
         DockPanel.SetDock(remove, Dock.Right);
         head.Children.Add(remove);
-        _on.Content = "出力する";
+        // 「出力する」のランプ（入力デバイスの「使う」ランプと同じ見た目・色）。名前の前に置く。文字は付けない
+        _on.Style = (Style)Application.Current.FindResource("LampCheck");
         _on.VerticalAlignment = VerticalAlignment.Center;
-        _on.ToolTip = "オンにすると、出力先の再生デバイスへ音を送ります。入力が選ばれていて、出力先が決まっている必要があります（起動のたびにオフから始まります）";
+        _on.Margin = new Thickness(0, 0, 10, 0);
+        _on.ToolTip = "出力する（つけると、出力先の再生デバイスへ音を送ります）。入力が選ばれていて、出力先が決まっている必要があります。起動のたびに消えた状態から始まります";
         _on.IsChecked = Engine.On;
         _on.Checked += (_, _) => OnToggled();
         _on.Unchecked += (_, _) => OnToggled();
-        DockPanel.SetDock(_on, Dock.Right);
+        DockPanel.SetDock(_on, Dock.Left);
         head.Children.Add(_on);
         _name.MaxLength = OutputConfig.MaxNameLength;
         _name.Text = Cfg.Name;
@@ -124,7 +126,7 @@ public sealed class OutputCard : Border
         _state.Opacity = 0.85;
         _state.Text = "読み込み中…";
         root.Children.Add(_state);
-        _error.Foreground = System.Windows.Media.Brushes.IndianRed;
+        _error.SetResourceReference(TextBlock.ForegroundProperty, "WarnFg");
         _error.FontWeight = FontWeights.SemiBold;
         _error.FontSize = 12;
         _error.TextWrapping = TextWrapping.Wrap;
@@ -279,7 +281,7 @@ public sealed class OutputCard : Border
     {
         var send = Cfg.SendAt(slot);
         var row = new DockPanel { Margin = new Thickness(0, 6, 0, 0), Height = 24 };
-        var check = new CheckBox { IsChecked = send.On, Width = 24, VerticalAlignment = VerticalAlignment.Center, ToolTip = "この入力をこの出力へ送る" };
+        var check = new CheckBox { IsChecked = send.On, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, ToolTip = "この入力をこの出力へ送る" };
         // 名前（ダブルクリックか右クリックで変更。メイン画面の入力の名前と同じもの）
         var label = new TextBlock
         {

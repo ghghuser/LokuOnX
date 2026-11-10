@@ -17,9 +17,10 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="640"/>
+            <ColumnDefinition Width="610"/>
             <ColumnDefinition Width="16"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
@@ -44,10 +45,6 @@
                 <TextBlock Text="プリセット" VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <ui:PresetBar x:Name="Presets"/>
             </StackPanel>
-            <TextBlock x:Name="StatusText" Grid.Column="1" Margin="14,0,10,0" VerticalAlignment="Center"
-                       FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" Height="32"
-                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Opacity="0.85" Text="待機中"
-                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
             <!-- 予約録音が有効なとき、次の予約を目立つ色で出す -->
             <Border x:Name="ScheduleBadge" Grid.Column="2" Visibility="Collapsed" CornerRadius="11" Padding="11,3" Margin="0,0,10,0"
                     VerticalAlignment="Center" Background="{DynamicResource ScheduleOnBg}"
@@ -123,7 +120,7 @@
             </Grid>
         </Border>
 
-        <TextBlock x:Name="ErrorText" Grid.Row="2" Grid.ColumnSpan="3" Foreground="#D33" FontWeight="SemiBold"
+        <TextBlock x:Name="ErrorText" Grid.Row="2" Grid.ColumnSpan="3" Foreground="{DynamicResource WarnFg}" FontWeight="SemiBold"
                    TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,8"/>
 
         <!-- 左下: 設定（縦に長いときはスクロール）。「形式・音質」「保存先・ファイル名」は枠で囲み、その下にタブ -->
@@ -178,8 +175,17 @@
         <!-- 右下: 録音履歴（ファイル一覧）・プレイヤー・ファイル操作 -->
         <ui:FileListPanel x:Name="Files" Grid.Row="3" Grid.Column="2"/>
 
+        <!-- 左下: ログ（保存しました など。常に2行分の高さ）。枠で囲み、ホットキー表示の上に置く -->
+        <Border Grid.Row="4" Grid.Column="0" Margin="0,8,10,0" Padding="10,4" CornerRadius="6" BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorder}">
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                       FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" Height="32"
+                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Opacity="0.85" Text="待機中"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+        </Border>
+
         <!-- ウィンドウの一番下: ホットキーがONのとき、割り当てを薄い文字で（設定は歯車の設定ウィンドウ） -->
-        <TextBlock x:Name="HotkeyInfo" Grid.Row="4" Grid.ColumnSpan="3" FontSize="12" Opacity="0.55" TextWrapping="Wrap"
+        <TextBlock x:Name="HotkeyInfo" Grid.Row="5" Grid.ColumnSpan="3" FontSize="12" Opacity="0.55" TextWrapping="Wrap"
                    Margin="2,8,0,0" Visibility="Collapsed"/>
     </Grid>
 </Window>

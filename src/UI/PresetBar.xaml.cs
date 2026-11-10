@@ -71,6 +71,18 @@ public partial class PresetBar : UserControl
         Stored?.Invoke();
     }
 
+    /// <summary>選んでいる（名前欄にある）プリセットを、もう一度読み込む。保存していない変更を捨てて元に戻したいときに使う。</summary>
+    private void Revert_Click(object sender, RoutedEventArgs e)
+    {
+        if (_s == null) return;
+        Acting?.Invoke();
+        var name = PresetBox.Text.Trim();
+        var p = _s.Presets.FirstOrDefault(x => x.Name == name);
+        if (p == null) { Error?.Invoke("その名前のプリセットはありません。"); return; }
+        _s.ApplyPreset(p);
+        Applied?.Invoke();
+    }
+
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
         if (_s == null) return;
