@@ -7,6 +7,21 @@ public sealed record OutputDeviceInfo(string Id, string Name)
 
     public bool IsDefault => Id == DefaultId;
 
+    /// <summary>名前の先頭の絵文字（🔊）。画面で色を付けるために分ける。</summary>
+    public string Icon => Name.Length > 2 && char.IsHighSurrogate(Name[0]) && Name[2] == ' ' ? Name.Substring(0, 2) : "";
+
+    /// <summary>既定のデバイスの印（末尾の ＊）。</summary>
+    public string DefaultMark => Name.EndsWith(" ＊", StringComparison.Ordinal) ? " ＊" : "";
+
+    public string LabelAfterIcon
+    {
+        get
+        {
+            var t = Icon.Length == 0 ? Name : Name.Substring(2);
+            return DefaultMark.Length > 0 ? t.Substring(0, t.Length - DefaultMark.Length) : t;
+        }
+    }
+
     public override string ToString() => Name;
 }
 

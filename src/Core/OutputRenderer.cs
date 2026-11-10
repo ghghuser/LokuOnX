@@ -6,14 +6,14 @@ namespace Recorder.Core;
 /// デバイスのサンプリング周波数・チャンネル数に合わせ、MixBus で足して返す。
 /// 入力デバイスと出力デバイスはクロックが別なので、バッファのたまり具合を見て変換比をわずかに調整する（時計ズレ補正。±0.5%まで）。
 /// たまりが足りなければ無音を出し、目標までたまってから再開する（途切れても止まらない）。
-/// 録音のミックスの 0.2 秒の遅延は経由せず、目標のたまりは 50ms。
+/// 録音のミックスの 0.2 秒の遅延は経由せず、目標のたまりは 80ms。
 /// エフェクト（入力ごと・出力ごと）はまだ載せない（M11-4・M11-5。EffectChain・OutputFxChain は移植済み）。
 /// 入力ゲインは入力側（DeviceStream）で掛け済みの音が届くので、ここでは掛けない。WPF や Windows API には依存しない（§6-3）。
 /// </summary>
 public sealed class OutputRenderer
 {
-    public const double TargetSec = 0.050;      // 目標のたまり
-    public const double MaxFillSec = 0.250;     // これを超えたら目標まで捨てる
+    public const double TargetSec = 0.080;      // 目標のたまり（50msでは入力の届き方にむらがあると途切れてプツプツ鳴ったため80msに）
+    public const double MaxFillSec = 0.400;     // これを超えたら目標まで捨てる
     private const double Kp = 0.1;              // たまりの差(秒)→変換比の調整
     private const double Ki = 0.01;             // たまりの差の積み上げ(ずれが一定でも目標に戻す)
     private const double MaxTrim = 0.005;       // ±0.5% まで

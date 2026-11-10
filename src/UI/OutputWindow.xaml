@@ -6,6 +6,15 @@
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource WindowFg}"
         FontFamily="Yu Gothic UI, Meiryo UI" FontSize="14"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanMinimize">
+    <Window.Resources>
+        <ui:DeviceIconBrushConverter x:Key="IconBrush"/>
+        <!-- 出力先の1項目: 入力デバイスと同じ色のアイコン・名前・既定の ＊ -->
+        <DataTemplate x:Key="OutItem">
+            <TextBlock>
+                <Run Text="{Binding Icon, Mode=OneWay}" Foreground="{Binding Icon, Mode=OneWay, Converter={StaticResource IconBrush}}"/><Run Text="{Binding LabelAfterIcon, Mode=OneWay}"/><Run Text="{Binding DefaultMark, Mode=OneWay}" Foreground="{DynamicResource DefaultMarkFg}"/>
+            </TextBlock>
+        </DataTemplate>
+    </Window.Resources>
     <!-- M11-2: 出力は1台（カード1枚）。複数台・名前・エフェクトは M11-3 以降 -->
     <StackPanel Margin="16,14,16,16">
         <TextBlock Text="出力" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
@@ -24,7 +33,7 @@
 
                 <DockPanel Margin="0,0,0,8">
                     <TextBlock Text="出力先" Width="52" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="DeviceBox" IsEnabled="False" SelectionChanged="Device_Changed"
+                    <ComboBox x:Name="DeviceBox" IsEnabled="False" ItemTemplate="{StaticResource OutItem}" SelectionChanged="Device_Changed"
                               ToolTip="音を送る再生デバイス。「入力のPC内部音（🔊）」と同じデバイスは、音が回ってしまうので選べません（赤文字で知らせます）"/>
                 </DockPanel>
 
