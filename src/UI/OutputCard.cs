@@ -26,6 +26,9 @@ public interface IOutputHost
     /// <summary>この出力先は、いま選んでいる入力の「🔊 ○○」（PC内部音）と同じデバイスか（音が回るので使えない）。</summary>
     bool IsLoopOutput(string id);
 
+    /// <summary>出力先の「実際のデバイスID」（「既定の出力デバイス」は、いまの既定のデバイスのIDに置き換える）。同じデバイスを複数の出力で使っていないかの判定用。</summary>
+    string RealOutputId(string id);
+
     bool AddOutput();
 
     void RemoveOutput(int index);
@@ -51,6 +54,7 @@ public sealed class OutputCard : Border
     private readonly ComboBox _device = new();
     private readonly TextBlock _state = new();
     private readonly TextBlock _error = new();
+    private readonly TextBlock _caution = new();
     private readonly TextBlock _info = new();
     private readonly OutputMeter _meter = new("出力レベル(dB)・音量",
         "この出力の音量（左右）。白い線＝直近の最大値、右端の四角が赤＝クリップ。縦長のつまみ＝この出力の全体音量（左端＝ミュート、ダブルクリックで 0 dB）。録音のレベルや全体ゲインには影響しません");
@@ -59,6 +63,8 @@ public sealed class OutputCard : Border
     private bool _loading = true;
     private string _inputSig = "\0";
     private int _slotCount;
+    private int _warnTick;
+    private bool _sharedWarn;   // 選んでいる出力先を、ほかの出力カードも使っている（黄色の注意）
     private bool _loopWarn;   // 選んでいる出力先が、いまの入力と同じ（音が回る）。「出力する」がオフでも赤文字で知らせる
 
     private OutputEngine Engine => _host.Hub[_index];
@@ -133,6 +139,15 @@ public sealed class OutputCard : Border
         _error.Margin = new Thickness(0, 4, 0, 0);
         _error.Visibility = Visibility.Collapsed;
         root.Children.Add(_error);
+        // 注意（黄）: ほかの出力カードと同じ出力先。使えるが、同じ音が重なって鳴ることがある
+        _caution.SetResourceReference(TextBlock.ForegroundProperty, "CautionFg");
+        _caution.FontWeight = FontWeights.SemiBold;
+        _caution.FontSize = 12;
+        _caution.TextWrapping = TextWrapping.Wrap;
+        _caution.Margin = new Thickness(0, 4, 0, 0);
+        _caution.Visibility = Visibility.Collapsed;
+        _caution.Text = "同じ出力先を、ほかの出力カードも使っています。同じ入力を送ると音が二重に重なります（使うこと自体はできます）。";
+        root.Children.Add(_caution);
 
         _meter.Margin = new Thickness(0, 10, 0, 0);
         _meter.Gain.Value = Cfg.VolumeDb;
@@ -245,7 +260,13 @@ public sealed class OutputCard : Border
     {
         _loopWarn = _host.IsLoopOutput(Cfg.DeviceId);
         if (_device.ItemsSource is not IEnumerable<OutputDeviceInfo> items) return;
-        _device.Tag = items.Where(d => d.Id.Length > 0 && _host.IsLoopOutput(d.Id)).Select(d => d.Id).ToHashSet();
+        var red = items.Where(d => d.Id.Length > 0 && _host.IsLoopOutput(d.Id)).Select(d => d.Id).ToHashSet();
+        // ほかの出力カードが使っているデバイス（黄色の注意。選ぶことはできる。「既定」と実際のデバイスも同じ扱い）
+        var others = _host.Configs.Where((_, i) => i != _index).Select(c => c.DeviceId).Where(id => id.Length > 0)
+            .Select(_host.RealOutputId).ToHashSet();
+        var yellow = items.Where(d => d.Id.Length > 0 && !red.Contains(d.Id) && others.Contains(_host.RealOutputId(d.Id))).Select(d => d.Id).ToHashSet();
+        _sharedWarn = Cfg.DeviceId.Length > 0 && others.Contains(_host.RealOutputId(Cfg.DeviceId));
+        _device.Tag = new WarnSet(red, yellow);
     }
 
     // ---- 入力ごとの送り ----
@@ -372,6 +393,7 @@ public sealed class OutputCard : Border
                 _on.IsChecked = e.On;
                 _loading = false;
             }
+            if (++_warnTick % 4 == 0) UpdateLoopWarnings();   // 1秒ごと。ほかのカードの出力先の変更にも追従する
             ShowState();
         }
     }
@@ -384,6 +406,8 @@ public sealed class OutputCard : Border
         if (error.Length == 0 && _loopWarn) error = OutputGuard.LoopMessage;   // 「出力する」がオフでも、選んだ時点で理由を出す
         _error.Text = error;
         _error.Visibility = error.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        bool shared = _sharedWarn && !_loopWarn;
+        _caution.Visibility = shared ? Visibility.Visible : Visibility.Collapsed;
         _info.Text = e.Running ? e.Describe() : "";
     }
 }

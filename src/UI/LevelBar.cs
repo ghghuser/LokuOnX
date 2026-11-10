@@ -87,7 +87,7 @@ public sealed class LevelBar : FrameworkElement
         var level = _muted ? 0 : ToLevel(peak);
         _level = Math.Max(level, _level - 0.03);
         if (level >= _hold) { _hold = level; _holdAt = now; }
-        else if ((now - _holdAt).TotalSeconds > 1.25) _hold = Math.Max(_level, _hold - 0.016);
+        else if ((now - _holdAt).TotalSeconds > 1.25) _hold = Math.Max(_level, _hold - 0.02);
         if (!_muted && peak >= 0.99) _clipUntil = now.AddSeconds(1.5);
         InvalidateVisual();
     }

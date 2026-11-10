@@ -3,6 +3,7 @@
     <!-- ライト: Windows 標準の見た目のまま。ウィンドウの色だけ、ダークと同じキーで用意する -->
     <SolidColorBrush x:Key="WindowBg" Color="#F7F8FA"/>
     <SolidColorBrush x:Key="WindowFg" Color="{x:Static SystemColors.ControlTextColor}"/>
+    <SolidColorBrush x:Key="CautionFg" Color="#A87A00"/>   <!-- 注意の黄（ライト系。白い背景で読める濃い黄） -->
     <!-- プルダウン・タブ用（ウィンドウの標準色になじむ、ごくわずかに明るい面と、やわらかい青みの強調） -->
     <SolidColorBrush x:Key="PanelBg" Color="#F8F9FB"/>
     <SolidColorBrush x:Key="PanelHover" Color="#E6ECF5"/>

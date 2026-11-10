@@ -134,6 +134,17 @@ public partial class MainWindow : IOutputHost
         return OutputGuard.IsLoop(id, defaultRender, Devices.Inputs.Select(i => RealInputKey(i.Key)));
     }
 
+    string IOutputHost.RealOutputId(string id)
+    {
+        if (id != OutputDeviceInfo.DefaultId) return id;
+        try
+        {
+            var key = _provider.DefaultRenderKey();
+            return key != null && key.StartsWith("render:", StringComparison.Ordinal) ? key.Substring(7) : id;
+        }
+        catch (Exception) { return id; }
+    }
+
     bool IOutputHost.Folded(int index) => _settings.OutputFolded(index);
 
     void IOutputHost.SetFolded(int index, bool folded) => _settings.SetOutputFolded(index, folded);

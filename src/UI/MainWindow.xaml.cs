@@ -168,6 +168,8 @@ public partial class MainWindow : Window
         Detail.Reload();
         _loading = false;
         Devices.Rebuild(DefaultCaptureKey());
+        CheckDuplicateRows();   // 読み込み後の設定でも、同じデバイスの重複などは赤文字で出し続ける（再読込で消えない）
+        CheckAsioRows();
         SyncOutputInputs();
         ReloadOutputsFromSettings();   // プリセットの出力設定を反映（動いている出力は止める）
         Presets.Reload(null);

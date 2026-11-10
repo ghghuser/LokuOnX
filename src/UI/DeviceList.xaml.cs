@@ -368,7 +368,7 @@ public partial class DeviceList : UserControl
 
     private void UpdateWarnings()
     {
-        foreach (var r in _rows) r.Combo.Tag = WarnFor(r);
+        foreach (var r in _rows) r.Combo.Tag = new WarnSet(WarnFor(r));
     }
 
     private static string GainLabel(double db) => GainMath.IsMuted(db)
