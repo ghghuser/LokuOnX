@@ -28,7 +28,7 @@ public sealed class WarnBrushConverter : IMultiValueConverter
     {
         if (values.Length >= 2 && values[0] is string key && values[1] is WarnSet warn)
         {
-            if (warn.Red.Contains(key)) return Red;
+            if (warn.Red.Contains(key)) return Application.Current?.TryFindResource("WarnFg") as Brush ?? Red;   // ライト系は強い赤（Light.xaml）
             if (warn.Yellow != null && warn.Yellow.Contains(key) && Application.Current?.TryFindResource("CautionFg") is Brush y) return y;
         }
         // 通常の項目は、周りと同じ文字色（一覧の中は ComboBoxItem、選択中の表示は ComboBox の文字色）をそのまま返す。

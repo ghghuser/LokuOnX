@@ -47,19 +47,9 @@ internal static class EffectUi
     public static TextBlock Title(string text, string tip) =>
         new() { Text = text, ToolTip = tip, FontWeight = FontWeights.SemiBold };
 
-    /// <summary>
-    /// ラベル・スライダー・値の1行。ダブルクリックで初期値（def）に戻る。値の表示は text で作る（対数のスライダーは、呼び出し側で変換する）。
-    /// step が 0 より大きければ、その刻みに揃う。
-    /// </summary>
-    public static Grid Slide(string label, double min, double max, double value, double def, Func<double, string> text,
-        Action<double> set, double step = 0, string? tip = null, double labelWidth = 96, double valueWidth = 74)
+    /// <summary>スライダー本体。ダブルクリックで初期値（def）に戻る。step が 0 より大きければ、その刻みに揃う。値の文字（v）は text で作る。</summary>
+    private static Slider MakeSlider(double min, double max, double value, double def, double step, TextBlock v, Func<double, string> text, Action<double> set)
     {
-        var g = new Grid { Margin = new Thickness(0, 2, 0, 2) };
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelWidth) });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(valueWidth) });
-        var l = new TextBlock { Text = label, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
-        var v = new TextBlock { FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
         var s = new Slider { Minimum = min, Maximum = max, IsMoveToPointEnabled = true, VerticalAlignment = VerticalAlignment.Center };
         if (step > 0)
         {
@@ -81,13 +71,45 @@ internal static class EffectUi
             s.Value = def;
             e.Handled = true;
         };
-        var tooltip = (tip == null ? "" : tip + "\n") + "ダブルクリックで初期値に戻ります";
-        l.ToolTip = s.ToolTip = tooltip;
+        return s;
+    }
+
+    /// <summary>
+    /// ラベル・スライダー・値の1行。ダブルクリックで初期値（def）に戻る。値の表示は text で作る（対数のスライダーは、呼び出し側で変換する）。
+    /// step が 0 より大きければ、その刻みに揃う。
+    /// </summary>
+    public static Grid Slide(string label, double min, double max, double value, double def, Func<double, string> text,
+        Action<double> set, double step = 0, string? tip = null, double labelWidth = 96, double valueWidth = 74)
+    {
+        var g = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelWidth) });
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(valueWidth) });
+        var l = new TextBlock { Text = label, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+        var v = new TextBlock { FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+        var s = MakeSlider(min, max, value, def, step, v, text, set);
+        l.ToolTip = s.ToolTip = (tip == null ? "" : tip + "\n") + "ダブルクリックで初期値に戻ります";
         Grid.SetColumn(s, 1);
         Grid.SetColumn(v, 2);
         g.Children.Add(l);
         g.Children.Add(s);
         g.Children.Add(v);
         return g;
+    }
+
+    /// <summary>
+    /// 1行に複数のスライダーを並べるとき（パラメトリックEQ）の、小さなスライダー＋値。列 col にスライダー、col+1 に値を置く。
+    /// </summary>
+    public static void Mini(Grid g, int col, double min, double max, double value, double def, Func<double, string> text,
+        Action<double> set, double step, string? tip = null)
+    {
+        var v = new TextBlock { FontSize = 11, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+        var s = MakeSlider(min, max, value, def, step, v, text, set);
+        s.Margin = new Thickness(0, 0, 6, 0);
+        s.ToolTip = (tip == null ? "" : tip + "\n") + "ダブルクリックで初期値に戻ります";
+        Grid.SetColumn(s, col);
+        Grid.SetColumn(v, col + 1);
+        g.Children.Add(s);
+        g.Children.Add(v);
     }
 }

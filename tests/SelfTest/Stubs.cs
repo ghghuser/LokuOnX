@@ -6,6 +6,7 @@ public sealed partial class Settings
 {
     public const double MinGainDb = -30;
     public const double MaxGainDb = 20;
+    public const int MaxInputs = 4;
 }
 
 public sealed record InputSetting(string Key, double GainDb, bool Enabled = true);

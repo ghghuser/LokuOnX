@@ -178,6 +178,7 @@ public partial class DeviceList : UserControl
         _loading = true;
         foreach (var r in _rows) Bind(r);
         _loading = was;
+        UpdateWarnings();
         Changed?.Invoke();
     }
 
@@ -287,7 +288,7 @@ public partial class DeviceList : UserControl
         row.Gain.Maximum = Settings.MaxGainDb;
         row.Gain.Value = Math.Clamp(gainDb, Settings.MinGainDb, Settings.MaxGainDb);
         row.Gain.VerticalAlignment = VerticalAlignment.Center;
-        row.Gain.ToolTip = "メーター＝このデバイスの音量（左右。ゲインを掛けたあと。白い線＝直近の最大値、右端の四角が赤＝クリップ）。縦長のつまみ＝ゲイン（左端＝ミュート、ダブルクリックで 0 dB。録音中も調整可能）";
+        row.Gain.ToolTip = "メーター＝このデバイスの音量（左右。ゲインを掛けたあと。白い線＝直近の最大値、右端の四角が赤＝クリップ）。縦長のつまみ＝ゲイン（左端＝ミュート。下の数字をダブルクリックで 0 dB。録音中も調整可能）";
         row.MeterBox.VerticalAlignment = VerticalAlignment.Center;
         row.MeterBox.Children.Add(row.Gain);
         row.MeterBox.Children.Add(new LevelScale { Margin = new Thickness(0, 1, 0, 0) });
@@ -298,6 +299,7 @@ public partial class DeviceList : UserControl
         row.GainText.TextAlignment = TextAlignment.Left;
         row.GainText.Margin = new Thickness(10, 0, 0, 0);
         row.GainText.FontSize = 12;
+        row.Gain.AttachReset(row.GainText);   // 数字のダブルクリックで 0 dB
         Grid.SetColumn(row.GainText, 4);
 
         g.Children.Add(row.Use);
@@ -411,7 +413,13 @@ public partial class DeviceList : UserControl
 
     private void UpdateWarnings()
     {
-        foreach (var r in _rows) r.Combo.Tag = new WarnSet(WarnFor(r));
+        foreach (var r in _rows)
+        {
+            var warn = WarnFor(r);
+            r.Combo.Tag = new WarnSet(warn);
+            // ランプがオンで、同じデバイスを重ねて使っている（プルダウンで赤文字になる状態）なら、ランプを赤にする
+            r.Use.Tag = r.Key.Length > 0 && warn.Contains(r.Key) ? "Error" : null;
+        }
     }
 
     private static string GainLabel(double db) => GainMath.IsMuted(db)
@@ -446,6 +454,7 @@ public partial class DeviceList : UserControl
     {
         _master = gain;
         _masterText = text;
+        gain.AttachReset(text);
         gain.ValueChanged += Master_ValueChanged;
     }
 

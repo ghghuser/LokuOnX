@@ -58,10 +58,22 @@ static class EngineTests
             var (pl, pr, _) = eng.ReadPeaks();
             check(pl > 0.1f && pr > 0.1f, "出力のピーク（メーター用）が取れる", $"{pl}/{pr}");
 
-            // 入力を変えると開き直す
+            // 入力を変えても出力デバイスは開き直さない（複製先の付け外しだけ）
             eng.SetInputs(new[] { new InputSetting("capture:B", 0) });
-            check(WaitFor(() => outs.Devices.Count == 2 && eng.Running), "入力が変わると、出力を開き直す", $"devices={outs.Devices.Count} state={eng.State}");
-            check(outs.Devices[0].Disposed && hub.OpenCount == 1, "前の出力デバイスを閉じ、前の入力を手放す（新しい入力だけが開いている）");
+            check(WaitFor(() => hub.OpenCount == 1 && ins.Sources.Count == 2 && eng.Running), "入力が変わると、入力だけ入れ替える", $"open={hub.OpenCount} state={eng.State}");
+            check(outs.Devices.Count == 1 && !outs.Devices[0].Disposed, "出力デバイスは開き直さない（出力が途切れない）");
+            for (int k = 0; k < 20; k++) ins.Sources[1].Feed(0.3f, 480);
+            float peakB = 0;
+            for (int k = 0; k < 6; k++) { rend.Render(o, 0, 480); peakB = Math.Max(peakB, o.Max()); ins.Sources[1].Feed(0.3f, 480); }
+            check(peakB > 0.25f, "入れ替えた入力の音が同じ出力へ届く", $"peak={peakB}");
+
+            // 2台 → 1台に減らしても、残った入力は途切れず、出力デバイスも開き直さない
+            eng.SetInputs(new[] { new InputSetting("capture:B", 0), new InputSetting("capture:C", 0) });
+            check(WaitFor(() => hub.OpenCount == 2 && ins.Sources.Count == 3), "入力を足すと、足した入力だけ開く", $"open={hub.OpenCount}");
+            var sourceB = ins.Sources[1];
+            eng.SetInputs(new[] { new InputSetting("capture:B", 0) });
+            check(WaitFor(() => hub.OpenCount == 1), "入力を減らすと、外した入力だけ手放す", $"open={hub.OpenCount}");
+            check(outs.Devices.Count == 1 && !outs.Devices[0].Disposed && sourceB.StopCount == 0 && ins.Sources.Count == 3, "残った入力は開いたまま、出力デバイスも開き直さない");
 
             // ループ防止
             eng.SetInputs(new[] { new InputSetting("render:SPK", 0) });

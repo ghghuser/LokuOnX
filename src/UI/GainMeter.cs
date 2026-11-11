@@ -7,7 +7,7 @@ namespace Recorder.UI;
 
 /// <summary>
 /// ゲインとレベルメーターの融合。メーターの棒の上に、ゲインのつまみ（縦長の丸い板）を重ねる。
-/// つまみをドラッグ、またはメーターをクリックでゲインを決める。ダブルクリックで 0 dB。
+/// つまみをドラッグ、またはメーターをクリックでゲインを決める。0 dB に戻すのは、メーターではなく「数字（○○ dB）」のダブルクリック（AttachReset。11-4確認後に変更）。
 /// bars が2のときは、2本のメーター（L・R）にまたがる1つのつまみ（ゲインは左右に分けない）。
 /// </summary>
 public sealed class GainMeter : Grid
@@ -87,6 +87,20 @@ public sealed class GainMeter : Grid
 
     public void Reset() { foreach (var b in _bars) b.Reset(); }
 
+    /// <summary>数字の表示（「+2.0 dB」など）をダブルクリックすると 0 dB に戻す。メーター自体のダブルクリックでは戻さない。</summary>
+    public void AttachReset(TextBlock text)
+    {
+        text.Background = Brushes.Transparent;   // 文字のすき間でも反応するように
+        text.Cursor = Cursors.Hand;
+        text.ToolTip = "ダブルクリックで 0 dB に戻します";
+        text.MouseLeftButtonDown += (_, e) =>
+        {
+            if (e.ClickCount < 2) return;
+            Value = 0;
+            e.Handled = true;
+        };
+    }
+
     private double BarWidth => Math.Max(1, ActualWidth - LevelBar.ClipWidth - LevelBar.Gap);
 
     private void Place()
@@ -105,7 +119,6 @@ public sealed class GainMeter : Grid
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
-        if (e.ClickCount >= 2) { Value = 0; e.Handled = true; return; }
         _drag = true;
         CaptureMouse();
         SetFrom(e.GetPosition(this));

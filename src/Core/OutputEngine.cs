@@ -11,6 +11,7 @@ namespace Recorder.Core;
 public sealed class OutputEngine : IDisposable
 {
     private const int RetrySeconds = 5;
+    private const int Lanes = Settings.MaxInputs;   // 複製先の枠の数（入力の最大数）。枠は出力を開いている間ずっと同じで、入力の増減は枠の付け外しだけで済ませる（出力が途切れない）
 
     private readonly InputHub _hub;
     private readonly IOutputDeviceProvider _outs;
@@ -21,7 +22,7 @@ public sealed class OutputEngine : IDisposable
     private volatile string _deviceId = "";
     private volatile IReadOnlyList<InputSetting> _inputs = Array.Empty<InputSetting>();
     private volatile IReadOnlyList<OutSend> _sends = Array.Empty<OutSend>();
-    private volatile string[] _runKeys = Array.Empty<string>();   // 運転中の入力（複製先の順）
+    private volatile string?[] _runKeys = new string?[Lanes];   // 運転中の入力（複製先の枠ごと。空き枠は null）
     private double _volumeDb;
     private volatile string _state = "停止中";
     private volatile string _error = "";
@@ -30,7 +31,7 @@ public sealed class OutputEngine : IDisposable
 
     // 運転中のもの（_work の中だけで触る）
     private IOutputDevice? _dev;
-    private InputHub.Entry[] _entries = Array.Empty<InputHub.Entry>();
+    private InputHub.Entry?[] _entries = new InputHub.Entry?[Lanes];
     private InputTap[] _taps = Array.Empty<InputTap>();
     private string _runSig = "";
     private DateTime _nextTry = DateTime.MinValue;
@@ -69,7 +70,7 @@ public sealed class OutputEngine : IDisposable
         }
     }
 
-    /// <summary>送る入力（メイン画面で選ばれている入力。上から順）。入力が変わると出力を開き直す。</summary>
+    /// <summary>送る入力（メイン画面で選ばれている入力。上から順）。出力中に入力が増減しても、出力デバイスは開き直さず、複製先だけ付け外しする。</summary>
     public void SetInputs(IReadOnlyList<InputSetting> inputs) => _inputs = inputs;
 
     /// <summary>入力ごとの送り（オンオフ・音量）。SetInputs の入力と同じ順。動作中でも変えられる（開き直さない）。</summary>
@@ -89,7 +90,8 @@ public sealed class OutputEngine : IDisposable
         for (int k = 0; k < keys.Length; k++)
         {
             int idx = -1;
-            for (int i = 0; i < inputs.Count; i++) if (inputs[i].Key == keys[k]) { idx = i; break; }
+            for (int i = 0; i < inputs.Count && keys[k] != null; i++) if (inputs[i].Key == keys[k]) { idx = i; break; }
+            if (keys[k] == null) { r.Bus.SetSend(k, false, 0f); continue; }
             var s = idx >= 0 && idx < sends.Count ? sends[idx] : new OutSend();
             r.Bus.SetSend(k, s.On, GainMath.DbToLinear(s.Db));
         }
@@ -155,8 +157,7 @@ public sealed class OutputEngine : IDisposable
             return;
         }
 
-        var sig = id + "|" + string.Join("|", keys);
-        if (_dev != null && sig != _runSig) TearDown();   // 入力・出力先が変わった: 開き直す
+        if (_dev != null && id != _runSig) TearDown();   // 出力先が変わった: 開き直す（入力の増減は開き直さない）
         if (_dev != null)
         {
             if (_dev.Failed)
@@ -168,6 +169,7 @@ public sealed class OutputEngine : IDisposable
                 _nextTry = DateTime.Now.AddSeconds(RetrySeconds);
                 return;
             }
+            SyncLanes(keys, inputs);   // 入力の増減は、複製先の付け外しだけ（出力は途切れない）
             ApplySends();
             _state = "出力中";
             return;
@@ -184,7 +186,7 @@ public sealed class OutputEngine : IDisposable
             _nextTry = DateTime.Now.AddSeconds(RetrySeconds);
             return;
         }
-        _runSig = sig;
+        _runSig = id;
         ApplySends();
         _error = "";
         _state = "出力中";
@@ -193,18 +195,8 @@ public sealed class OutputEngine : IDisposable
     /// <summary>入力を借りて複製先を付け、出力デバイスを開く。失敗したら理由（片付けは呼び出し側の TearDown）。</summary>
     private string? Open(string id, List<string> keys, IReadOnlyList<InputSetting> inputs)
     {
-        var acquired = new List<InputHub.Entry>();
-        try
-        {
-            foreach (var k in keys) acquired.Add(_hub.Acquire(k, inputs.First(i => i.Key == k).GainDb));
-        }
-        finally
-        {
-            _entries = acquired.ToArray();   // 途中で例外になっても、借りた分は TearDown で返す
-        }
-        _runKeys = keys.ToArray();
-        _taps = _entries.Select(_ => new InputTap()).ToArray();
-        for (int i = 0; i < _entries.Length; i++) _entries[i].Stream.AddTap(_taps[i]);
+        _taps = Enumerable.Range(0, Lanes).Select(_ => new InputTap()).ToArray();
+        SyncLanes(keys, inputs);   // 入力を借りて複製先を付ける（途中で例外になっても、借りた分は TearDown で返す）
         var taps = _taps;
         var linear = GainMath.DbToLinear(_volumeDb);
         _dev = _outs.Create(id);
@@ -220,6 +212,36 @@ public sealed class OutputEngine : IDisposable
         return null;
     }
 
+    /// <summary>運転中の入力を keys に合わせる。外れた入力は複製先を外して手放し、増えた入力は借りて空き枠へ付ける（_work の中から呼ぶ）。</summary>
+    private void SyncLanes(List<string> keys, IReadOnlyList<InputSetting> inputs)
+    {
+        var run = (string?[])_runKeys.Clone();
+        for (int k = 0; k < Lanes; k++)
+        {
+            var key = run[k];
+            if (key == null || keys.Contains(key)) continue;
+            var e = _entries[k];
+            _entries[k] = null;
+            run[k] = null;
+            _runKeys = run;
+            if (e == null) continue;
+            try { e.Stream.RemoveTap(_taps[k]); } catch (Exception) { }
+            try { _hub.Release(e); } catch (Exception) { }
+        }
+        foreach (var key in keys)
+        {
+            if (run.Contains(key)) continue;
+            int free = Array.IndexOf(run, null);
+            if (free < 0) break;
+            var e = _hub.Acquire(key, inputs.First(i => i.Key == key).GainDb);
+            _entries[free] = e;
+            e.Stream.AddTap(_taps[free]);
+            run[free] = key;
+            _runKeys = run;
+        }
+        _runKeys = run;
+    }
+
     /// <summary>運転を片付ける（出力デバイスを閉じ、複製先を外し、入力を手放す）。_work の中から呼ぶ。</summary>
     private void TearDown()
     {
@@ -229,13 +251,15 @@ public sealed class OutputEngine : IDisposable
         try { dev?.Dispose(); } catch (Exception) { }
         for (int i = 0; i < _entries.Length; i++)
         {
-            try { if (i < _taps.Length) _entries[i].Stream.RemoveTap(_taps[i]); } catch (Exception) { }
-            try { _hub.Release(_entries[i]); } catch (Exception) { }
+            var e = _entries[i];
+            if (e == null) continue;
+            try { if (i < _taps.Length) e.Stream.RemoveTap(_taps[i]); } catch (Exception) { }
+            try { _hub.Release(e); } catch (Exception) { }
         }
-        _entries = Array.Empty<InputHub.Entry>();
+        _entries = new InputHub.Entry?[Lanes];
         _taps = Array.Empty<InputTap>();
         _runSig = "";
-        _runKeys = Array.Empty<string>();
+        _runKeys = new string?[Lanes];
     }
 
     private string RealKey(string key)

@@ -23,35 +23,37 @@ public interface IEffectHost
 }
 
 /// <summary>
-/// 入力ごとのエフェクトのウィンドウ（M11-4）。パネルは1枚だけで、上の入力の切り替えで移る。
+/// 入力ごとのエフェクトのウィンドウ（M11-4。確認後に、入力の切り替えをタブ式・効果をタブ分けに変更）。
+/// 上のタブ＝入力1〜4（選んだ入力の内容だけを作って表示する）。その下に、反映先・コピー・初期値、さらに効果のタブ
+/// （イコライザ＝グラフィックEQ・ローカット・パラメトリックEQ／ノイズゲート／エコー・リバーブ）。
 /// 開き方: 入力デバイス欄の「FX」ボタン／入力の名前・波形・メーターの右クリック「エフェクト…」。
 /// 設定の読み書きは host（MainWindow）経由。エフェクトは動かしている最中も変えられ、すぐ音に反映される。
 /// </summary>
-public sealed class EffectWindow : Window
+public sealed partial class EffectWindow : Window
 {
     private static EffectSetting? _clip;   // コピーした効果（反映先の設定は含まない）。ウィンドウを閉じても残す
 
     private readonly IEffectHost _host;
-    private readonly StackPanel _slotBar = new() { Orientation = Orientation.Horizontal };
-    private readonly StackPanel _sections = new();
-    private readonly CheckBox _toRec = new() { Content = "録音に反映", Margin = new Thickness(0, 0, 18, 0) };
-    private readonly CheckBox _toOut = new() { Content = "出力に反映", Margin = new Thickness(0, 0, 18, 0) };
-    private readonly CheckBox _bypass = new() { Content = "すべてバイパス" };
-    private readonly Button _paste = new() { Content = "貼り付け", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0) };
+    private readonly TabControl _slotTabs = new();
+    private readonly List<ContentControl> _hosts = new();   // 入力のタブごとの中身の置き場（選んだタブだけ作る）
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private int _slot;
     private EffectSetting _fx = new();
     private bool _building;
+    private int _innerIndex;   // 選んでいる効果のタブ（入力を切り替えても維持）
+    private TabControl? _tabs;
+    private CheckBox? _toRec;
+    private Button? _paste;
 
     public EffectWindow(IEffectHost host, Settings settings, int slot)
     {
         _host = host;
         _slot = Math.Clamp(slot, 0, Settings.MaxInputs - 1);
         Title = "エフェクト";
-        Width = 640;
+        Width = 720;
         Height = 780;
-        MinWidth = 520;
-        MinHeight = 420;
+        MinWidth = 600;
+        MinHeight = 460;
         FontFamily = new FontFamily("Yu Gothic UI, Meiryo UI");
         FontSize = 14;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -59,17 +61,19 @@ public sealed class EffectWindow : Window
         SetResourceReference(BackgroundProperty, "WindowBg");
         SetResourceReference(ForegroundProperty, "WindowFg");
 
-        var dock = new DockPanel();
-        dock.Children.Add(BuildHeader());
-        var scroll = new ScrollViewer
+        _slotTabs.Margin = new Thickness(16, 12, 16, 8);
+        _slotTabs.SelectionChanged += (_, e) =>
+        {
+            if (!ReferenceEquals(e.OriginalSource, _slotTabs) || _building || _slotTabs.SelectedIndex < 0) return;   // 中のタブ・プルダウンの変更は無視
+            _slot = _slotTabs.SelectedIndex;
+            Load();
+        };
+        Content = new ScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = _sections,
+            Content = _slotTabs,
         };
-        _sections.Margin = new Thickness(16, 6, 8, 8);
-        dock.Children.Add(scroll);
-        Content = dock;
         ThemeManager.Attach(this, settings.Theme);
 
         RefreshSlots();
@@ -79,78 +83,28 @@ public sealed class EffectWindow : Window
         Closed += (_, _) => _timer.Stop();
     }
 
-    // ---- 上のバー（入力の切り替え・反映先・コピー） ----
-    private UIElement BuildHeader()
-    {
-        var head = new StackPanel { Margin = new Thickness(16, 12, 16, 6) };
-        DockPanel.SetDock(head, Dock.Top);
-
-        var row1 = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
-        row1.Children.Add(new TextBlock { Text = "入力", Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeights.SemiBold });
-        row1.Children.Add(_slotBar);
-        head.Children.Add(row1);
-
-        _toRec.ToolTip = "オンにすると、エフェクトを掛けた音が録音されます（オフ＝録音は素の音のまま）。録音中は切り替えられません。メーター・無音検出・自動録音開始は、エフェクト前の音で判定します";
-        _toOut.ToolTip = "オンにすると、エフェクトを掛けた音が出力（再生デバイス）へ送られます（既定）。オフなら素の音が送られます";
-        _bypass.ToolTip = "設定は残したまま、効果だけを一時的に切ります（録音・出力とも素の音になります）";
-        _toRec.Click += (_, _) => Edit(() => _fx.ToRecording = _toRec.IsChecked == true);
-        _toOut.Click += (_, _) => Edit(() => _fx.ToOutput = _toOut.IsChecked == true);
-        _bypass.Click += (_, _) => Edit(() => _fx.Bypass = _bypass.IsChecked == true);
-        var row2 = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
-        row2.Children.Add(_toRec);
-        row2.Children.Add(_toOut);
-        row2.Children.Add(_bypass);
-        head.Children.Add(row2);
-
-        var copy = new Button { Content = "コピー", Padding = new Thickness(12, 3, 12, 3), ToolTip = "この入力の効果の設定をコピーします（録音・出力への反映先は含みません）" };
-        copy.Click += (_, _) => { _clip = _fx.Clone(); UpdateEnabled(); };
-        _paste.ToolTip = "コピーした効果の設定を、この入力へ貼り付けます（録音・出力への反映先は変わりません）";
-        _paste.Click += (_, _) =>
-        {
-            if (_clip == null) return;
-            _fx.CopySoundFrom(_clip);
-            Commit();
-            Load();
-        };
-        var reset = new Button { Content = "すべて初期値に", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = "この入力の効果の設定をすべて初期値（何も掛けない）に戻します" };
-        reset.Click += (_, _) =>
-        {
-            _fx.CopySoundFrom(new EffectSetting());
-            Commit();
-            Load();
-        };
-        var row3 = new StackPanel { Orientation = Orientation.Horizontal };
-        row3.Children.Add(copy);
-        row3.Children.Add(_paste);
-        row3.Children.Add(reset);
-        head.Children.Add(row3);
-
-        head.Children.Add(new TextBlock
-        {
-            Text = "掛かる順番: ノイズゲート → ローカット → グラフィックEQ → パラメトリックEQ → エコー → リバーブ。つまみのダブルクリックで初期値に戻ります。",
-            FontSize = 12, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
-        });
-        return head;
-    }
-
-    // ---- 入力の切り替え ----
-    /// <summary>入力の名前・使われているかが変わったとき（メイン画面で名前やデバイスを変えたとき）に、切り替えのラジオを作り直す。</summary>
+    // ---- 入力のタブ ----
+    /// <summary>入力の名前・使われているか・効果が掛かっているかが変わったとき、タブの見出しを作り直す。</summary>
     public void RefreshSlots()
     {
+        var slots = _host.Slots();
         _building = true;
-        _slotBar.Children.Clear();
-        foreach (var (slot, name, active) in _host.Slots())
+        while (_hosts.Count < slots.Count)
         {
-            int s = slot;
-            var r = new RadioButton
-            {
-                Content = name, GroupName = "FxSlot", IsChecked = slot == _slot, Margin = new Thickness(0, 0, 18, 0),
-                Opacity = active ? 1.0 : 0.55,
-                ToolTip = active ? null : "いまデバイスが選ばれていない（または使わない）入力です。設定はしておけます",
-            };
-            r.Checked += (_, _) => { if (!_building) ShowSlot(s); };
-            _slotBar.Children.Add(r);
+            var h = new ContentControl();
+            _hosts.Add(h);
+            _slotTabs.Items.Add(new TabItem { Content = h });
         }
+        for (int i = 0; i < slots.Count; i++)
+        {
+            var (slot, name, active) = slots[i];
+            var tab = (TabItem)_slotTabs.Items[i];
+            bool on = _host.GetEffect(slot).IsActive;
+            tab.Header = name + (on ? "  ●" : "");
+            tab.Opacity = active ? 1.0 : 0.55;
+            tab.ToolTip = active ? (on ? "効果が掛かっています" : null) : "いまデバイスが選ばれていない（または使わない）入力です。設定はしておけます";
+        }
+        if (_slotTabs.SelectedIndex != _slot) _slotTabs.SelectedIndex = _slot;
         _building = false;
     }
 
@@ -169,28 +123,48 @@ public sealed class EffectWindow : Window
         Load();
     }
 
+    /// <summary>選んだ入力の中身を作り直す（ほかの入力のタブの中身は空にする）。</summary>
     private void Load()
     {
         _building = true;
         _fx = _host.GetEffect(_slot);
-        _toRec.IsChecked = _fx.ToRecording;
-        _toOut.IsChecked = _fx.ToOutput;
-        _bypass.IsChecked = _fx.Bypass;
-        BuildSections();
+        foreach (var h in _hosts) h.Content = null;
+        if (_slot < _hosts.Count) _hosts[_slot].Content = BuildBody();
         UpdateEnabled();
         _building = false;
     }
 
-    private void BuildSections()
+    // ---- 選んだ入力の中身 ----
+    private UIElement BuildBody()
     {
-        _sections.Children.Clear();
-        Action changed = Commit;
-        _sections.Children.Add(EffectSections.Gate(_fx, changed));
-        _sections.Children.Add(EffectSections.LowCut(_fx, changed));
-        _sections.Children.Add(EffectSections.GraphicEq(_fx, changed, BuildSections));
-        _sections.Children.Add(EffectSections.ParamEq(_fx, changed));
-        _sections.Children.Add(EffectSections.Echo(_fx, changed));
-        _sections.Children.Add(EffectSections.Reverb(_fx, changed));
+        var root = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };
+        root.Children.Add(BuildTopBar());
+
+        Action changed = () => { Commit(); UpdateMarks(); };
+        _tabs = new TabControl { Margin = new Thickness(0, 6, 0, 0) };
+        var eq = EffectEq.Build(_fx, changed, Rebuild);
+        var gate = new StackPanel();
+        gate.Children.Add(EffectSections.Gate(_fx, changed));
+        var fx = new StackPanel();
+        fx.Children.Add(EffectSections.Echo(_fx, changed));
+        fx.Children.Add(EffectSections.Reverb(_fx, changed));
+        _tabs.Items.Add(new TabItem { Content = eq });
+        _tabs.Items.Add(new TabItem { Content = gate });
+        _tabs.Items.Add(new TabItem { Content = fx });
+        _tabs.SelectedIndex = Math.Clamp(_innerIndex, 0, 2);
+        _tabs.SelectionChanged += (_, e) =>
+        {
+            if (ReferenceEquals(e.OriginalSource, _tabs) && _tabs.SelectedIndex >= 0) _innerIndex = _tabs.SelectedIndex;
+        };
+        UpdateMarks();
+        root.Children.Add(_tabs);
+
+        root.Children.Add(new TextBlock
+        {
+            Text = "掛かる順番: ノイズゲート → ローカット → グラフィックEQ → パラメトリックEQ → エコー → リバーブ。つまみのダブルクリックで初期値に戻ります。",
+            FontSize = 12, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
+        });
+        return root;
     }
 
     private void Edit(Action change)
@@ -198,6 +172,14 @@ public sealed class EffectWindow : Window
         if (_building) return;
         change();
         Commit();
+        UpdateMarks();
+    }
+
+    /// <summary>設定を入れ替えたあと、いまの入力の中身を作り直す（ほかのタブの印も更新する）。</summary>
+    private void Rebuild()
+    {
+        Load();
+        RefreshSlots();
     }
 
     /// <summary>画面で変えた設定を、録音・出力へ反映して保存する。</summary>
@@ -209,7 +191,7 @@ public sealed class EffectWindow : Window
 
     private void UpdateEnabled()
     {
-        _toRec.IsEnabled = !_host.IsRecording;
-        _paste.IsEnabled = _clip != null;
+        if (_toRec != null) _toRec.IsEnabled = !_host.IsRecording;
+        if (_paste != null) _paste.IsEnabled = _clip != null;
     }
 }

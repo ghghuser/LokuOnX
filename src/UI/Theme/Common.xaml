@@ -7,6 +7,8 @@
     <SolidColorBrush x:Key="DefaultMarkFg" Color="#CC3D8C"/>    <!-- 既定のデバイスの ＊（赤紫） -->
     <SolidColorBrush x:Key="WarnFg" Color="#E55757"/>            <!-- 注意・エラーの赤（エラー文字・プルダウンの注意項目で共通。WarnBrushConverter も同じ色） -->
     <SolidColorBrush x:Key="LampOn" Color="#34D96B"/>           <!-- 入力デバイスの「使う」ランプ（緑） -->
+    <SolidColorBrush x:Key="LampErr" Color="#F04545"/>          <!-- ランプがONなのに使えていないとき（赤ランプ） -->
+    <SolidColorBrush x:Key="LampErrRing" Color="#C42626"/>      <!-- 赤ランプの輪 -->
 
     <!-- 設定の「見出し」と「中身」を見分けやすくする共通スタイル（ライト・ダーク共通。色は Dark.xaml / Light.xaml の SectionFg・SectionBar）。
          見出し＝色付きの小さめの太字、中身＝左に細い縦線を引いて少し字下げ -->
@@ -51,10 +53,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Grid Background="Transparent" Width="20" Height="20" SnapsToDevicePixels="True">
-                        <Ellipse x:Name="Lamp" Width="14" Height="14" StrokeThickness="1.5"
+                    <Grid Background="Transparent" Width="22" Height="22" SnapsToDevicePixels="True">
+                        <Ellipse x:Name="Lamp" Width="16" Height="16" StrokeThickness="1.5"
                                  Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
-                        <Ellipse x:Name="Ring" Width="14" Height="14" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
+                        <Ellipse x:Name="Ring" Width="16" Height="16" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
                                  Fill="Transparent" Visibility="Collapsed">
                             <Ellipse.Effect>
                                 <DropShadowEffect Color="#34D96B" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
@@ -86,6 +88,26 @@
                             <Setter Property="Opacity" Value="1"/>
                             <Setter TargetName="Lamp" Property="Opacity" Value="0.5"/>
                             <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                        </MultiTrigger>
+                        <!-- 赤ランプ（Tag="Error"）: ONなのに正しく使えていない（出力＝出力できない／入力＝同じデバイスの重複など）。ONのときだけ赤く点灯 -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Error"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampErr}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#E53935" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#E53935" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

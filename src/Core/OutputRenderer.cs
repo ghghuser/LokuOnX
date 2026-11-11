@@ -89,6 +89,7 @@ public sealed class OutputRenderer
         for (int i = 0; i < chans.Length; i++)
         {
             var t = taps[i].Buffer;
+            if (t == null && !Bus.IsSendOn(i)) continue;   // 使っていない枠は出さない
             sb.Append($" | 入力{i + 1}: ");
             if (t == null) { sb.Append("まだ音が届いていません"); continue; }
             sb.Append($"送り{(Bus.IsSendOn(i) ? "オン" : "オフ")} たまり{t.AvailableFrames * 1000 / Math.Max(1, t.SampleRate)}ms {(chans[i].Primed ? "再生中" : "待機")}");

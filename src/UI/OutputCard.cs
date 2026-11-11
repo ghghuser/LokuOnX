@@ -57,7 +57,7 @@ public sealed class OutputCard : Border
     private readonly TextBlock _caution = new();
     private readonly TextBlock _info = new();
     private readonly OutputMeter _meter = new("出力レベル(dB)・音量",
-        "この出力の音量（左右）。白い線＝直近の最大値、右端の四角が赤＝クリップ。縦長のつまみ＝この出力の全体音量（左端＝ミュート、ダブルクリックで 0 dB）。録音のレベルや全体ゲインには影響しません");
+        "この出力の音量（左右）。白い線＝直近の最大値、右端の四角が赤＝クリップ。縦長のつまみ＝この出力の全体音量（左端＝ミュート、右上の数字をダブルクリックで 0 dB）。録音のレベルや全体ゲインには影響しません");
     private readonly StackPanel _inputsPanel = new();
     private readonly Expander _inputs = new();
     private bool _loading = true;
@@ -151,6 +151,7 @@ public sealed class OutputCard : Border
 
         _meter.Margin = new Thickness(0, 10, 0, 0);
         _meter.Gain.Value = Cfg.VolumeDb;
+        _meter.Gain.AttachReset(_meter.GainText);   // 数字のダブルクリックで 0 dB
         ShowVolume();
         _meter.Gain.ValueChanged += (_, _) => OnVolume();
         root.Children.Add(_meter);
@@ -405,6 +406,8 @@ public sealed class OutputCard : Border
         var error = e.Error;
         if (error.Length == 0 && _loopWarn) error = OutputGuard.LoopMessage;   // 「出力する」がオフでも、選んだ時点で理由を出す
         _error.Text = error;
+        // 「出力する」がオンなのに出力できていない（理由が赤文字で出ている）ときは、ランプを赤にする
+        _on.Tag = _on.IsChecked == true && !e.Running && error.Length > 0 ? "Error" : null;
         _error.Visibility = error.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         bool shared = _sharedWarn && !_loopWarn;
         _caution.Visibility = shared ? Visibility.Visible : Visibility.Collapsed;
