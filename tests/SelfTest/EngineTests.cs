@@ -65,7 +65,7 @@ static class EngineTests
             for (int k = 0; k < 20; k++) ins.Sources[1].Feed(0.3f, 480);
             float peakB = 0;
             for (int k = 0; k < 6; k++) { rend.Render(o, 0, 480); peakB = Math.Max(peakB, o.Max()); ins.Sources[1].Feed(0.3f, 480); }
-            check(peakB > 0.25f, "入れ替えた入力の音が同じ出力へ届く", $"peak={peakB}");
+            check(Math.Abs(peakB - 0.15f) < 0.03f, "入れ替えた入力の音が同じ出力へ届く（全体音量は -6dB のまま）", $"peak={peakB}");
 
             // 2台 → 1台に減らしても、残った入力は途切れず、出力デバイスも開き直さない
             eng.SetInputs(new[] { new InputSetting("capture:B", 0), new InputSetting("capture:C", 0) });
