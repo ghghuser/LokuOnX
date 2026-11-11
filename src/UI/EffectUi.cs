@@ -85,8 +85,8 @@ internal static class EffectUi
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelWidth) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(valueWidth) });
-        var l = new TextBlock { Text = label, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
-        var v = new TextBlock { FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+        var l = new TextBlock { Text = label, FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
+        var v = new TextBlock { FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
         var s = MakeSlider(min, max, value, def, step, v, text, set);
         l.ToolTip = s.ToolTip = (tip == null ? "" : tip + "\n") + "ダブルクリックで初期値に戻ります";
         Grid.SetColumn(s, 1);
@@ -103,7 +103,7 @@ internal static class EffectUi
     public static void Mini(Grid g, int col, double min, double max, double value, double def, Func<double, string> text,
         Action<double> set, double step, string? tip = null)
     {
-        var v = new TextBlock { FontSize = 11, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+        var v = new TextBlock { FontSize = 10, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         var s = MakeSlider(min, max, value, def, step, v, text, set);
         s.Margin = new Thickness(0, 0, 6, 0);
         s.ToolTip = (tip == null ? "" : tip + "\n") + "ダブルクリックで初期値に戻ります";

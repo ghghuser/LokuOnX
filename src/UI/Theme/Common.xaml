@@ -47,6 +47,28 @@
         </Setter>
     </Style>
 
+    <!-- 入力行の小さな「FX」ボタン（11-4確認後）。テーマのボタン（影・余白が大きく、文字の下が見切れた）に頼らない、枠だけの小さな板。
+         ON のときの色（青紫に光る）はコード（DeviceList.SetFxState）で変える -->
+    <Style x:Key="FxButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" CornerRadius="5" BorderThickness="1" BorderBrush="{TemplateBinding BorderBrush}" Background="Transparent" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#26808080"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- 入力デバイスの「使う」用。丸いランプ（ON＝緑に点灯、OFF＝消灯）。他のチェックボックスは下のトグル式 -->
     <Style x:Key="LampCheck" TargetType="CheckBox">
         <Setter Property="Cursor" Value="Hand"/>

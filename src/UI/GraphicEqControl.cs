@@ -14,7 +14,7 @@ namespace Recorder.UI;
 /// </summary>
 public sealed class GraphicEqControl : Control
 {
-    private const double LeftW = 38, RightW = 10, TopH = 14, BottomH = 24, ThumbW = 22, ThumbH = 11;
+    private const double LeftW = 38, RightW = 10, TopH = 14, BottomH = 24, ThumbW = 11, ThumbH = 22;
     private static readonly Typeface Face = new("Yu Gothic UI, Meiryo UI, Segoe UI");
 
     private double[] bands = new double[EqBands.Count];
@@ -37,7 +37,7 @@ public sealed class GraphicEqControl : Control
 
     public GraphicEqControl()
     {
-        Height = 170; MinWidth = 380; Focusable = false; Cursor = Cursors.Hand;
+        Height = 190; MinWidth = 380; Focusable = false; Cursor = Cursors.Hand;
         SnapsToDevicePixels = true;
         SetResourceReference(ForegroundProperty, "WindowFg");   // 目盛りの文字色はテーマに合わせる
         SetResourceReference(AccentProperty, "Pastel");         // 曲線・つまみの色（ライト系＝青、ダーク系＝パステルイエロー）
@@ -88,7 +88,7 @@ public sealed class GraphicEqControl : Control
             dc.DrawLine(new Pen(faint, db == 0 ? 1.2 : 0.6) { DashStyle = db == 0 ? DashStyles.Solid : DashStyles.Dash }, new Point(LeftW, y), new Point(w - RightW, y));
             if (major || db == 0)
             {
-                var t = new FormattedText((db > 0 ? "+" : "") + db, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 11, fg, dpi);
+                var t = new FormattedText((db > 0 ? "+" : "") + db, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 10, fg, dpi);
                 dc.DrawText(t, new Point(LeftW - 6 - t.Width, y - t.Height / 2));
             }
         }
@@ -112,13 +112,17 @@ public sealed class GraphicEqControl : Control
         }
         curve.Freeze();
         var accent = Accent is SolidColorBrush sb ? sb.Color : Color.FromRgb(0x3B, 0x8E, 0xF0);
-        var fill = new LinearGradientBrush(Color.FromArgb(0xB0, accent.R, accent.G, accent.B), Color.FromArgb(0x08, accent.R, accent.G, accent.B), 90);
+        // 曲線は紫（上）→青（下）のグラデーションの面、線は 青（低音）→紫（高音）のグラデーション
+        var purple = Color.FromRgb(0xB0, 0x4C, 0xE0);
+        var blue = Color.FromRgb(0x3B, 0x8E, 0xF0);
+        var fill = new LinearGradientBrush(Color.FromArgb(0xB8, purple.R, purple.G, purple.B), Color.FromArgb(0x30, blue.R, blue.G, blue.B), 90);
+        var stroke = new LinearGradientBrush(blue, purple, 0);
         dc.PushClip(new RectangleGeometry(new Rect(LeftW, TopH - 4, PlotW, PlotH + 8)));
         dc.DrawGeometry(fill, null, curve);
         var line = new StreamGeometry();
         using (var g = line.Open()) { g.BeginFigure(pts[0], false, false); for (int k = 1; k <= n; k++) g.LineTo(pts[k], true, true); }
         line.Freeze();
-        dc.DrawGeometry(null, new Pen(new SolidColorBrush(accent), 1.6), line);
+        dc.DrawGeometry(null, new Pen(stroke, 1.8), line);
         dc.Pop();
 
         // レール・つまみ・周波数の名前
@@ -136,7 +140,7 @@ public sealed class GraphicEqControl : Control
             var thumb = new Rect(x - ThumbW / 2, y1 - ThumbH / 2, ThumbW, ThumbH);
             dc.DrawRoundedRectangle(hot ? Brushes.White : new SolidColorBrush(accent), new Pen(new SolidColorBrush(Color.FromArgb(0x90, 0, 0, 0)), 0.8), thumb, 3, 3);
             if (dimmed) dc.Pop();
-            var lab = new FormattedText(EqBands.Labels[i], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 11, fg, dpi);
+            var lab = new FormattedText(EqBands.Labels[i], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 10, fg, dpi);
             dc.DrawText(lab, new Point(x - lab.Width / 2, h - BottomH + 6));
         }
 
@@ -145,12 +149,12 @@ public sealed class GraphicEqControl : Control
         if (shown >= 0)
         {
             string txt = (bands[shown] > 0 ? "+" : "") + bands[shown].ToString("0.0", CultureInfo.InvariantCulture) + " dB";
-            var t = new FormattedText(txt, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 11, fg, dpi);
+            var t = new FormattedText(txt, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 10, fg, dpi);
             double tx = Math.Clamp(XOf(shown) - t.Width / 2, LeftW, w - RightW - t.Width);
             double ty = YOf(bands[shown]) - ThumbH / 2 - t.Height - 2;
             if (ty < 0) ty = YOf(bands[shown]) + ThumbH / 2 + 2;
             dc.DrawRoundedRectangle(new SolidColorBrush(Color.FromArgb(0xD0, 0x20, 0x20, 0x20)), null, new Rect(tx - 3, ty - 1, t.Width + 6, t.Height + 2), 3, 3);
-            dc.DrawText(new FormattedText(txt, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 11, Brushes.White, dpi), new Point(tx, ty));
+            dc.DrawText(new FormattedText(txt, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Face, 10, Brushes.White, dpi), new Point(tx, ty));
         }
         dc.Pop();
     }

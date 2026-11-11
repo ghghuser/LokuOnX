@@ -345,7 +345,7 @@ public sealed class OutputCard : Border
         var slider = new Slider
         {
             Minimum = Settings.MinGainDb, Maximum = Settings.MaxGainDb, Value = send.Db, VerticalAlignment = VerticalAlignment.Center,
-            ToolTip = "この入力を、この出力へ送る音量（左端＝ミュート、ダブルクリックで 0 dB）",
+            ToolTip = "この入力を、この出力へ送る音量（左端＝ミュート。右の数字をダブルクリックで 0 dB）",
         };
         void Show() => text.Text = GainLabel(slider.Value);
         void Commit()
@@ -358,7 +358,11 @@ public sealed class OutputCard : Border
         check.Checked += (_, _) => Commit();
         check.Unchecked += (_, _) => Commit();
         slider.ValueChanged += (_, _) => Commit();
-        slider.MouseDoubleClick += (_, _) => slider.Value = 0;
+        // 0 dB に戻すのは数字のダブルクリック（メーターと同じ。11-4確認後）
+        text.Background = System.Windows.Media.Brushes.Transparent;
+        text.Cursor = Cursors.Hand;
+        text.ToolTip = "ダブルクリックで 0 dB に戻します";
+        text.MouseLeftButtonDown += (_, e) => { if (e.ClickCount >= 2) { slider.Value = 0; e.Handled = true; } };
         Show();
         DockPanel.SetDock(check, Dock.Left);
         DockPanel.SetDock(text, Dock.Right);

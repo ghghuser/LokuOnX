@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using Recorder.Core;
 
 namespace Recorder.UI;
@@ -50,19 +51,44 @@ public sealed partial class EffectWindow
         return head;
     }
 
-    /// <summary>効果のタブの見出しに、そのタブの中で掛かっているものの印（●）を出す。バイパス中は「○」。</summary>
+    /// <summary>
+    /// 掛かっている効果の頭文字（掛かる順番 N=ノイズゲート L=ローカット G=グラフィックEQ P=パラメトリックEQ E=エコー R=リバーブ）のうち、
+    /// order に含まれるものを順に並べる（例 "NGR"）。
+    /// </summary>
+    private static string Letters(EffectSetting c, string order)
+    {
+        bool On(char ch) => ch switch
+        {
+            'N' => c.GateOn, 'L' => c.HpfHz >= 20, 'G' => c.EqOn, 'P' => c.ParamOn, 'E' => c.EchoOn, 'R' => c.ReverbOn, _ => false,
+        };
+        return new string(order.Where(On).ToArray());
+    }
+
+    /// <summary>タブの見出し。名前の後ろに「⚡NGR」のように、掛かっている効果を緑（入力ランプと同じ緑）で出す。バイパス中は灰色。</summary>
+    private static TextBlock Header(string name, string letters, bool bypass)
+    {
+        var tb = new TextBlock();
+        tb.Inlines.Add(new Run(name));
+        if (letters.Length > 0)
+        {
+            var mark = new Run("  ⚡" + letters) { FontWeight = FontWeights.SemiBold };
+            mark.SetResourceReference(TextElement.ForegroundProperty, bypass ? "DisabledFg" : "LampOn");
+            tb.Inlines.Add(mark);
+        }
+        return tb;
+    }
+
+    /// <summary>効果のタブと、選んでいる入力のタブの見出しに、掛かっている効果の印（⚡＋頭文字）を出す。</summary>
     private void UpdateMarks()
     {
-        if (_tabs == null || _tabs.Items.Count < 3) return;
+        if (_tabs == null || _tabs.Items.Count < 2) return;
         var c = _fx;
-        string Mark(bool on) => on ? (c.Bypass ? "  ○" : "  ●") : "";
-        ((TabItem)_tabs.Items[0]).Header = "イコライザ" + Mark(c.EqOn || c.HpfHz >= 20 || c.ParamOn);
-        ((TabItem)_tabs.Items[1]).Header = "ノイズゲート" + Mark(c.GateOn);
-        ((TabItem)_tabs.Items[2]).Header = "エコー・リバーブ" + Mark(c.EchoOn || c.ReverbOn);
+        ((TabItem)_tabs.Items[0]).Header = Header("イコライザ", Letters(c, "LGP"), c.Bypass);
+        ((TabItem)_tabs.Items[1]).Header = Header("ノイズゲート・エコー・リバーブ", Letters(c, "NER"), c.Bypass);
         if (_slot < _slotTabs.Items.Count && _slotTabs.Items[_slot] is TabItem t)
         {
             var name = _host.Slots().FirstOrDefault(s => s.Slot == _slot).Name ?? "";
-            t.Header = name + (c.IsActive ? "  ●" : "");
+            t.Header = Header(name, Letters(c, "NLGPER"), c.Bypass);
         }
     }
 }

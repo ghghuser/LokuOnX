@@ -55,11 +55,12 @@ public sealed partial class EffectWindow : Window
         MinWidth = 600;
         MinHeight = 460;
         FontFamily = new FontFamily("Yu Gothic UI, Meiryo UI");
-        FontSize = 14;
+        FontSize = 13;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;
         SetResourceReference(BackgroundProperty, "WindowBg");
         SetResourceReference(ForegroundProperty, "WindowFg");
+        ApplyPalette();
 
         _slotTabs.Margin = new Thickness(16, 12, 16, 8);
         _slotTabs.SelectionChanged += (_, e) =>
@@ -83,6 +84,18 @@ public sealed partial class EffectWindow : Window
         Closed += (_, _) => _timer.Stop();
     }
 
+    /// <summary>このウィンドウの中だけ、黄色の強調色を「赤紫〜青」系（紫）に差し替える（スライダー・トグル・タブの下線・グラフの色など）。</summary>
+    private void ApplyPalette()
+    {
+        bool dark = TryFindResource("WindowBg") is SolidColorBrush bg && (bg.Color.R + bg.Color.G + bg.Color.B) / 3 < 128;
+        Brush B(string hex) => new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+        Resources["Pastel"] = B(dark ? "#A58CFF" : "#6C4FE0");
+        Resources["PastelDim"] = B(dark ? "#3E3470" : "#E0D9FA");
+        Resources["ToggleOn"] = B(dark ? "#9A86FF" : "#6C4FE0");
+        Resources["ToggleKnobOn"] = B(dark ? "#1E1A3A" : "#FFFFFF");
+        Resources["GroupFg"] = B(dark ? "#B9A6FF" : "#5A3FC8");
+    }
+
     // ---- 入力のタブ ----
     /// <summary>入力の名前・使われているか・効果が掛かっているかが変わったとき、タブの見出しを作り直す。</summary>
     public void RefreshSlots()
@@ -99,10 +112,10 @@ public sealed partial class EffectWindow : Window
         {
             var (slot, name, active) = slots[i];
             var tab = (TabItem)_slotTabs.Items[i];
-            bool on = _host.GetEffect(slot).IsActive;
-            tab.Header = name + (on ? "  ●" : "");
+            var e = _host.GetEffect(slot);
+            tab.Header = Header(name, Letters(e, "NLGPER"), e.Bypass);
             tab.Opacity = active ? 1.0 : 0.55;
-            tab.ToolTip = active ? (on ? "効果が掛かっています" : null) : "いまデバイスが選ばれていない（または使わない）入力です。設定はしておけます";
+            tab.ToolTip = active ? null : "いまデバイスが選ばれていない（または使わない）入力です。設定はしておけます";
         }
         if (_slotTabs.SelectedIndex != _slot) _slotTabs.SelectedIndex = _slot;
         _building = false;
@@ -143,15 +156,13 @@ public sealed partial class EffectWindow : Window
         Action changed = () => { Commit(); UpdateMarks(); };
         _tabs = new TabControl { Margin = new Thickness(0, 6, 0, 0) };
         var eq = EffectEq.Build(_fx, changed, Rebuild);
-        var gate = new StackPanel();
-        gate.Children.Add(EffectSections.Gate(_fx, changed));
-        var fx = new StackPanel();
+        var fx = new StackPanel();   // ノイズゲート・エコー・リバーブは同じタブに
+        fx.Children.Add(EffectSections.Gate(_fx, changed));
         fx.Children.Add(EffectSections.Echo(_fx, changed));
         fx.Children.Add(EffectSections.Reverb(_fx, changed));
         _tabs.Items.Add(new TabItem { Content = eq });
-        _tabs.Items.Add(new TabItem { Content = gate });
         _tabs.Items.Add(new TabItem { Content = fx });
-        _tabs.SelectedIndex = Math.Clamp(_innerIndex, 0, 2);
+        _tabs.SelectedIndex = Math.Clamp(_innerIndex, 0, 1);
         _tabs.SelectionChanged += (_, e) =>
         {
             if (ReferenceEquals(e.OriginalSource, _tabs) && _tabs.SelectedIndex >= 0) _innerIndex = _tabs.SelectedIndex;
@@ -162,7 +173,7 @@ public sealed partial class EffectWindow : Window
         root.Children.Add(new TextBlock
         {
             Text = "掛かる順番: ノイズゲート → ローカット → グラフィックEQ → パラメトリックEQ → エコー → リバーブ。つまみのダブルクリックで初期値に戻ります。",
-            FontSize = 12, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
+            FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
         });
         return root;
     }

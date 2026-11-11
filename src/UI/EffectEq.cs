@@ -5,7 +5,7 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>
-/// エフェクトウィンドウの「イコライザ」タブ（M11-4確認後）。上から グラフィックEQ（つまみ＋周波数カーブ）→ ローカット → パラメトリックEQ。
+/// エフェクトウィンドウの「イコライザ」タブ（M11-4確認後）。上から グラフィックEQ（つまみ＋周波数カーブ）→ パラメトリックEQ → ローカット（画面の並びで、音の掛かる順番とは別）。
 /// カーブはローカット・パラメトリックの効果も含めた全体を表す（LokuOn と同じ）。fx を直接書き換え、そのたびに changed を呼ぶ。
 /// </summary>
 internal static class EffectEq
@@ -72,11 +72,6 @@ internal static class EffectEq
             changed();
         };
 
-        // ---- ローカット ----
-        panel.Children.Add(EffectUi.Card(EffectUi.Title("ローカット", "この周波数より低い音（風・机の振動・エアコンなど）を削ります。「なし」で無効。曲線にも反映されます"), out var lc));
-        lc.Children.Add(EffectUi.Slide("周波数", 0, 400, fx.HpfHz, 0, v => v < 20 ? "なし" : v.ToString("0") + " Hz",
-            v => { fx.HpfHz = v < 20 ? 0 : v; view.SetHpf(fx.HpfHz); changed(); }, 5, "左端付近＝なし。20〜400 Hz（12 dB/oct）"));
-
         // ---- パラメトリックEQ ----
         paramToggle = EffectUi.Toggle("パラメトリックEQ（4バンド）", fx.ParamOn,
             "位置（周波数）・上げ下げ（ゲイン）・幅（Q。大きいほど狭い）を自由に決めて、気になる音だけを調整します。グラフィックEQの後に掛かります",
@@ -94,6 +89,11 @@ internal static class EffectEq
             rebuild();
         };
         pe.Children.Add(prs);
+
+        // ---- ローカット ----
+        panel.Children.Add(EffectUi.Card(EffectUi.Title("ローカット", "この周波数より低い音（風・机の振動・エアコンなど）を削ります。「なし」で無効。曲線にも反映されます"), out var lc));
+        lc.Children.Add(EffectUi.Slide("周波数", 0, 400, fx.HpfHz, 0, v => v < 20 ? "なし" : v.ToString("0") + " Hz",
+            v => { fx.HpfHz = v < 20 ? 0 : v; view.SetHpf(fx.HpfHz); changed(); }, 5, "左端付近＝なし。20〜400 Hz（12 dB/oct）"));
 
         Curve();
         ShowPreset();
@@ -129,7 +129,7 @@ internal static class EffectEq
         Cols(g);
         void Add(string t, int col)
         {
-            var tb = new TextBlock { Text = t, FontSize = 11 };
+            var tb = new TextBlock { Text = t, FontSize = 10 };
             Grid.SetColumn(tb, col);
             g.Children.Add(tb);
         }
@@ -145,7 +145,7 @@ internal static class EffectEq
         var pb = fx.Params[i];
         var g = new Grid { Height = 26 };
         Cols(g);
-        g.Children.Add(new TextBlock { Text = ParamBand.Names[i], FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
+        g.Children.Add(new TextBlock { Text = ParamBand.Names[i], FontSize = 11, VerticalAlignment = VerticalAlignment.Center });
         double Semis(double hz) => 12 * Math.Log2(Math.Max(ParamBand.MinHz, hz) / ParamBand.MinHz);
         void Touch() { view.SetParams(fx.ParamOn ? fx.Params : null); changed(); }
         EffectUi.Mini(g, 1, 0, 120, Semis(pb.Freq), Semis(ParamBand.DefaultFreqs[i]), v => EffectUi.Hz(ParamBand.MinHz * Math.Pow(2, v / 12)),
