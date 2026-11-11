@@ -8,6 +8,13 @@ public sealed partial class Settings
 {
     private const string FxSection = "InputFx";
 
+    /// <summary>エフェクトウィンドウの位置と大きさ（"左,上,幅,高さ"。空＝未保存）。</summary>
+    public string EffectWindowRect
+    {
+        get => _ini.Get("Windows", "EffectRect", "");
+        set { _ini.Set("Windows", "EffectRect", value); Save(); }
+    }
+
     /// <summary>入力1〜4のエフェクト設定（常に4件。範囲外の値は読み込み時に範囲内へ直る）。</summary>
     public IReadOnlyList<EffectSetting> InputEffects
     {

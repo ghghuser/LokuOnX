@@ -34,6 +34,7 @@ public sealed partial class EffectWindow : Window
     private static EffectSetting? _clip;   // コピーした効果（反映先の設定は含まない）。ウィンドウを閉じても残す
 
     private readonly IEffectHost _host;
+    private readonly Settings _s;
     private readonly TabControl _slotTabs = new();
     private readonly List<ContentControl> _hosts = new();   // 入力のタブごとの中身の置き場（選んだタブだけ作る）
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
@@ -48,6 +49,7 @@ public sealed partial class EffectWindow : Window
     public EffectWindow(IEffectHost host, Settings settings, int slot)
     {
         _host = host;
+        _s = settings;
         _slot = Math.Clamp(slot, 0, Settings.MaxInputs - 1);
         Title = "エフェクト";
         Width = 720;
@@ -61,6 +63,7 @@ public sealed partial class EffectWindow : Window
         SetResourceReference(BackgroundProperty, "WindowBg");
         SetResourceReference(ForegroundProperty, "WindowFg");
         ApplyPalette();
+        RestoreRect();
 
         _slotTabs.Margin = new Thickness(16, 12, 16, 8);
         _slotTabs.SelectionChanged += (_, e) =>
@@ -81,7 +84,11 @@ public sealed partial class EffectWindow : Window
         Load();
         _timer.Tick += (_, _) => UpdateEnabled();
         _timer.Start();
-        Closed += (_, _) => _timer.Stop();
+        Closed += (_, _) =>
+        {
+            _timer.Stop();
+            SaveRect();
+        };
     }
 
     /// <summary>このウィンドウの中だけ、黄色の強調色を「赤紫〜青」系（紫）に差し替える（スライダー・トグル・タブの下線・グラフの色など）。</summary>
@@ -94,6 +101,28 @@ public sealed partial class EffectWindow : Window
         Resources["ToggleOn"] = B(dark ? "#9A86FF" : "#6C4FE0");
         Resources["ToggleKnobOn"] = B(dark ? "#1E1A3A" : "#FFFFFF");
         Resources["GroupFg"] = B(dark ? "#B9A6FF" : "#5A3FC8");
+    }
+
+    // ---- 位置と大きさ（閉じるときに保存し、次に開くときに復元する） ----
+    private void RestoreRect()
+    {
+        var parts = _s.EffectWindowRect.Split(',');
+        if (parts.Length != 4) return;
+        var v = new double[4];
+        for (int i = 0; i < 4; i++)
+            if (!double.TryParse(parts[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v[i])) return;
+        // 画面の外に出てしまわないときだけ復元する
+        double sl = SystemParameters.VirtualScreenLeft, st = SystemParameters.VirtualScreenTop;
+        double sw = SystemParameters.VirtualScreenWidth, sh = SystemParameters.VirtualScreenHeight;
+        if (v[2] < MinWidth || v[3] < MinHeight || v[0] + 80 > sl + sw || v[0] + v[2] - 80 < sl || v[1] + 40 > st + sh || v[1] < st - 10) return;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = v[0]; Top = v[1]; Width = v[2]; Height = v[3];
+    }
+
+    private void SaveRect()
+    {
+        if (WindowState != WindowState.Normal) return;
+        _s.EffectWindowRect = string.Join(",", new[] { Left, Top, Width, Height }.Select(d => Math.Round(d).ToString(System.Globalization.CultureInfo.InvariantCulture)));
     }
 
     // ---- 入力のタブ ----

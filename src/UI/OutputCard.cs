@@ -347,7 +347,23 @@ public sealed class OutputCard : Border
             Minimum = Settings.MinGainDb, Maximum = Settings.MaxGainDb, Value = send.Db, VerticalAlignment = VerticalAlignment.Center,
             ToolTip = "この入力を、この出力へ送る音量（左端＝ミュート。右の数字をダブルクリックで 0 dB）",
         };
-        void Show() => text.Text = GainLabel(slider.Value);
+        void Show()
+        {
+            text.Text = GainLabel(slider.Value);
+            // ミュート（左端）のとき、メイン画面と同じ橙で示す（数字・ダークのスライダー）
+            if (GainMath.IsMuted(slider.Value))
+            {
+                text.Foreground = MeterColors.Muted;
+                text.FontWeight = FontWeights.SemiBold;
+                slider.Resources["Pastel"] = MeterColors.Muted;
+            }
+            else
+            {
+                text.ClearValue(TextBlock.ForegroundProperty);
+                text.ClearValue(TextBlock.FontWeightProperty);
+                slider.Resources.Remove("Pastel");
+            }
+        }
         void Commit()
         {
             Show();
