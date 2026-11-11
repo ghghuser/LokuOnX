@@ -150,34 +150,17 @@
                                     BorderThickness="1" BorderBrush="Transparent"/>
                             <Ellipse x:Name="Knob" Width="12" Height="12" HorizontalAlignment="Left" Margin="3,0,0,0"
                                      Fill="{DynamicResource ToggleKnobOff}">
-                                <Ellipse.RenderTransform>
-                                    <TranslateTransform x:Name="KnobMove" X="0"/>
-                                </Ellipse.RenderTransform>
                             </Ellipse>
                         </Grid>
                         <ContentPresenter x:Name="Content" Margin="8,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
                     </StackPanel>
                     <ControlTemplate.Triggers>
-                        <!-- つまみの位置は状態で即決め（作った時点でONなら最初から右）。動かす演出はチェックの切り替え時だけ（11-4確認後2: 作り直しのたびに左から右へ動いていた） -->
+                        <!-- つまみの位置は状態で即決め。スライド演出は付けない（EventTrigger＋名前指定のアニメは、作成中にIsCheckedを設定すると起動時に例外になるため。11-4確認後3で外した） -->
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{DynamicResource ToggleOn}"/>
                             <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource ToggleKnobOn}"/>
                             <Setter TargetName="Knob" Property="Margin" Value="19,0,0,0"/>
                         </Trigger>
-                        <EventTrigger RoutedEvent="CheckBox.Checked">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="KnobMove" Storyboard.TargetProperty="X" From="-16" To="0" Duration="0:0:0.12"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                        <EventTrigger RoutedEvent="CheckBox.Unchecked">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="KnobMove" Storyboard.TargetProperty="X" From="16" To="0" Duration="0:0:0.12"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource ToggleOn}"/>
                         </Trigger>

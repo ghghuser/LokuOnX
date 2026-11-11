@@ -48,7 +48,18 @@ public partial class App : Application
 
         var settings = new Settings(AppPaths.SettingsIni, readOnly: !first);
         UI.ThemeManager.Apply(settings.Theme);   // 画面の色（自動／ライト／ダーク）。ウィンドウを作る前に
-        new UI.MainWindow(settings).Show();
+        try
+        {
+            new UI.MainWindow(settings).Show();
+        }
+        catch (Exception ex)
+        {
+            // 画面が作れなかったときは、窓の無いプロセスを残さず終了する（多重起動の誤検知を防ぐ）
+            CrashLog.Write("Startup: " + ex);
+            MessageBox.Show($"起動中にエラーが発生したため終了します。\n{ex.Message}\n\n詳細は {CrashLog.FileName} に記録しました。",
+                AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+        }
     }
 
     private static void OnTextBoxKeyDown(object sender, KeyEventArgs e)
