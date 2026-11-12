@@ -7,7 +7,8 @@ namespace Recorder.Core;
 /// 入力デバイスと出力デバイスはクロックが別なので、バッファのたまり具合を見て変換比をわずかに調整する（時計ズレ補正。±0.5%まで）。
 /// たまりが足りなければ無音を出し、目標までたまってから再開する（途切れても止まらない）。
 /// 録音のミックスの 0.2 秒の遅延は経由せず、目標のたまりは 80ms。
-/// エフェクト（入力ごと・出力ごと）はまだ載せない（M11-4・M11-5。EffectChain・OutputFxChain は移植済み）。
+/// この出力だけの最終ミックスのエフェクト（ローカット→グラフィックEQ→パラメトリックEQ→リミッター。M11-5）は、全体音量のあと・±1に切り詰める前に掛ける（SetMasterFx）。
+/// 入力ごとのエフェクトは入力側（DeviceStream。M11-4）で掛け済みの音が届く。
 /// 入力ゲインは入力側（DeviceStream）で掛け済みの音が届くので、ここでは掛けない。WPF や Windows API には依存しない（§6-3）。
 /// </summary>
 public sealed class OutputRenderer
@@ -36,6 +37,16 @@ public sealed class OutputRenderer
     private readonly Chan[] chans;
     private float[][] inputs = Array.Empty<float[]>();
     private float[] mix = Array.Empty<float>();
+
+    private volatile OutputFxChain? _masterFx;
+
+    /// <summary>この出力の最終ミックスのエフェクトを渡す（動作中でも変えられる。何も掛けない設定のときは音に触れない）。</summary>
+    public void SetMasterFx(OutputFxSetting s)
+    {
+        var c = _masterFx ?? new OutputFxChain(devRate, devCh);
+        c.Update(s);
+        _masterFx = c;
+    }
 
     /// <summary>入力ごとの送り（オンオフ・音量）と、この出力の全体音量。</summary>
     public MixBus Bus { get; }
@@ -109,7 +120,8 @@ public sealed class OutputRenderer
             if (inputs[i] == null || inputs[i].Length < n) inputs[i] = new float[n];
             FillInput(i, frames);
         }
-        var st = Bus.Process(inputs, frames, devCh, mix);
+        var fx = _masterFx;
+        var st = Bus.Process(inputs, frames, devCh, mix, null, fx != null && fx.IsActive ? fx.Process : null);
         Array.Copy(mix, 0, dest, destOffset, n);
         if (st.PeakL > peakL) peakL = st.PeakL;
         if (st.PeakR > peakR) peakR = st.PeakR;

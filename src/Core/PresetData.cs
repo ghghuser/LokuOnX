@@ -25,6 +25,9 @@ public sealed class PresetOutput
     public string DeviceId { get; set; } = "";
     public double VolumeDb { get; set; }
     public List<PresetSend> Sends { get; set; } = new();
+
+    /// <summary>この出力の最終ミックスのエフェクト（M11-5。ローカット・EQ・リミッター）。null＝かけない（旧プリセットも同じ）。</summary>
+    public OutputFxSetting? Fx { get; set; }
 }
 
 /// <summary>

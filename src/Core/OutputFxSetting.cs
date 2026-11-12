@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Recorder.Core;
 
 /// <summary>
@@ -24,8 +26,11 @@ public sealed class OutputFxSetting
 
     public const double CeilingMinDb = -24, CeilingMaxDb = 0, ReleaseMinMs = 20, ReleaseMaxMs = 1000;
 
+    [JsonIgnore]
     public bool HasAny => EqOn || HpfHz >= 20 || ParamOn || LimiterOn;
+    [JsonIgnore]
     public bool IsActive => !Bypass && HasAny;
+    [JsonIgnore]
     public bool IsDefault => SameSound(new OutputFxSetting());
 
     public OutputFxSetting Clone()
@@ -64,6 +69,12 @@ public sealed class OutputFxSetting
     public EffectSetting ToEqSetting() => new()
     {
         EqOn = EqOn, HpfHz = HpfHz, Bands = (double[])Bands.Clone(), ParamOn = ParamOn, Params = Params.Select(p => p.Clone()).ToArray(), ToOutput = true,
+    };
+
+    /// <summary>WriteTo が書く項目名（prefix の後ろ）。初期値に戻したとき ini から消すのに使う。</summary>
+    public static readonly string[] IniKeys =
+    {
+        "Bypass", "EqOn", "HpfHz", "EqBands", "ParamOn", "ParamBands", "LimiterOn", "CeilingDb", "ReleaseMs",
     };
 
     public void WriteTo(IniSection s, string prefix, bool comment)

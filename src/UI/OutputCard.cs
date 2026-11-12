@@ -29,6 +29,9 @@ public interface IOutputHost
     /// <summary>出力先の「実際のデバイスID」（「既定の出力デバイス」は、いまの既定のデバイスのIDに置き換える）。同じデバイスを複数の出力で使っていないかの判定用。</summary>
     string RealOutputId(string id);
 
+    /// <summary>index 番目の出力のエフェクトのウィンドウを開く（すでに開いていればそれを前に出す。M11-5）。</summary>
+    void OpenOutputFx(int index, Window owner);
+
     bool AddOutput();
 
     void RemoveOutput(int index);
@@ -51,6 +54,7 @@ public sealed class OutputCard : Border
     private readonly Action<int> _removeRequested;
     private readonly TextBox _name = new();
     private readonly CheckBox _on = new();
+    private readonly Button _fx = new();
     private readonly ComboBox _device = new();
     private readonly TextBlock _state = new();
     private readonly TextBlock _error = new();
@@ -61,6 +65,7 @@ public sealed class OutputCard : Border
     private readonly StackPanel _inputsPanel = new();
     private readonly Expander _inputs = new();
     private bool _loading = true;
+    private int _fxLook = -1;
     private string _inputSig = "\0";
     private int _slotCount;
     private int _warnTick;
@@ -96,6 +101,18 @@ public sealed class OutputCard : Border
         remove.Click += (_, _) => AskRemove();
         DockPanel.SetDock(remove, Dock.Right);
         head.Children.Add(remove);
+        // この出力のエフェクト（ローカット・EQ・リミッター。M11-5）。✕の左
+        _fx.Content = "FX";
+        _fx.Style = (Style)Application.Current.FindResource("FxButton");
+        _fx.FontSize = 10;
+        _fx.Height = 18;
+        _fx.MinWidth = 26;
+        _fx.Margin = new Thickness(8, 0, 0, 0);
+        _fx.VerticalAlignment = VerticalAlignment.Center;
+        _fx.Click += (_, _) => _host.OpenOutputFx(_index, Window.GetWindow(this));
+        DockPanel.SetDock(_fx, Dock.Right);
+        head.Children.Add(_fx);
+        ShowFx();
         // 「出力する」のランプ（入力デバイスの「使う」ランプと同じ見た目・色）。名前の前に置く。文字は付けない
         _on.Style = (Style)Application.Current.FindResource("LampCheck");
         _on.VerticalAlignment = VerticalAlignment.Center;
@@ -192,6 +209,17 @@ public sealed class OutputCard : Border
         if (_loading) return;
         Engine.On = _on.IsChecked == true;
         ShowState();
+    }
+
+    /// <summary>「FX」ボタンの見た目（設定があれば光る。バイパス中は薄く）。</summary>
+    private void ShowFx()
+    {
+        var fx = Cfg.Fx;
+        int look = fx is { HasAny: true } ? (fx.Bypass ? 2 : 1) : 0;
+        if (look == _fxLook) return;   // 変わっていなければ何もしない（光の効果を作り直さない）
+        _fxLook = look;
+        FxButtonLook.Apply(_fx, fx is { HasAny: true }, fx is { Bypass: true }, "この出力のエフェクト",
+            "この出力の最終ミックスのエフェクト（ローカット・EQ・リミッター）。クリックで開きます");
     }
 
     private void OnDeviceChanged()
@@ -414,6 +442,7 @@ public sealed class OutputCard : Border
                 _on.IsChecked = e.On;
                 _loading = false;
             }
+            ShowFx();   // エフェクトウィンドウでの変更にも追従する
             if (++_warnTick % 4 == 0) UpdateLoopWarnings();   // 1秒ごと。ほかのカードの出力先の変更にも追従する
             ShowState();
         }

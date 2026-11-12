@@ -60,26 +60,8 @@ public partial class DeviceList : UserControl
     public void SetFxState(int slot, bool any, bool bypass)
     {
         if (slot < 0 || slot >= _rows.Count) return;
-        var b = _rows[slot].FxButton;
-        if (any)
-        {
-            // 青紫に光っているような見た目（文字・枠を青紫にし、同じ色のぼかしの光を付ける）。バイパス中は光らせず薄くする
-            var glow = new SolidColorBrush(Color.FromRgb(0x9D, 0x8B, 0xFF));
-            b.Foreground = glow;
-            b.BorderBrush = new SolidColorBrush(Color.FromRgb(0x7C, 0x6C, 0xFF));
-            b.Effect = bypass ? null : new System.Windows.Media.Effects.DropShadowEffect { Color = Color.FromRgb(0x7C, 0x6C, 0xFF), BlurRadius = 9, ShadowDepth = 0, Opacity = 0.95 };
-        }
-        else
-        {
-            b.ClearValue(Control.ForegroundProperty);
-            b.ClearValue(Control.BorderBrushProperty);
-            b.ClearValue(UIElement.EffectProperty);
-        }
-        b.FontWeight = any ? FontWeights.Bold : FontWeights.Normal;
-        b.Opacity = any && bypass ? 0.55 : 1.0;
-        b.ToolTip = any
-            ? (bypass ? "この入力のエフェクト（設定あり・いまはバイパス中）" : "この入力のエフェクト（設定あり）") + "。クリックで開きます"
-            : "この入力のエフェクト（ゲート・ローカット・EQ・エコー・リバーブ）。クリックで開きます。名前・波形・メーターの右クリックでも開けます";
+        FxButtonLook.Apply(_rows[slot].FxButton, any, bypass, "この入力のエフェクト",
+            "この入力のエフェクト（ゲート・ローカット・EQ・エコー・リバーブ）。クリックで開きます。名前・波形・メーターの右クリックでも開けます");
     }
 
     private MenuItem FxItem(Row row)

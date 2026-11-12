@@ -18,6 +18,7 @@ public partial class MainWindow : IOutputHost
     private OutputHub _outHub = null!;
     private IOutputDeviceProvider _outProvider = null!;
     private OutputWindow? _outWindow;
+    private readonly List<OutputFxWindow> _outFxWindows = new();   // 出力ごとのエフェクトのウィンドウ（M11-5。出力1枚につき1つ）
     private List<OutputConfig> _outCfgs = new();
     private readonly DispatcherTimer _outTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer _outSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
@@ -74,6 +75,8 @@ public partial class MainWindow : IOutputHost
         var e = _outHub[i];
         e.DeviceId = cfg.DeviceId;
         e.VolumeDb = cfg.VolumeDb;
+        var fx = cfg.FxCopy();
+        if (!e.Fx.SameSound(fx)) e.Fx = fx;   // 音量などを動かすたびに、エフェクトの状態を作り直さない
         ApplySends(i);
     }
 
@@ -81,6 +84,7 @@ public partial class MainWindow : IOutputHost
     private void ReloadOutputsFromSettings()
     {
         _outHub.StopAll(remember: false);
+        CloseOutputFxWindows();
         _outCfgs = _settings.Outputs.ToList();
         _outHub.EnsureCount(_outCfgs.Count);
         for (int i = 0; i < _outCfgs.Count; i++) ApplyOutput(i);
@@ -120,9 +124,35 @@ public partial class MainWindow : IOutputHost
     void IOutputHost.RemoveOutput(int index)
     {
         if (index < 0 || index >= _outCfgs.Count || _outCfgs.Count <= 1) return;   // 最後の1枚は残す
+        CloseOutputFxWindows();   // 番号がずれるので、エフェクトのウィンドウは閉じる
         _outCfgs.RemoveAt(index);
         _outHub.RemoveAt(index);
         _settings.Outputs = _outCfgs;
+    }
+
+    void IOutputHost.OpenOutputFx(int index, Window owner)
+    {
+        if (index < 0 || index >= _outCfgs.Count) return;
+        var open = _outFxWindows.FirstOrDefault(x => x.Index == index);
+        if (open != null)
+        {
+            if (open.WindowState == WindowState.Minimized) open.WindowState = WindowState.Normal;
+            open.Activate();
+            return;
+        }
+        var w = new OutputFxWindow(this, _settings, index) { Owner = owner ?? this };
+        w.Closed += (_, _) => _outFxWindows.Remove(w);
+        _outFxWindows.Add(w);
+        w.Show();
+    }
+
+    private void CloseOutputFxWindows()
+    {
+        foreach (var w in _outFxWindows.ToList())
+        {
+            try { w.Close(); } catch (Exception) { }
+        }
+        _outFxWindows.Clear();
     }
 
     void IOutputHost.RenameInput(int slot, string name) => Devices.SetInputName(slot, name);
@@ -241,6 +271,7 @@ public partial class MainWindow : IOutputHost
         _outTimer.Stop();
         ShutdownFx();
         if (_outSaveTimer.IsEnabled) { _outSaveTimer.Stop(); _settings.Outputs = _outCfgs; }
+        CloseOutputFxWindows();
         try { _outWindow?.Close(); } catch (Exception) { }
         try { Task.Run(() => { _outHub.Shutdown(); _hub.Dispose(); }).Wait(3000); } catch (Exception) { }
     }

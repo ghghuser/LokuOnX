@@ -92,16 +92,7 @@ public sealed partial class EffectWindow : Window
     }
 
     /// <summary>このウィンドウの中だけ、黄色の強調色を「赤紫〜青」系（紫）に差し替える（スライダー・トグル・タブの下線・グラフの色など）。</summary>
-    private void ApplyPalette()
-    {
-        bool dark = TryFindResource("WindowBg") is SolidColorBrush bg && (bg.Color.R + bg.Color.G + bg.Color.B) / 3 < 128;
-        Brush B(string hex) => new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-        Resources["Pastel"] = B(dark ? "#A58CFF" : "#6C4FE0");
-        Resources["PastelDim"] = B(dark ? "#3E3470" : "#E0D9FA");
-        Resources["ToggleOn"] = B(dark ? "#9A86FF" : "#6C4FE0");
-        Resources["ToggleKnobOn"] = B(dark ? "#1E1A3A" : "#FFFFFF");
-        Resources["GroupFg"] = B(dark ? "#B9A6FF" : "#5A3FC8");
-    }
+    private void ApplyPalette() => EffectPalette.Apply(this);
 
     // ---- 位置と大きさ（閉じるときに保存し、次に開くときに復元する） ----
     private void RestoreRect()

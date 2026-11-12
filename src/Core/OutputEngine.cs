@@ -24,6 +24,7 @@ public sealed class OutputEngine : IDisposable
     private volatile IReadOnlyList<OutSend> _sends = Array.Empty<OutSend>();
     private volatile string?[] _runKeys = new string?[Lanes];   // 運転中の入力（複製先の枠ごと。空き枠は null）
     private double _volumeDb;
+    private volatile OutputFxSetting _fx = new();
     private volatile string _state = "停止中";
     private volatile string _error = "";
     private volatile OutputRenderer? _renderer;
@@ -67,6 +68,19 @@ public sealed class OutputEngine : IDisposable
             _volumeDb = value;
             var r = _renderer;
             if (r != null) r.Bus.MasterGain = GainMath.DbToLinear(value);
+        }
+    }
+
+    /// <summary>この出力の最終ミックスのエフェクト（M11-5。ローカット・EQ・リミッター）。動作中でも変えられる（開き直さない）。</summary>
+    public OutputFxSetting Fx
+    {
+        get => _fx;
+        set
+        {
+            var c = (value ?? new OutputFxSetting()).Clone();
+            c.Normalize();
+            _fx = c;
+            _renderer?.SetMasterFx(c);
         }
     }
 
@@ -204,11 +218,16 @@ public sealed class OutputEngine : IDisposable
         {
             var r = new OutputRenderer(taps, rate, ch);
             r.Bus.MasterGain = GainMath.DbToLinear(_volumeDb);
+            r.SetMasterFx(_fx);
             return r;
         });
         if (err != null) return err;
         _renderer = _dev.Renderer;
-        if (_renderer != null) _renderer.Bus.MasterGain = linear;
+        if (_renderer != null)
+        {
+            _renderer.Bus.MasterGain = linear;
+            _renderer.SetMasterFx(_fx);   // 開いている間に変えられていたときのため
+        }
         return null;
     }
 

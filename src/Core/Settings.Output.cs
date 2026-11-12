@@ -5,7 +5,7 @@ namespace Recorder.Core;
 /// <summary>
 /// Settings のうち、出力（M11-3。最大4枚）と入力の名前。
 /// 「出力する」のON/OFFは保存しない（起動のたびに停止から始める。意図しない音が出ないように）。
-/// ini: [Outputs] Count / Name1 / Device1 / Volume1 / Send1_1（入力1→出力1。"1,0"＝オン・0dB／"0,0"＝オフ）…。入力の名前は本体の InputName1〜4。
+/// ini: [Outputs] Count / Name1 / Device1 / Volume1 / Send1_1（入力1→出力1。"1,0"＝オン・0dB／"0,0"＝オフ）/ Fx1_EqOn …（出力1の最終ミックスのエフェクト。M11-5。初期値のままなら書かない）。入力の名前は本体の InputName1〜4。
 /// 初期値のままの項目は書かない。11-2 の OutputDevice / OutputGain（出力1台）は、Count が無いときだけ読み込んで引き継ぐ。
 /// </summary>
 public sealed partial class Settings
@@ -37,8 +37,9 @@ public sealed partial class Settings
                     double db = raw.Length > 1 ? Num(raw[1]) : 0;
                     sends.Add(new OutSend(on, db));
                 }
+                var fx = OutputFxSetting.ReadFrom(new IniSection(_ini, OutSection), $"Fx{i}_");
                 list.Add(new OutputConfig(_ini.Get(OutSection, $"Name{i}", ""), _ini.Get(OutSection, $"Device{i}", ""),
-                    Num(_ini.Get(OutSection, $"Volume{i}", "0")), sends).Normalize(i - 1));
+                    Num(_ini.Get(OutSection, $"Volume{i}", "0")), sends, fx).Normalize(i - 1));
             }
             return list;
         }
@@ -55,6 +56,7 @@ public sealed partial class Settings
                     _ini.Remove(OutSection, $"Device{i}");
                     _ini.Remove(OutSection, $"Volume{i}");
                     for (int s = 1; s <= OutputConfig.InputSlots; s++) _ini.Remove(OutSection, $"Send{i}_{s}");
+                    foreach (var k in OutputFxSetting.IniKeys) _ini.Remove(OutSection, $"Fx{i}_{k}");
                     continue;
                 }
                 var c = list[i - 1];
@@ -68,6 +70,9 @@ public sealed partial class Settings
                     if (send.On && send.Db == 0) _ini.Remove(OutSection, key);
                     else _ini.Set(OutSection, key, (send.On ? "1," : "0,") + send.Db.ToString("0.#", CultureInfo.InvariantCulture));
                 }
+                // 出力ごとのエフェクト（初期値のままなら書かず、前に書いたものも消す）
+                foreach (var k in OutputFxSetting.IniKeys) _ini.Remove(OutSection, $"Fx{i}_{k}");
+                if (c.Fx is { IsDefault: false }) c.Fx.WriteTo(new IniSection(_ini, OutSection), $"Fx{i}_", false);
             }
             _ini.Remove(Section, "OutputDevice");   // 11-2 の旧キー（Count を書いたので、もう読まれない）
             _ini.Remove(Section, "OutputGain");
