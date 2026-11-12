@@ -9,6 +9,7 @@
     <SolidColorBrush x:Key="MarkFg" Color="#5A6070"/>
     <SolidColorBrush x:Key="CardBg" Color="#EDF0F5"/>
     <SolidColorBrush x:Key="CardBorder" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="InputBg" Color="#DDE2EA"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プリセット欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#DDE2EA"/>
     <SolidColorBrush x:Key="MeterBg" Color="#D5DAE3"/>
     <!-- ニューモーフィズム・ライトの波形欄は、暗い背景 -->

@@ -89,6 +89,16 @@ public sealed class OutputHub : IDisposable
         foreach (var e in _engines) e.On = false;
     }
 
+    /// <summary>すべての出力をオンにする（出力先が未選択・音が回る出力はオンのまま赤文字の理由が出る）。</summary>
+    public void StartAll()
+    {
+        lock (_lock) _resume = new HashSet<OutputEngine>();
+        foreach (var e in _engines) e.On = true;
+    }
+
+    /// <summary>1台でも「出力する」がオフか。</summary>
+    public bool AnyOff => _engines.Any(e => !e.On);
+
     /// <summary>直前の「すべて停止」でオンだった出力をオンに戻す。</summary>
     public void ResumeAll()
     {

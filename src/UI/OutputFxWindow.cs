@@ -16,7 +16,8 @@ public sealed class OutputFxWindow : Window
     private readonly IOutputHost _host;
     private readonly int _index;
     private readonly ContentControl _body = new();
-    private readonly TextBlock _summary = new() { FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 6, 0, 0) };
+    private TextBlock _summary = new();   // 画面を作り直すたびに新しく作る（古い画面に付いたままだと「already the logical child」で落ちる）
+    private readonly Settings _s;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private OutputFxSetting _fx = new();
     private bool _building;
@@ -26,6 +27,7 @@ public sealed class OutputFxWindow : Window
     public OutputFxWindow(IOutputHost host, Settings settings, int index)
     {
         _host = host;
+        _s = settings;
         _index = index;
         Width = 680;
         Height = 780;
@@ -41,10 +43,32 @@ public sealed class OutputFxWindow : Window
         _body.Margin = new Thickness(16, 12, 16, 12);
         Content = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = _body };
         ThemeManager.Attach(this, settings.Theme);
+        RestoreRect();
         Load();
         _timer.Tick += (_, _) => CheckAlive();
         _timer.Start();
-        Closed += (_, _) => _timer.Stop();
+        Closed += (_, _) => { _timer.Stop(); SaveRect(); };
+    }
+
+    // ---- 位置と大きさ（閉じるときに保存し、次に開くときに復元する。どの出力でも共通） ----
+    private void RestoreRect()
+    {
+        var parts = _s.OutputFxWindowRect.Split(',');
+        if (parts.Length != 4) return;
+        var v = new double[4];
+        for (int i = 0; i < 4; i++)
+            if (!double.TryParse(parts[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v[i])) return;
+        double sl = SystemParameters.VirtualScreenLeft, st = SystemParameters.VirtualScreenTop;
+        double sw = SystemParameters.VirtualScreenWidth, sh = SystemParameters.VirtualScreenHeight;
+        if (v[2] < MinWidth || v[3] < MinHeight || v[0] + 80 > sl + sw || v[0] + v[2] - 80 < sl || v[1] + 40 > st + sh || v[1] < st - 10) return;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = v[0]; Top = v[1]; Width = v[2]; Height = v[3];
+    }
+
+    private void SaveRect()
+    {
+        if (WindowState != WindowState.Normal) return;
+        _s.OutputFxWindowRect = string.Join(",", new[] { Left, Top, Width, Height }.Select(d => Math.Round(d).ToString(System.Globalization.CultureInfo.InvariantCulture)));
     }
 
     /// <summary>出力が減った・入れ替わったとき（カードの削除・プリセットの読み込み）は閉じる。名前の変更はタイトルへ反映する。</summary>
@@ -74,15 +98,24 @@ public sealed class OutputFxWindow : Window
         UpdateSummary();
     }
 
+    /// <summary>「かかっているもの」の一行。入力のエフェクトと同じ「⚡＋頭文字」を、入力ランプと同じ緑で出す（バイパス中は灰色）。
+    /// 頭文字は掛かる順番で L＝ローカット G＝グラフィックEQ P＝パラメトリックEQ M＝リミッター（例 ⚡LGM）。</summary>
     private void UpdateSummary()
     {
-        var l = new List<string>();
-        if (_fx.HpfHz >= 20) l.Add("ローカット");
-        if (_fx.EqOn) l.Add("グラフィックEQ");
-        if (_fx.ParamOn) l.Add("パラメトリックEQ");
-        if (_fx.LimiterOn) l.Add("リミッター");
-        _summary.Text = l.Count == 0 ? "かかっているもの: なし" : (_fx.Bypass ? "○ バイパス中（設定は残っています）: " : "● かかっているもの: ") + string.Join("・", l);
-        _summary.Opacity = _fx.Bypass ? 0.6 : 1.0;
+        var letters = new string(new[] { (_fx.HpfHz >= 20, 'L'), (_fx.EqOn, 'G'), (_fx.ParamOn, 'P'), (_fx.LimiterOn, 'M') }
+            .Where(x => x.Item1).Select(x => x.Item2).ToArray());
+        _summary.Inlines.Clear();
+        _summary.Inlines.Add(new System.Windows.Documents.Run("かかっているもの: "));
+        if (letters.Length == 0)
+            _summary.Inlines.Add(new System.Windows.Documents.Run("なし"));
+        else
+        {
+            var mark = new System.Windows.Documents.Run("⚡" + letters) { FontWeight = FontWeights.SemiBold };
+            mark.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, _fx.Bypass ? "DisabledFg" : "LampOn");
+            _summary.Inlines.Add(mark);
+            if (_fx.Bypass) _summary.Inlines.Add(new System.Windows.Documents.Run("（バイパス中。設定は残っています）") { FontSize = 11, Opacity = 0.7 });
+        }
+        _summary.ToolTip = "L＝ローカット　G＝グラフィックEQ　P＝パラメトリックEQ　M＝リミッター";
     }
 
     private UIElement BuildBody()
@@ -93,6 +126,7 @@ public sealed class OutputFxWindow : Window
             Text = "この出力に流れる最終ミックス（全体音量のあと）にだけ掛かります。入力ごとのエフェクトとは別で、録音には影響しません。",
             FontSize = 11, Opacity = 0.7, TextWrapping = TextWrapping.Wrap,
         });
+        _summary = new TextBlock { FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 6, 0, 0) };
         root.Children.Add(_summary);
 
         var bypass = new CheckBox { Content = "すべてバイパス", IsChecked = _fx.Bypass, Margin = new Thickness(0, 8, 0, 0),

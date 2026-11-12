@@ -20,6 +20,7 @@
     <SolidColorBrush x:Key="MarkFg" Color="#5F6368"/>
     <SolidColorBrush x:Key="CardBg" Color="#06000000"/>
     <SolidColorBrush x:Key="CardBorder" Color="#D0D0D0"/>
+    <SolidColorBrush x:Key="InputBg" Color="#FFFFFF"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プリセット欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#0A000000"/>
     <SolidColorBrush x:Key="MeterBg" Color="#12000000"/>
     <SolidColorBrush x:Key="WaveBg" Color="#F4F7FB"/>

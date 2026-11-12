@@ -78,7 +78,7 @@
             </WrapPanel>
         </StackPanel>
 
-        <ListView x:Name="List" Grid.Row="1" MinHeight="110" SelectionMode="Extended"
+        <ListView x:Name="List" Grid.Row="1" MinHeight="110" SelectionMode="Extended" FontSize="12" Background="{DynamicResource InputBg}"
                   SelectionChanged="List_SelectionChanged" MouseDoubleClick="List_DoubleClick"
                   PreviewKeyDown="List_KeyDown"
                   GridViewColumnHeader.Click="Header_Click">

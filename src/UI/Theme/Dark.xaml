@@ -25,6 +25,7 @@
     <!-- 録音コンソール（上段のカード）と波形の枠 -->
     <SolidColorBrush x:Key="CardBg" Color="#552A2C30"/>
     <SolidColorBrush x:Key="CardBorder" Color="#3A3D42"/>
+    <SolidColorBrush x:Key="InputBg" Color="#802D2F33"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プリセット欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#40000000"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#34373C"/>
     <SolidColorBrush x:Key="MeterBg" Color="#4A000000"/>

@@ -8,6 +8,10 @@
                   Data="M0,0 L4,4 L8,0 Z" Fill="{DynamicResource WindowFg}"/>
         </Border>
         <ControlTemplate.Triggers>
+            <!-- Tag="InputBg" のコンボボックス（プリセット欄）は、入力欄（TextBox）と同じ背景にする -->
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ComboBox}}" Value="InputBg">
+                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource InputBg}"/>
+            </DataTrigger>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PanelHover}"/>
             </Trigger>

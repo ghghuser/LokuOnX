@@ -15,6 +15,13 @@ public sealed partial class Settings
         set { _ini.Set("Windows", "EffectRect", value); Save(); }
     }
 
+    /// <summary>出力のエフェクトのウィンドウの位置と大きさ（どの出力でも共通。"左,上,幅,高さ"。空＝未保存）。</summary>
+    public string OutputFxWindowRect
+    {
+        get => _ini.Get("Windows", "OutputFxRect", "");
+        set { _ini.Set("Windows", "OutputFxRect", value); Save(); }
+    }
+
     /// <summary>入力1〜4のエフェクト設定（常に4件。範囲外の値は読み込み時に範囲内へ直る）。</summary>
     public IReadOnlyList<EffectSetting> InputEffects
     {

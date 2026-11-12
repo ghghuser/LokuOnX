@@ -204,12 +204,15 @@ public partial class MainWindow : IOutputHost
             menu.Items.Add(item);
         }
         menu.Items.Add(new Separator());
+        var start = new MenuItem { Header = "すべて開始", IsEnabled = _outHub.AnyOff };
+        start.Click += (_, _) => _outHub.StartAll();
         var stop = new MenuItem { Header = "すべて停止", IsEnabled = _outHub.AnyOn };
         stop.Click += (_, _) => _outHub.StopAll();
         var resume = new MenuItem { Header = "すべて再開", IsEnabled = _outHub.CanResume };
         resume.Click += (_, _) => _outHub.ResumeAll();
         var open = new MenuItem { Header = "出力ウィンドウを開く" };
         open.Click += (_, _) => OpenOutputWindow();
+        menu.Items.Add(start);
         menu.Items.Add(stop);
         menu.Items.Add(resume);
         menu.Items.Add(new Separator());
