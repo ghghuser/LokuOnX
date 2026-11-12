@@ -113,7 +113,7 @@ public sealed class OutputFxWindow : Window
             var mark = new System.Windows.Documents.Run("⚡" + letters) { FontWeight = FontWeights.SemiBold };
             mark.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, _fx.Bypass ? "DisabledFg" : "LampOn");
             _summary.Inlines.Add(mark);
-            if (_fx.Bypass) _summary.Inlines.Add(new System.Windows.Documents.Run("（バイパス中。設定は残っています）") { FontSize = 11, Opacity = 0.7 });
+            if (_fx.Bypass) _summary.Inlines.Add(new System.Windows.Documents.Run("（バイパス中。設定は残っています）") { FontSize = 11, FontWeight = FontWeights.Normal });
         }
         _summary.ToolTip = "L＝ローカット　G＝グラフィックEQ　P＝パラメトリックEQ　M＝リミッター";
     }
