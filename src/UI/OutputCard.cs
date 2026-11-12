@@ -75,7 +75,7 @@ public sealed class OutputCard : Border
         _host = host;
         _index = index;
         _removeRequested = removeRequested;
-        Width = 430;
+        Width = 423;
         Margin = new Thickness(0, 0, 12, 12);
         CornerRadius = new CornerRadius(10);
         BorderThickness = new Thickness(1);

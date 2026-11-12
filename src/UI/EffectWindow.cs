@@ -186,9 +186,9 @@ public sealed partial class EffectWindow : Window
         _tabs = new TabControl { Margin = new Thickness(0, 6, 0, 0) };
         var eq = EffectEq.Build(_fx, changed, Rebuild);
         var fx = new StackPanel();   // ノイズゲート・エコー・リバーブは同じタブに
-        fx.Children.Add(EffectSections.Gate(_fx, changed));
-        fx.Children.Add(EffectSections.Echo(_fx, changed));
-        fx.Children.Add(EffectSections.Reverb(_fx, changed));
+        fx.Children.Add(EffectSections.Gate(_fx, changed, Rebuild));
+        fx.Children.Add(EffectSections.Echo(_fx, changed, Rebuild));
+        fx.Children.Add(EffectSections.Reverb(_fx, changed, Rebuild));
         _tabs.Items.Add(new TabItem { Content = eq });
         _tabs.Items.Add(new TabItem { Content = fx });
         _tabs.SelectedIndex = Math.Clamp(_innerIndex, 0, 1);

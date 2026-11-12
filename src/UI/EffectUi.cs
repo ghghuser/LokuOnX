@@ -43,6 +43,26 @@ internal static class EffectUi
         return c;
     }
 
+    /// <summary>見出しの右端に置く「↺」（初期値に戻す）ボタン。</summary>
+    public static Button ResetButton(string tip, Action reset)
+    {
+        var b = new Button { Content = "↺", Width = 26, Height = 22, Padding = new Thickness(0), ToolTip = tip, VerticalAlignment = VerticalAlignment.Center };
+        b.Click += (_, _) => reset();
+        DockPanel.SetDock(b, Dock.Right);
+        return b;
+    }
+
+    /// <summary>カードの見出し行: 左にスイッチ、右端に「↺」。right に、↺の左に並べる部品（右のものから順）を渡せる。</summary>
+    public static DockPanel Head(UIElement toggle, Button reset, params UIElement[] right)
+    {
+        var d = new DockPanel { LastChildFill = false };
+        d.Children.Add(reset);
+        foreach (var r in right) { DockPanel.SetDock(r, Dock.Right); d.Children.Add(r); }
+        DockPanel.SetDock(toggle, Dock.Left);
+        d.Children.Add(toggle);
+        return d;
+    }
+
     /// <summary>カードの見出し（スイッチの無いもの）。</summary>
     public static TextBlock Title(string text, string tip) =>
         new() { Text = text, ToolTip = tip, FontWeight = FontWeights.SemiBold };

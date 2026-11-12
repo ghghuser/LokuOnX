@@ -30,17 +30,11 @@ internal static class EffectEq
         eqToggle = EffectUi.Toggle("グラフィックEQ（10バンド）", fx.EqOn,
             "帯域ごとに音量を上げ下げします（各 ±12 dB）。ローカットの後に掛かります。グラフの曲線は、ローカット・パラメトリックEQも含めた全体の特性です",
             on => { fx.EqOn = on; Curve(); changed(); });
-        // 見出しの行: チェック → よく使う設定のプルダウン（左詰め）…右端に「フラットに戻す」。行を節約する
-        var head = new DockPanel { LastChildFill = false };
-        var reset = new Button { Content = "フラットに戻す", Padding = new Thickness(10, 2, 10, 2) };
-        DockPanel.SetDock(reset, Dock.Right);
-        head.Children.Add(reset);
-        DockPanel.SetDock(eqToggle, Dock.Left);
-        head.Children.Add(eqToggle);
-        var presets = new ComboBox { MinWidth = 170, Margin = new Thickness(14, 0, 0, 0), ToolTip = "よく使う設定を選ぶと、10個のつまみがその値になります（選んだあとも自由に動かせます）" };
+        // 見出しの行: 左にチェック、右にプルダウン（よく使う設定）と「↺」（フラットに戻す）
+        var reset = EffectUi.ResetButton("すべてのつまみをフラット（0 dB）に戻します", () => Flat());
+        var presets = new ComboBox { MinWidth = 170, Margin = new Thickness(0, 0, 6, 0), ToolTip = "よく使う設定を選ぶと、10個のつまみがその値になります（選んだあとも自由に動かせます）" };
         foreach (var p in EqBands.Presets) presets.Items.Add(p.Name);
-        DockPanel.SetDock(presets, Dock.Left);
-        head.Children.Add(presets);
+        var head = EffectUi.Head(eqToggle, reset, presets);
         panel.Children.Add(EffectUi.Card(head, out var g));
         g.Children.Add(view);
 
@@ -52,7 +46,6 @@ internal static class EffectEq
             ShowPreset();
             changed();
         }
-        reset.Click += (_, _) => Flat();
         presets.SelectionChanged += (_, _) =>
         {
             int i = presets.SelectedIndex;
@@ -78,19 +71,17 @@ internal static class EffectEq
         paramToggle = EffectUi.Toggle("パラメトリックEQ（4バンド）", fx.ParamOn,
             "位置（周波数）・上げ下げ（ゲイン）・幅（Q。大きいほど狭い）を自由に決めて、気になる音だけを調整します。グラフィックEQの後に掛かります",
             on => { fx.ParamOn = on; view.SetParams(on ? fx.Params : null); changed(); });
-        panel.Children.Add(EffectUi.Card(paramToggle, out var pe));
-        pe.Children.Add(ParamHead());
-        for (int i = 0; i < ParamBand.Count; i++) pe.Children.Add(ParamRow(fx, i, view, paramToggle, changed));
-        var prs = new Button { Content = "パラメトリックを初期値に戻す", Padding = new Thickness(10, 2, 10, 2), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 4, 0, 0) };
-        prs.Click += (_, _) =>
+        var prs = EffectUi.ResetButton("パラメトリックEQを初期値に戻します（オフになります）", () =>
         {
             fx.Params = ParamBand.Defaults();
             fx.ParamOn = false;
             paramToggle.IsChecked = false;
             changed();
             rebuild();
-        };
-        pe.Children.Add(prs);
+        });
+        panel.Children.Add(EffectUi.Card(EffectUi.Head(paramToggle, prs), out var pe));
+        pe.Children.Add(ParamHead());
+        for (int i = 0; i < ParamBand.Count; i++) pe.Children.Add(ParamRow(fx, i, view, paramToggle, changed));
 
         // ---- ローカット（チェックで入／切。切にしても周波数は覚えていて、入にすると戻る） ----
         double lastHz = fx.HpfHz >= 20 ? fx.HpfHz : 80;
@@ -100,7 +91,12 @@ internal static class EffectEq
         lcToggle = EffectUi.Toggle("ローカット", fx.HpfHz >= 20,
             "この周波数より低い音（風・机の振動・エアコンなど）を削ります。切にしても周波数は覚えています。曲線にも反映されます",
             on => lcSlider.Value = on ? lastHz : 0);
-        panel.Children.Add(EffectUi.Card(lcToggle, out var lc));
+        var lcReset = EffectUi.ResetButton("ローカットの周波数を初期値（80 Hz）に戻します（入／切はそのまま）", () =>
+        {
+            lastHz = 80;
+            if (fx.HpfHz >= 20) lcSlider.Value = 80;
+        });
+        panel.Children.Add(EffectUi.Card(EffectUi.Head(lcToggle, lcReset), out var lc));
         lcRow = EffectUi.Slide("周波数", 0, 400, fx.HpfHz, 0, v => v < 20 ? "なし" : v.ToString("0") + " Hz",
             v =>
             {

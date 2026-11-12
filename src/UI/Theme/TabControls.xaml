@@ -27,7 +27,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
-                    <Border x:Name="Bd" Background="#18808080" BorderBrush="Transparent" BorderThickness="0,0,0,2" CornerRadius="8,8,0,0"
+                    <Border x:Name="Bd" Background="#0C808080" BorderBrush="Transparent" BorderThickness="0,0,0,2" CornerRadius="8,8,0,0"
                             Padding="{TemplateBinding Padding}" Cursor="Hand">
                         <ContentPresenter ContentSource="Header" TextElement.Foreground="{TemplateBinding Foreground}"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -35,7 +35,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
-                            <Setter TargetName="Bd" Property="Background" Value="#2A808080"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#1A808080"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
