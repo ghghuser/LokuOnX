@@ -31,9 +31,9 @@ internal static class EffectEq
             "帯域ごとに音量を上げ下げします（各 ±12 dB）。ローカットの後に掛かります。グラフの曲線は、ローカット・パラメトリックEQも含めた全体の特性です",
             on => { fx.EqOn = on; Curve(); changed(); });
         // 見出しの行: 左にチェック、右にプルダウン（よく使う設定）と「↺」（フラットに戻す）
-        var reset = EffectUi.ResetButton("すべてのつまみをフラット（0 dB）に戻します", () => Flat());
         var presets = new ComboBox { MinWidth = 170, Margin = new Thickness(0, 0, 6, 0), ToolTip = "よく使う設定を選ぶと、10個のつまみがその値になります（選んだあとも自由に動かせます）" };
         foreach (var p in EqBands.Presets) presets.Items.Add(p.Name);
+        var reset = EffectUi.ResetButton("すべてのつまみをフラット（0 dB）に戻します（入／切はそのまま）", () => Flat());
         var head = EffectUi.Head(eqToggle, reset, presets);
         panel.Children.Add(EffectUi.Card(head, out var g));
         g.Children.Add(view);
@@ -71,11 +71,9 @@ internal static class EffectEq
         paramToggle = EffectUi.Toggle("パラメトリックEQ（4バンド）", fx.ParamOn,
             "位置（周波数）・上げ下げ（ゲイン）・幅（Q。大きいほど狭い）を自由に決めて、気になる音だけを調整します。グラフィックEQの後に掛かります",
             on => { fx.ParamOn = on; view.SetParams(on ? fx.Params : null); changed(); });
-        var prs = EffectUi.ResetButton("パラメトリックEQを初期値に戻します（オフになります）", () =>
+        var prs = EffectUi.ResetButton("パラメトリックEQのつまみを初期値に戻します（入／切はそのまま）", () =>
         {
             fx.Params = ParamBand.Defaults();
-            fx.ParamOn = false;
-            paramToggle.IsChecked = false;
             changed();
             rebuild();
         });
