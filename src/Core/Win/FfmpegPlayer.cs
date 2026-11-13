@@ -53,7 +53,7 @@ public sealed class FfmpegPlayer : IDisposable
         Process? proc = null;
         try
         {
-            proc = Process.Start(psi) ?? throw new IOException("FFmpegを起動できませんでした。");
+            proc = Process.Start(psi) ?? throw new IOException(Loc.Get("ffmpegplayer.s01"));
             var err = new StringBuilder();
             proc.ErrorDataReceived += (_, e) =>
             {
@@ -92,8 +92,8 @@ public sealed class FfmpegPlayer : IDisposable
         lock (err) detail = err.ToString().Trim();
         _start = 0;
         Halt();
-        if (error != null) Failed?.Invoke("再生できませんでした: " + error.Message);
-        else if (source.BytesRead == 0 && detail.Length > 0) Failed?.Invoke("再生できませんでした: " + detail);
+        if (error != null) Failed?.Invoke((Loc.Get("ffmpegplayer.s02") + " ") + error.Message);
+        else if (source.BytesRead == 0 && detail.Length > 0) Failed?.Invoke((Loc.Get("ffmpegplayer.s02") + " ") + detail);
         else Ended?.Invoke();
     }
 

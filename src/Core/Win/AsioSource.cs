@@ -41,7 +41,7 @@ public sealed class AsioSource : IAudioSource
         _count = channels;
         // 入力チェックなどで開いていた直前のASIOが閉じるのを、少し待つ
         if (!Gate.Wait(TimeSpan.FromSeconds(4)))
-            throw new InvalidOperationException("ASIOドライバが使用中です（同時に使えるASIOは1つだけです）。");
+            throw new InvalidOperationException(Loc.Get("asiosource.s01"));
         _holdsGate = true;
         try
         {
@@ -49,7 +49,7 @@ public sealed class AsioSource : IAudioSource
             _thread.SetApartmentState(ApartmentState.STA);
             _thread.Start();
             if (!_ready.Wait(TimeSpan.FromSeconds(15)))
-                throw new TimeoutException("ASIOドライバが応答しません。");
+                throw new TimeoutException(Loc.Get("asiosource.s02"));
             if (_openError != null)
                 throw new InvalidOperationException(_openError.Message, _openError);
         }
@@ -96,7 +96,7 @@ public sealed class AsioSource : IAudioSource
                 int available = asio.DriverInputChannelCount;
                 if (firstChannel + _count > available)
                 {
-                    shortage = $"ASIOドライバ「{driver}」の入力チャンネルが足りません（入力は {available} ch）。";
+                    shortage = Loc.Get("asiosource.s03", driver, available);
                     throw new InvalidOperationException(shortage);
                 }
                 asio.InputChannelOffset = firstChannel;
@@ -115,7 +115,7 @@ public sealed class AsioSource : IAudioSource
             }
         }
         if (shortage != null) throw new InvalidOperationException(shortage);
-        throw new InvalidOperationException($"ASIOドライバ「{driver}」を開けませんでした（{last?.Message}）", last);
+        throw new InvalidOperationException(Loc.Get("asiosource.s04", driver, last?.Message), last);
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public sealed class AsioSource : IAudioSource
         catch (Exception ex)
         {
             _playing = false;
-            Stopped?.Invoke(new InvalidOperationException("ASIOの音声を読み取れませんでした（" + ex.Message + "）", ex));
+            Stopped?.Invoke(new InvalidOperationException(Loc.Get("asiosource.s05") + ex.Message + "）", ex));
         }
     }
 
@@ -160,12 +160,12 @@ public sealed class AsioSource : IAudioSource
     {
         if (_closing) return;
         _playing = false;
-        Stopped?.Invoke(e.Exception ?? new InvalidOperationException("ASIOドライバが停止しました。"));
+        Stopped?.Invoke(e.Exception ?? new InvalidOperationException(Loc.Get("asiosource.s06")));
     }
 
     public void Start()
     {
-        var dispatcher = _dispatcher ?? throw new InvalidOperationException("ASIOドライバが開かれていません。");
+        var dispatcher = _dispatcher ?? throw new InvalidOperationException(Loc.Get("asiosource.s07"));
         Exception? error = null;
         dispatcher.Invoke(() =>
         {
@@ -181,7 +181,7 @@ public sealed class AsioSource : IAudioSource
             }
         });
         if (error != null)
-            throw new InvalidOperationException("ASIOの録音を始められませんでした（" + error.Message + "）", error);
+            throw new InvalidOperationException(Loc.Get("asiosource.s08") + error.Message + "）", error);
     }
 
     public void Stop()

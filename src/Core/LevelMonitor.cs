@@ -45,7 +45,7 @@ public sealed class LevelMonitor : IDisposable
         {
             var errors = acquired.Select(e => e.Input.LastError).Where(m => !string.IsNullOrEmpty(m));
             foreach (var e in acquired) _hub.Release(e);
-            throw new InvalidOperationException("入力デバイスを開けませんでした。\n" + string.Join("\n", errors));
+            throw new InvalidOperationException(Loc.Get("levelmonitor.s01") + string.Join("\n", errors));
         }
         _entries = acquired.ToArray();
         Drain();   // 出力などが先に開いていた入力にたまっている古いピークは、メーターに出さない

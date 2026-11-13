@@ -47,7 +47,7 @@ public interface IOutputHost
 /// </summary>
 public sealed class OutputCard : Border
 {
-    private static readonly OutputDeviceInfo None = new("", "（未選択）");
+    private static readonly OutputDeviceInfo None = new("", Loc.Get("outputcard.s01"));
 
     private readonly IOutputHost _host;
     private readonly int _index;
@@ -60,8 +60,8 @@ public sealed class OutputCard : Border
     private readonly TextBlock _error = new();
     private readonly TextBlock _caution = new();
     private readonly TextBlock _info = new();
-    private readonly OutputMeter _meter = new("出力レベル(dB)・音量",
-        "この出力の音量（左右）。白い線＝直近の最大値、右端の四角が赤＝クリップ。縦長のつまみ＝この出力の全体音量（左端＝ミュート、右上の数字をダブルクリックで 0 dB）。録音のレベルや全体ゲインには影響しません");
+    private readonly OutputMeter _meter = new(Loc.Get("outputcard.s02"),
+        Loc.Get("outputcard.s03"));
     private readonly StackPanel _inputsPanel = new();
     private readonly Expander _inputs = new();
     private bool _loading = true;
@@ -96,7 +96,7 @@ public sealed class OutputCard : Border
         var remove = new Button
         {
             Content = "✕", Width = 24, Height = 24, Padding = new Thickness(0), Margin = new Thickness(10, 0, 0, 0),
-            ToolTip = "この出力を削除", VerticalAlignment = VerticalAlignment.Center,
+            ToolTip = Loc.Get("outputcard.s04"), VerticalAlignment = VerticalAlignment.Center,
         };
         remove.Click += (_, _) => AskRemove();
         DockPanel.SetDock(remove, Dock.Right);
@@ -117,7 +117,7 @@ public sealed class OutputCard : Border
         _on.Style = (Style)Application.Current.FindResource("LampCheck");
         _on.VerticalAlignment = VerticalAlignment.Center;
         _on.Margin = new Thickness(0, 0, 10, 0);
-        _on.ToolTip = "出力する（つけると、出力先の再生デバイスへ音を送ります）。入力が選ばれていて、出力先が決まっている必要があります。起動のたびに消えた状態から始まります";
+        _on.ToolTip = Loc.Get("outputcard.s05");
         _on.IsChecked = Engine.On;
         _on.Checked += (_, _) => OnToggled();
         _on.Unchecked += (_, _) => OnToggled();
@@ -128,7 +128,7 @@ public sealed class OutputCard : Border
         _name.FontWeight = FontWeights.SemiBold;
         _name.Width = 150;
         _name.HorizontalAlignment = HorizontalAlignment.Left;
-        _name.ToolTip = "この出力の名前（12文字まで）";
+        _name.ToolTip = Loc.Get("outputcard.s06");
         _name.KeyDown += (_, e) => { if (e.Key == Key.Enter) { Keyboard.ClearFocus(); e.Handled = true; } };
         _name.LostFocus += (_, _) => CommitName();
         head.Children.Add(_name);
@@ -136,10 +136,10 @@ public sealed class OutputCard : Border
 
         // 出力先
         var dev = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };
-        dev.Children.Add(new TextBlock { Text = "出力先", Width = 52, VerticalAlignment = VerticalAlignment.Center });
+        dev.Children.Add(new TextBlock { Text = Loc.Get("outputcard.s07"), Width = 52, VerticalAlignment = VerticalAlignment.Center });
         _device.ItemTemplate = deviceTemplate;
         _device.IsEnabled = false;
-        _device.ToolTip = "音を送る再生デバイス。「入力のPC内部音（🔊）」と同じデバイスは、音が回ってしまうので使えません（一覧で赤文字になります。選ぶことはできますが、出力は始まらず理由が出ます）";
+        _device.ToolTip = Loc.Get("outputcard.s08");
         _device.SelectionChanged += (_, _) => OnDeviceChanged();
         _device.DropDownOpened += (_, _) => UpdateLoopWarnings();
         dev.Children.Add(_device);
@@ -147,7 +147,7 @@ public sealed class OutputCard : Border
 
         _state.FontSize = 12;
         _state.Opacity = 0.85;
-        _state.Text = "読み込み中…";
+        _state.Text = Loc.Get("outputcard.s09");
         root.Children.Add(_state);
         _error.SetResourceReference(TextBlock.ForegroundProperty, "WarnFg");
         _error.FontWeight = FontWeights.SemiBold;
@@ -163,7 +163,7 @@ public sealed class OutputCard : Border
         _caution.TextWrapping = TextWrapping.Wrap;
         _caution.Margin = new Thickness(0, 4, 0, 0);
         _caution.Visibility = Visibility.Collapsed;
-        _caution.Text = "同じ出力先を、ほかの出力カードも使っています。同じ入力を送ると音が二重に重なります（使うこと自体はできます）。";
+        _caution.Text = Loc.Get("outputcard.s10");
         root.Children.Add(_caution);
 
         _meter.Margin = new Thickness(0, 10, 0, 0);
@@ -174,7 +174,7 @@ public sealed class OutputCard : Border
         root.Children.Add(_meter);
 
         // 入力ごとの送り
-        _inputs.Header = "入力（送り）";   // 畳んだときも分かるよう、オンの数を後ろに付ける（ShowInputsHeader）
+        _inputs.Header = Loc.Get("outputcard.s11");   // 畳んだときも分かるよう、オンの数を後ろに付ける（ShowInputsHeader）
         _inputs.FontSize = 12;
         _inputs.Margin = new Thickness(0, 10, 0, 0);
         _inputs.IsExpanded = !_host.Folded(_index);
@@ -187,7 +187,7 @@ public sealed class OutputCard : Border
         _info.Opacity = 0.55;
         _info.TextWrapping = TextWrapping.Wrap;
         _info.Margin = new Thickness(0, 8, 0, 0);
-        _info.ToolTip = "出力デバイスの形式と、途切れ・捨てた回数（時計ズレの補正の確認用）";
+        _info.ToolTip = Loc.Get("outputcard.s12");
         root.Children.Add(_info);
 
         Child = root;
@@ -218,8 +218,8 @@ public sealed class OutputCard : Border
         int look = fx is { HasAny: true } ? (fx.Bypass ? 2 : 1) : 0;
         if (look == _fxLook) return;   // 変わっていなければ何もしない（光の効果を作り直さない）
         _fxLook = look;
-        FxButtonLook.Apply(_fx, fx is { HasAny: true }, fx is { Bypass: true }, "この出力のエフェクト",
-            "この出力の最終ミックスのエフェクト（ローカット・EQ・リミッター）。クリックで開きます");
+        FxButtonLook.Apply(_fx, fx is { HasAny: true }, fx is { Bypass: true }, Loc.Get("outputcard.s13"),
+            Loc.Get("outputcard.s14"));
     }
 
     private void OnDeviceChanged()
@@ -238,7 +238,7 @@ public sealed class OutputCard : Border
     }
 
     private static string GainLabel(double db) => GainMath.IsMuted(db)
-        ? "ミュート"
+        ? Loc.Get("outputcard.s15")
         : db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + " dB";
 
     private void ShowVolume()
@@ -262,7 +262,7 @@ public sealed class OutputCard : Border
     private void AskRemove()
     {
         var owner = Window.GetWindow(this);
-        var r = MessageBox.Show(owner, $"出力「{Cfg.Name}」を削除しますか？\n（この出力の設定はなくなります）", "出力の削除",
+        var r = MessageBox.Show(owner, Loc.Get("outputcard.s16", Cfg.Name), Loc.Get("outputcard.s17"),
             MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (r == MessageBoxResult.Yes) _removeRequested(_index);
     }
@@ -274,7 +274,7 @@ public sealed class OutputCard : Border
         items.AddRange(list);
         var saved = Cfg.DeviceId;
         if (saved.Length > 0 && !items.Any(d => d.Id == saved))
-            items.Add(new OutputDeviceInfo(saved, "（接続されていないデバイス）"));   // 選んだ設定は消さない（つながれば自動で使える）
+            items.Add(new OutputDeviceInfo(saved, Loc.Get("outputcard.s18")));   // 選んだ設定は消さない（つながれば自動で使える）
         _loading = true;
         _device.ItemsSource = items;
         _device.SelectedItem = items.FirstOrDefault(d => d.Id == saved) ?? None;
@@ -311,7 +311,7 @@ public sealed class OutputCard : Border
         _loading = true;
         _inputsPanel.Children.Clear();
         if (slots.Count == 0)
-            _inputsPanel.Children.Add(new TextBlock { Text = "入力デバイスが選ばれていません（メイン画面で選んでください）", Opacity = 0.6, FontSize = 12, Margin = new Thickness(0, 4, 0, 0) });
+            _inputsPanel.Children.Add(new TextBlock { Text = Loc.Get("outputcard.s19"), Opacity = 0.6, FontSize = 12, Margin = new Thickness(0, 4, 0, 0) });
         foreach (var (slot, name) in slots) _inputsPanel.Children.Add(MakeSendRow(slot, name));
         _slotCount = slots.Count;
         _loading = was;
@@ -322,21 +322,21 @@ public sealed class OutputCard : Border
     /// <summary>入力欄の見出し。畳んでいても、いくつの入力がこの出力へ送られているか分かるようにする。</summary>
     private void ShowInputsHeader()
     {
-        if (_slotCount == 0) { _inputs.Header = "入力（送り）"; return; }
+        if (_slotCount == 0) { _inputs.Header = Loc.Get("outputcard.s11"); return; }
         var on = _host.InputSlots().Count(s => Cfg.SendAt(s.Slot).On);
-        _inputs.Header = $"入力（送り）　オン {on} / {_slotCount}";
+        _inputs.Header = Loc.Get("outputcard.s20", on, _slotCount);
     }
 
     private UIElement MakeSendRow(int slot, string name)
     {
         var send = Cfg.SendAt(slot);
         var row = new DockPanel { Margin = new Thickness(0, 6, 0, 0), Height = 24 };
-        var check = new CheckBox { IsChecked = send.On, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, ToolTip = "この入力をこの出力へ送る" };
+        var check = new CheckBox { IsChecked = send.On, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, ToolTip = Loc.Get("outputcard.s21") };
         // 名前（ダブルクリックか右クリックで変更。メイン画面の入力の名前と同じもの）
         var label = new TextBlock
         {
             Text = name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, Cursor = Cursors.IBeam,
-            ToolTip = "入力の名前（ダブルクリックか右クリックで変更。12文字まで。メイン画面にも反映されます）",
+            ToolTip = Loc.Get("outputcard.s22"),
         };
         var edit = new TextBox { MaxLength = OutputConfig.MaxNameLength, Visibility = Visibility.Collapsed, VerticalAlignment = VerticalAlignment.Center, Padding = new Thickness(1, 0, 1, 0) };
         var nameHost = new Grid { Width = 86 };
@@ -360,7 +360,7 @@ public sealed class OutputCard : Border
             if (apply) Dispatcher.BeginInvoke(new Action(() => _host.RenameInput(slot, text)));
         }
         label.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) { Begin(); e.Handled = true; } };
-        var rename = new MenuItem { Header = "名前を変更" };
+        var rename = new MenuItem { Header = Loc.Get("outputcard.s23") };
         rename.Click += (_, _) => Begin();
         label.ContextMenu = new ContextMenu { Items = { rename } };
         edit.KeyDown += (_, e) =>
@@ -373,7 +373,7 @@ public sealed class OutputCard : Border
         var slider = new Slider
         {
             Minimum = Settings.MinGainDb, Maximum = Settings.MaxGainDb, Value = send.Db, VerticalAlignment = VerticalAlignment.Center,
-            ToolTip = "この入力を、この出力へ送る音量（左端＝ミュート。右の数字をダブルクリックで 0 dB）",
+            ToolTip = Loc.Get("outputcard.s24"),
         };
         void Show()
         {
@@ -405,7 +405,7 @@ public sealed class OutputCard : Border
         // 0 dB に戻すのは数字のダブルクリック（メーターと同じ。11-4確認後）
         text.Background = System.Windows.Media.Brushes.Transparent;
         text.Cursor = Cursors.Hand;
-        text.ToolTip = "ダブルクリックで 0 dB に戻します";
+        text.ToolTip = Loc.Get("outputcard.s25");
         text.MouseLeftButtonDown += (_, e) => { if (e.ClickCount >= 2) { slider.Value = 0; e.Handled = true; } };
         Show();
         DockPanel.SetDock(check, Dock.Left);
@@ -451,7 +451,7 @@ public sealed class OutputCard : Border
     private void ShowState()
     {
         var e = Engine;
-        _state.Text = _device.IsEnabled ? e.State : "読み込み中…";
+        _state.Text = _device.IsEnabled ? e.State : Loc.Get("outputcard.s09");
         var error = e.Error;
         if (error.Length == 0 && _loopWarn) error = OutputGuard.LoopMessage;   // 「出力する」がオフでも、選んだ時点で理由を出す
         _error.Text = error;

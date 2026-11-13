@@ -58,7 +58,7 @@ public sealed class RecordingGroup : IDisposable
             _autoPaused = true;
             Pause();
         }
-        Notice?.Invoke("デバイスが外れたため一時停止しました。戻ったら自動で再開します。");
+        Notice?.Invoke(Loc.Get("recordinggroup.s01"));
     }
 
     /// <summary>デバイスが戻った（別スレッドから）。自動の一時停止なら再開し、「戻ったら別ファイルに分割」がONなら分割する。</summary>
@@ -74,7 +74,7 @@ public sealed class RecordingGroup : IDisposable
                 resumed = true;
             }
         }
-        if (resumed) Notice?.Invoke("デバイスが戻ったので録音を再開しました。");
+        if (resumed) Notice?.Invoke(Loc.Get("recordinggroup.s02"));
         if (_splitOnReturn)
         {
             Task.Run(() =>
@@ -89,7 +89,7 @@ public sealed class RecordingGroup : IDisposable
     public static RecordingGroup Create(InputHub hub, IAudioDeviceProvider provider, Settings s, IReadOnlyList<InputSetting> inputs,
         IReadOnlyList<AudioDeviceInfo> devices, string ffmpegPath, DateTime now)
     {
-        if (inputs.Count == 0) throw new InvalidOperationException("入力デバイスを選んでください。");
+        if (inputs.Count == 0) throw new InvalidOperationException(Loc.Get("recordinggroup.s03"));
         // 「既定のデバイス」は、いま実際に使われるデバイスで重複を判定する（既定＋実際の同じデバイスだと音が二重になるため）
         string RealKey(string key)
         {
@@ -97,9 +97,9 @@ public sealed class RecordingGroup : IDisposable
             catch (Exception) { return key; }
         }
         if (inputs.Select(i => RealKey(i.Key)).Distinct().Count() != inputs.Count)
-            throw new InvalidOperationException("同じデバイスが重複して選ばれています（「既定のデバイス」と、その実際のデバイスの組み合わせも重複です）。");
+            throw new InvalidOperationException(Loc.Get("recordinggroup.s04"));
         if (inputs.Count(i => AsioKey.Is(i.Key)) > 1)
-            throw new InvalidOperationException("ASIOは同時に1行しか使えません（ドライバを専有するため）。");
+            throw new InvalidOperationException(Loc.Get("recordinggroup.s05"));
 
         bool separate = s.SeparateFiles && inputs.Count > 1;
         // ファイル名の {Device} には、既定のデバイスなら「いま実際のデバイス名」を使う（ファイルを始めた時点の名前）
@@ -121,7 +121,7 @@ public sealed class RecordingGroup : IDisposable
                 var src = new MixedSource(hub, mixInputs, devices);
                 src.SetMasterGain(s.MasterGainDb);
                 sources.Add(src);
-                var label = lane.Count == 1 ? LabelOf(lane[0].Key) : "ミックス";
+                var label = lane.Count == 1 ? LabelOf(lane[0].Key) : Loc.Get("recordinggroup.s06");
                 var plan = RecordingPlan.Create(s, label, now, separate ? idx : null, separate);
                 if (idx == 0) Directory.CreateDirectory(plan.Folder);
                 sessions.Add(new RecordingSession(src, ffmpegPath, plan, split));

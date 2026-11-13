@@ -39,7 +39,7 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
         // 先頭は「既定のデバイスに追従」の擬似デバイス（Windowsの既定が変わったら自動で切り替わる）
         var def = found.FirstOrDefault(d => d.IsDefault);
         list.Add(new AudioDeviceInfo(loopback ? AudioKeys.RenderDefault : AudioKeys.CaptureDefault,
-            loopback ? "🔊 既定の出力デバイス（変更に追従）" : "🎤 既定の入力デバイス（変更に追従）",
+            loopback ? Loc.Get("wasapideviceprovider.s01") : Loc.Get("wasapideviceprovider.s02"),
             loopback, def?.SampleRate ?? 0, def?.Channels ?? 0));
         // それぞれ名前順（同じ側のラベルは先頭のアイコンが同じなので、そのまま並べれば名前順になる）
         list.AddRange(found.OrderBy(d => d.Label, StringComparer.CurrentCultureIgnoreCase));
@@ -104,7 +104,7 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
     {
         var loopback = key.StartsWith(RenderPrefix, StringComparison.Ordinal);
         if (!loopback && !key.StartsWith(CapturePrefix, StringComparison.Ordinal))
-            throw new ArgumentException("不明なデバイスです: " + key);
+            throw new ArgumentException((Loc.Get("wasapideviceprovider.s03") + " ") + key);
         var id = key.Substring(loopback ? RenderPrefix.Length : CapturePrefix.Length);
 
         using var enumerator = new MMDeviceEnumerator();

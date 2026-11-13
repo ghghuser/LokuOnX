@@ -151,7 +151,7 @@ public sealed partial class EffectWindow : Window
             var e = _host.GetEffect(slot);
             tab.Header = Header(name, Letters(e, AllOrder), e.Bypass);
             tab.Opacity = active ? 1.0 : 0.55;
-            tab.ToolTip = active ? null : "いまデバイスが選ばれていない（または使わない）入力です。設定はしておけます";
+            tab.ToolTip = active ? null : Loc.Get("effectwindow.s01");
         }
         if (_slotTabs.SelectedIndex != _slot) _slotTabs.SelectedIndex = _slot;
         _building = false;
@@ -209,8 +209,8 @@ public sealed partial class EffectWindow : Window
 
         root.Children.Add(new TextBlock
         {
-            Text = (_host.HasRouting ? "掛かる順番: " : "この出力に流れる最終ミックス（全体音量のあと）にだけ掛かります。入力のエフェクト・録音には影響しません。掛かる順番: ")
-                + "ノイズゲート → ローカット → グラフィックEQ → パラメトリックEQ → エコー → リバーブ → リミッター。リミッターは1.5ミリ秒先読みするので、わずかに遅れます。つまみのダブルクリックで初期値に戻ります。",
+            Text = (_host.HasRouting ? (Loc.Get("effectwindow.s02") + " ") : (Loc.Get("effectwindow.s03") + " "))
+                + Loc.Get("effectwindow.s04"),
             FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
         });
         return root;

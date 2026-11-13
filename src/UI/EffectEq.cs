@@ -27,13 +27,13 @@ internal static class EffectEq
         }
 
         // ---- グラフィックEQ ----
-        eqToggle = EffectUi.Toggle("グラフィックEQ（10バンド）", fx.EqOn,
-            "帯域ごとに音量を上げ下げします（各 ±12 dB）。ローカットの後に掛かります。グラフの曲線は、ローカット・パラメトリックEQも含めた全体の特性です",
+        eqToggle = EffectUi.Toggle(Loc.Get("effecteq.s01"), fx.EqOn,
+            Loc.Get("effecteq.s02"),
             on => { fx.EqOn = on; Curve(); changed(); });
         // 見出しの行: 左にチェック、右にプルダウン（よく使う設定）と「↺」（フラットに戻す）
-        var presets = new ComboBox { MinWidth = 170, Margin = new Thickness(0, 0, 6, 0), ToolTip = "よく使う設定を選ぶと、10個のつまみがその値になります（選んだあとも自由に動かせます）" };
+        var presets = new ComboBox { MinWidth = 170, Margin = new Thickness(0, 0, 6, 0), ToolTip = Loc.Get("effecteq.s03") };
         foreach (var p in EqBands.Presets) presets.Items.Add(p.Name);
-        var reset = EffectUi.ResetButton("すべてのつまみをフラット（0 dB）に戻します（入／切はそのまま）", () => Flat());
+        var reset = EffectUi.ResetButton(Loc.Get("effecteq.s04"), () => Flat());
         var head = EffectUi.Head(eqToggle, reset, presets);
         panel.Children.Add(EffectUi.Card(head, out var g));
         g.Children.Add(view);
@@ -68,10 +68,10 @@ internal static class EffectEq
         };
 
         // ---- パラメトリックEQ ----
-        paramToggle = EffectUi.Toggle("パラメトリックEQ（4バンド）", fx.ParamOn,
-            "位置（周波数）・上げ下げ（ゲイン）・幅（Q。大きいほど狭い）を自由に決めて、気になる音だけを調整します。グラフィックEQの後に掛かります",
+        paramToggle = EffectUi.Toggle(Loc.Get("effecteq.s05"), fx.ParamOn,
+            Loc.Get("effecteq.s06"),
             on => { fx.ParamOn = on; view.SetParams(on ? fx.Params : null); changed(); });
-        var prs = EffectUi.ResetButton("パラメトリックEQのつまみを初期値に戻します（入／切はそのまま）", () =>
+        var prs = EffectUi.ResetButton(Loc.Get("effecteq.s07"), () =>
         {
             fx.Params = ParamBand.Defaults();
             changed();
@@ -86,16 +86,16 @@ internal static class EffectEq
         CheckBox lcToggle = null!;
         Grid lcRow = null!;
         Slider lcSlider = null!;
-        lcToggle = EffectUi.Toggle("ローカット", fx.HpfHz >= 20,
-            "この周波数より低い音（風・机の振動・エアコンなど）を削ります。切にしても周波数は覚えています。曲線にも反映されます",
+        lcToggle = EffectUi.Toggle(Loc.Get("effecteq.s08"), fx.HpfHz >= 20,
+            Loc.Get("effecteq.s09"),
             on => lcSlider.Value = on ? lastHz : 0);
-        var lcReset = EffectUi.ResetButton("ローカットの周波数を初期値（80 Hz）に戻します（入／切はそのまま）", () =>
+        var lcReset = EffectUi.ResetButton(Loc.Get("effecteq.s10"), () =>
         {
             lastHz = 80;
             if (fx.HpfHz >= 20) lcSlider.Value = 80;
         });
         panel.Children.Add(EffectUi.Card(EffectUi.Head(lcToggle, lcReset), out var lc));
-        lcRow = EffectUi.Slide("周波数", 0, 400, fx.HpfHz, 0, v => v < 20 ? "なし" : v.ToString("0") + " Hz",
+        lcRow = EffectUi.Slide(Loc.Get("effecteq.s11"), 0, 400, fx.HpfHz, 0, v => v < 20 ? Loc.Get("effecteq.s12") : v.ToString("0") + " Hz",
             v =>
             {
                 fx.HpfHz = v < 20 ? 0 : v;
@@ -104,7 +104,7 @@ internal static class EffectEq
                 lcRow.Opacity = v >= 20 ? 1.0 : 0.55;
                 view.SetHpf(fx.HpfHz);
                 changed();
-            }, 5, "左端付近＝切（「なし」）。20〜400 Hz（12 dB/oct）");
+            }, 5, Loc.Get("effecteq.s13"));
         lcSlider = lcRow.Children.OfType<Slider>().First();
         lcRow.Opacity = fx.HpfHz >= 20 ? 1.0 : 0.55;
         lc.Children.Add(lcRow);
@@ -147,9 +147,9 @@ internal static class EffectEq
             Grid.SetColumn(tb, col);
             g.Children.Add(tb);
         }
-        Add("周波数", 1);
-        Add("ゲイン", 3);
-        Add("幅（大きいほど狭い）", 5);
+        Add(Loc.Get("effecteq.s11"), 1);
+        Add(Loc.Get("effecteq.s14"), 3);
+        Add(Loc.Get("effecteq.s15"), 5);
         return g;
     }
 
@@ -163,16 +163,16 @@ internal static class EffectEq
         double Semis(double hz) => 12 * Math.Log2(Math.Max(ParamBand.MinHz, hz) / ParamBand.MinHz);
         void Touch() { view.SetParams(fx.ParamOn ? fx.Params : null); changed(); }
         EffectUi.Mini(g, 1, 0, 120, Semis(pb.Freq), Semis(ParamBand.DefaultFreqs[i]), v => EffectUi.Hz(ParamBand.MinHz * Math.Pow(2, v / 12)),
-            v => { fx.Params[i].Freq = ParamBand.MinHz * Math.Pow(2, v / 12); Touch(); }, 1, "気になる音の高さ（20 Hz〜20 kHz）");
+            v => { fx.Params[i].Freq = ParamBand.MinHz * Math.Pow(2, v / 12); Touch(); }, 1, Loc.Get("effecteq.s16"));
         EffectUi.Mini(g, 3, -ParamBand.MaxDb, ParamBand.MaxDb, pb.Db, 0, EffectUi.Db,
             v =>
             {
                 fx.Params[i].Db = v;
                 if (!fx.ParamOn && Math.Abs(v) > 0.01) { fx.ParamOn = true; toggle.IsChecked = true; }   // 動かしたら自動でオン
                 Touch();
-            }, 0.5, "上げる／下げる量（0 dB＝効果なし）");
+            }, 0.5, Loc.Get("effecteq.s17"));
         EffectUi.Mini(g, 5, ParamBand.MinQ, ParamBand.MaxQ, pb.Q, ParamBand.DefaultQ, v => "Q " + v.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture),
-            v => { fx.Params[i].Q = v; Touch(); }, 0.1, "大きいほど狭い範囲だけに効きます");
+            v => { fx.Params[i].Q = v; Touch(); }, 0.1, Loc.Get("effecteq.s18"));
         return g;
     }
 }

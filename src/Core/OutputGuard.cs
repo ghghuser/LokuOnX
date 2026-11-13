@@ -4,7 +4,7 @@ namespace Recorder.Core;
 public static class OutputGuard
 {
     /// <summary>音が回る組み合わせのときの理由（出力エンジンの赤文字と、出力カードの事前の注意で共通）。</summary>
-    public const string LoopMessage = "出力先が、入力の「🔊 ○○」（PC内部音）と同じデバイスです。音が回ってしまうため出力できません。別の出力先にするか、その入力を外してください。";
+    public static string LoopMessage => Loc.Get("output.loopMessage");
 
     /// <summary>
     /// 出力先が、取り込み元（入力）のループバックと同じデバイスか（音が回って鳴り続ける・ハウリングする）。

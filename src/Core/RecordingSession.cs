@@ -95,7 +95,7 @@ public sealed partial class RecordingSession : IDisposable
         encoder.Failed += msg =>
         {
             if (track == _current) Error?.Invoke(msg);
-            else Notice?.Invoke("前のファイルの書き出しでエラーが起きました: " + msg);
+            else Notice?.Invoke((Loc.Get("recordingsession.s01") + " ") + msg);
         };
         return track;
     }
@@ -128,7 +128,7 @@ public sealed partial class RecordingSession : IDisposable
 
     private void OnSourceStopped(Exception? ex)
     {
-        if (ex != null && !_stopped) Error?.Invoke("音声入力が停止しました: " + ex.Message);
+        if (ex != null && !_stopped) Error?.Invoke((Loc.Get("recordingsession.s02") + " ") + ex.Message);
     }
 
     /// <summary>100msごと。データが来ない間の無音補填と、時間による自動分割。</summary>
@@ -150,7 +150,7 @@ public sealed partial class RecordingSession : IDisposable
         }
         catch (Exception ex)
         {
-            Notice?.Invoke("内部エラー: " + ex.Message);
+            Notice?.Invoke((Loc.Get("recordingsession.s03") + " ") + ex.Message);
         }
     }
 

@@ -33,7 +33,7 @@ internal sealed class OutputFxHost : IEffectHost
 
     public bool IsRecording => false;
 
-    public string WindowTitle => "出力のエフェクト";
+    public string WindowTitle => Loc.Get("outputfxhost.s01");
 
     public bool HasRouting => false;
 

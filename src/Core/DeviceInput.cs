@@ -55,7 +55,7 @@ public sealed class DeviceInput : IDisposable
         lock (_lock)
         {
             var real = SafeResolve();
-            if (real == null) LastError = "既定のデバイスが見つかりません";
+            if (real == null) LastError = Loc.Get("deviceinput.s01");
             ok = real != null && Connect(real);
             _reportedLost = !ok;
         }
@@ -128,14 +128,14 @@ public sealed class DeviceInput : IDisposable
                 CloseSource();
                 if (!_autoResume)
                 {
-                    Failed?.Invoke("入力デバイスが使えなくなりました: " + Label + why);
+                    Failed?.Invoke((Loc.Get("deviceinput.s02") + " ") + Label + why);
                     return;
                 }
                 if (!_reportedLost)
                 {
                     _reportedLost = true;
                     lost = true;
-                    Notice?.Invoke("デバイスが使えなくなりました。無音で録音を続け、戻ったら自動で再開します: " + Label + why);
+                    Notice?.Invoke((Loc.Get("deviceinput.s03") + " ") + Label + why);
                 }
             }
             var wanted = SafeResolve();
@@ -144,7 +144,7 @@ public sealed class DeviceInput : IDisposable
                 if (AudioKeys.IsDefault(_key) && wanted != null && wanted != _srcKey)
                 {
                     CloseSource();
-                    if (Connect(wanted)) Notice?.Invoke("既定のデバイスが変わったので切り替えました: " + Label);
+                    if (Connect(wanted)) Notice?.Invoke((Loc.Get("deviceinput.s04") + " ") + Label);
                     else _reportedLost = false;   // つながらなければ、次の周期でつなぎ直す
                 }
             }
@@ -152,7 +152,7 @@ public sealed class DeviceInput : IDisposable
             {
                 _reportedLost = false;
                 returned = true;
-                Notice?.Invoke("デバイスにつなぎ直しました: " + Label);
+                Notice?.Invoke((Loc.Get("deviceinput.s05") + " ") + Label);
             }
         }
         catch (Exception ex)

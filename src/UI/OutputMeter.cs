@@ -1,3 +1,4 @@
+using Recorder.Core;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -9,7 +10,7 @@ namespace Recorder.UI;
 /// </summary>
 public sealed class OutputMeter : Grid
 {
-    private const string DefaultTip = "出力の音量（左右）。白い線＝直近の最大値、右端の四角が赤＝クリップ。縦長のつまみ＝全体ゲイン（ミックス後・録音するファイルに掛かる。左端＝ミュート、右上の数字をダブルクリックで 0 dB、録音中も調整可能）";
+    private static string DefaultTip => Loc.Get("outmeter.defaultTip");
 
     private readonly GainMeter _gain = new(2, 11);
 
@@ -20,7 +21,7 @@ public sealed class OutputMeter : Grid
     public TextBlock GainText { get; } = new() { FontSize = 12, HorizontalAlignment = HorizontalAlignment.Right };
 
     /// <summary>録音コンソール用（XAML から作られる。XAML は引数なしのコンストラクターが必須なので、省略可能な引数では代用できない）。</summary>
-    public OutputMeter() : this("出力レベル(dB)・全体ゲイン", null)
+    public OutputMeter() : this(Loc.Get("outputmeter.s01"), null)
     {
     }
 

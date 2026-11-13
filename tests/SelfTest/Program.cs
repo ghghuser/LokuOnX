@@ -2,6 +2,11 @@ using Recorder.Core;
 
 // 簡易セルフテスト（外部のテストライブラリ不要）。 dotnet run --project tests/SelfTest
 // 失敗が1件でもあれば終了コード1（Actions のテスト工程が落ちる）。
+{   // 画面の文言（既定の日本語）を読み込む。メッセージを返す Core の処理が Loc を使うため
+    var dir = AppContext.BaseDirectory;
+    while (dir != null && !File.Exists(Path.Combine(dir, "src", "Lang", "ja.ini"))) dir = Path.GetDirectoryName(dir);
+    if (dir != null) Loc.Load(File.ReadAllText(Path.Combine(dir, "src", "Lang", "ja.ini")));
+}
 int fails = 0, passes = 0;
 void Check(bool ok, string name, string detail = "")
 {

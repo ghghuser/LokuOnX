@@ -18,20 +18,20 @@ public static class FileOps
         if (stem.EndsWith(ext, StringComparison.OrdinalIgnoreCase)) stem = stem[..^ext.Length];   // 拡張子まで書いた場合
         if (stem.Trim().Length == 0)
         {
-            error = "名前を入力してください。";
+            error = Loc.Get("fileops.s01");
             return null;
         }
         var folder = Path.GetDirectoryName(path) ?? "";
         var target = Path.Combine(folder, FileNamer.Sanitize(stem) + ext);
         if (target.Length > 259)
         {
-            error = "名前が長すぎます（フォルダを含めて259文字まで）。";
+            error = Loc.Get("fileops.s02");
             return null;
         }
         // 大文字小文字だけの変更は、同じファイル自身なので許す
         if (!string.Equals(target, path, StringComparison.OrdinalIgnoreCase) && (File.Exists(target) || Directory.Exists(target)))
         {
-            error = "同じ名前のファイルがすでにあります。";
+            error = Loc.Get("fileops.s03");
             return null;
         }
         return target;
@@ -48,7 +48,7 @@ public static class FileOps
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return "名前を変えられませんでした（他のソフトで開いている可能性があります）: " + ex.Message;
+            return (Loc.Get("fileops.s04") + " ") + ex.Message;
         }
     }
 }

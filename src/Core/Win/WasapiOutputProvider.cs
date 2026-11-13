@@ -7,7 +7,7 @@ public sealed class WasapiOutputProvider : IOutputDeviceProvider
 {
     public IReadOnlyList<OutputDeviceInfo> List()
     {
-        var list = new List<OutputDeviceInfo> { new(OutputDeviceInfo.DefaultId, "🔊 既定の出力デバイス") };
+        var list = new List<OutputDeviceInfo> { new(OutputDeviceInfo.DefaultId, Loc.Get("wasapioutputprovider.s01")) };
         using var en = new MMDeviceEnumerator();
         string? defaultId = null;
         try

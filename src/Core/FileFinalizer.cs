@@ -17,7 +17,7 @@ public static class FileFinalizer
         EncodeOptions options, string ffmpegPath, bool repair = false)
     {
         if (!File.Exists(tempPath))
-            return new FinalizeResult(tempPath, "録音ファイルが見つかりませんでした。");
+            return new FinalizeResult(tempPath, Loc.Get("filefinalizer.s01"));
 
         string dest;
         try
@@ -27,7 +27,7 @@ public static class FileFinalizer
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return new FinalizeResult(tempPath, "保存先を用意できなかったため仮の名前のままです: " + ex.Message);
+            return new FinalizeResult(tempPath, (Loc.Get("filefinalizer.s02") + " ") + ex.Message);
         }
 
         string? warning = null;
@@ -41,8 +41,8 @@ public static class FileFinalizer
                 return new FinalizeResult(dest, null);
             }
             warning = options.Format == "wav"
-                ? "wavのヘッダーを作り直せなかったため、そのまま保存しました（長さが正しく表示されない場合があります）: " + err
-                : "m4aの整形に失敗したため、断片化MP4のまま保存しました（再生はできます）: " + err;
+                ? (Loc.Get("filefinalizer.s03") + " ") + err
+                : (Loc.Get("filefinalizer.s04") + " ") + err;
             TryDelete(dest);
         }
 
@@ -53,7 +53,7 @@ public static class FileFinalizer
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return new FinalizeResult(tempPath, "名前を確定できなかったため仮の名前のままです: " + ex.Message);
+            return new FinalizeResult(tempPath, (Loc.Get("filefinalizer.s05") + " ") + ex.Message);
         }
     }
 
@@ -75,16 +75,16 @@ public static class FileFinalizer
         try
         {
             using var p = Process.Start(psi);
-            if (p == null) return "FFmpegを起動できませんでした";
+            if (p == null) return Loc.Get("filefinalizer.s06");
             var stderr = p.StandardError.ReadToEndAsync();
             if (!p.WaitForExit(600000))
             {
                 try { p.Kill(true); } catch (Exception) { }
-                return "タイムアウトしました";
+                return Loc.Get("filefinalizer.s07");
             }
             stderr.Wait(2000);
             var detail = stderr.IsCompletedSuccessfully ? stderr.Result.Trim() : "";
-            return p.ExitCode == 0 ? null : $"コード {p.ExitCode} {detail}".Trim();
+            return p.ExitCode == 0 ? null : Loc.Get("filefinalizer.s08", p.ExitCode, detail).Trim();
         }
         catch (Exception ex)
         {

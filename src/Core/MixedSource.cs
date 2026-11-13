@@ -58,7 +58,7 @@ public sealed class MixedSource : IAudioSource
     /// <param name="all">デバイス一覧（共通のサンプリング周波数・チャンネル数を決めるのに使う）。</param>
     public MixedSource(InputHub hub, IReadOnlyList<MixInput> inputs, IReadOnlyList<AudioDeviceInfo> all)
     {
-        if (inputs.Count == 0) throw new ArgumentException("入力デバイスがありません");
+        if (inputs.Count == 0) throw new ArgumentException(Loc.Get("mixedsource.s01"));
         _hub = hub;
         _specs = inputs;
         var infos = inputs.Select(i => all.FirstOrDefault(d => d.Key == i.Key)).ToList();
@@ -116,7 +116,7 @@ public sealed class MixedSource : IAudioSource
         if (connected == 0)
         {
             foreach (var e in acquired) _hub.Release(e);
-            throw new InvalidOperationException("入力デバイスを開けませんでした。\n" + string.Join("\n", errors));
+            throw new InvalidOperationException(Loc.Get("mixedsource.s02") + string.Join("\n", errors));
         }
         _mixed = (long)(_t0 * _rate);
         foreach (var e in acquired)
@@ -142,7 +142,7 @@ public sealed class MixedSource : IAudioSource
         _entries = acquired.ToArray();
         _started = true;
         foreach (var x in errors)
-            Notice?.Invoke("デバイスを開けませんでした（つながったら自動で再開します）: " + x);
+            Notice?.Invoke((Loc.Get("mixedsource.s03") + " ") + x);
         _timer = new System.Threading.Timer(_ => Tick(), null, TickMs, TickMs);
     }
 
@@ -156,7 +156,7 @@ public sealed class MixedSource : IAudioSource
         }
         catch (Exception ex)
         {
-            Notice?.Invoke("ミックス処理でエラーが起きました: " + ex.Message);
+            Notice?.Invoke((Loc.Get("mixedsource.s04") + " ") + ex.Message);
         }
         finally
         {

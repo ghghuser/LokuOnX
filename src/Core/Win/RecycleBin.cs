@@ -44,7 +44,7 @@ public static class RecycleBin
             try { code = SHFileOperation(ref op); }
             catch (Exception ex) { failed.Add($"{Path.GetFileName(path)}（{ex.Message}）"); continue; }
             if (code != 0 || op.fAnyOperationsAborted || File.Exists(path))
-                failed.Add($"{Path.GetFileName(path)}（コード {code}。他のソフトで開いている可能性があります）");
+                failed.Add(Loc.Get("recyclebin.s01", Path.GetFileName(path), code));
         }
         return failed;
     }

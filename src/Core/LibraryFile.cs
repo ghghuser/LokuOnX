@@ -61,7 +61,7 @@ public sealed class LibraryFile : INotifyPropertyChanged
     /// <summary>並べ替え用（未取得は -1）。</summary>
     public double LengthSeconds => _length?.TotalSeconds ?? -1;
 
-    public string LengthText => IsRecording ? "" : _length is { } t ? Clock(t) : "読込中";
+    public string LengthText => IsRecording ? "" : _length is { } t ? Clock(t) : Loc.Get("libraryfile.s01");
     public string SizeText => IsRecording ? "" : SizeFormat(Size);
     public string CreatedText => IsRecording ? "" : Created.ToString("yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture);
 

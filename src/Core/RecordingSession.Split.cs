@@ -91,7 +91,7 @@ public sealed partial class RecordingSession
                 _tracks.Remove(next);
                 next.Encoder.Dispose();
             }
-            Notice?.Invoke("分割できませんでした: " + ex.Message);
+            Notice?.Invoke((Loc.Get("recordingsession.split.s01") + " ") + ex.Message);
             return null;
         }
     }
@@ -150,8 +150,8 @@ public sealed partial class RecordingSession
             if (t.Failure == null && File.Exists(t.Result.Path)) Saved?.Invoke(t.Result.Path);
             if (announce && t.Failure == null)
             {
-                var msg = "保存しました: " + t.Result.Path + $"（音声 {SecondsOf(t):0.00}秒）";
-                if (t.Result.Warning != null) msg += "（注意: " + t.Result.Warning + "）";
+                var msg = (Loc.Get("recordingsession.split.s02") + " ") + t.Result.Path + Loc.Get("recordingsession.split.s03", (SecondsOf(t)).ToString("0.00"));
+                if (t.Result.Warning != null) msg += (Loc.Get("recordingsession.split.s04") + " ") + t.Result.Warning + "）";
                 Notice?.Invoke(msg);
             }
         }

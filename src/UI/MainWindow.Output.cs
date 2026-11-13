@@ -220,13 +220,13 @@ public partial class MainWindow : IOutputHost
             menu.Items.Add(item);
         }
         menu.Items.Add(new Separator());
-        var start = new MenuItem { Header = "すべて開始", IsEnabled = _outHub.AnyOff };
+        var start = new MenuItem { Header = Loc.Get("mainwindow.output.s01"), IsEnabled = _outHub.AnyOff };
         start.Click += (_, _) => _outHub.StartAll();
-        var stop = new MenuItem { Header = "すべて停止", IsEnabled = _outHub.AnyOn };
+        var stop = new MenuItem { Header = Loc.Get("mainwindow.output.s02"), IsEnabled = _outHub.AnyOn };
         stop.Click += (_, _) => _outHub.StopAll();
-        var resume = new MenuItem { Header = "すべて再開", IsEnabled = _outHub.CanResume };
+        var resume = new MenuItem { Header = Loc.Get("mainwindow.output.s03"), IsEnabled = _outHub.CanResume };
         resume.Click += (_, _) => _outHub.ResumeAll();
-        var open = new MenuItem { Header = "出力ウィンドウを開く" };
+        var open = new MenuItem { Header = Loc.Get("mainwindow.output.s04") };
         open.Click += (_, _) => OpenOutputWindow();
         menu.Items.Add(start);
         menu.Items.Add(stop);
@@ -253,7 +253,7 @@ public partial class MainWindow : IOutputHost
     private int _outShown;   // 出力中の枚数（0＝出力中なし。表示が変わったときだけ文字を書き換える）
 
     /// <summary>トレイのツールチップの末尾に付ける出力の表示（出力中のときだけ）。</summary>
-    private string OutputTip() => _outHub != null && _outHub.AnyRunning ? "　🔊 出力中" : "";
+    private string OutputTip() => _outHub != null && _outHub.AnyRunning ? ("　" + Loc.Get("mainwindow.output.s05")) : "";
 
     /// <summary>0.5秒ごと。出力中は⇶の色を変え、「出力中」と出す（ウィンドウを閉じていても分かるように）。</summary>
     private void UpdateOutputButton()
@@ -263,15 +263,15 @@ public partial class MainWindow : IOutputHost
         {
             OutputButton.SetResourceReference(Control.ForegroundProperty, "LampOn");   // 入力デバイスのランプがオンのときと同じ緑
             var names = _outHub.Engines.Select((e, i) => (e, i)).Where(x => x.e.Running && x.i < _outCfgs.Count).Select(x => _outCfgs[x.i].Name);
-            OutputButton.ToolTip = "出力中: " + string.Join("、", names) + "（クリックで出力ウィンドウ、右クリックでメニュー）";
+            OutputButton.ToolTip = (Loc.Get("mainwindow.output.s06") + " ") + string.Join("、", names) + Loc.Get("mainwindow.output.s07");
         }
         else
         {
             OutputButton.ClearValue(Control.ForegroundProperty);
             var err = _outHub.Engines.Select(e => e.Error).FirstOrDefault(m => m.Length > 0) ?? "";
             OutputButton.ToolTip = err.Length > 0
-                ? "出力: " + err
-                : "出力（クリックで出力ウィンドウ、右クリックでメニュー）";
+                ? (Loc.Get("mainwindow.output.s08") + " ") + err
+                : Loc.Get("mainwindow.output.s09");
         }
         int count = running ? _outHub.Engines.Count(e => e.Running) : 0;
         int total = _outHub.Count;
@@ -280,7 +280,7 @@ public partial class MainWindow : IOutputHost
         {
             _outShown = shown;
             // 出力中の枚数 / カードの枚数。カードが1枚のときは数字を出さない
-            OutputButton.Content = count == 0 ? "⇶" : total <= 1 ? "⇶ 出力中" : $"⇶ 出力中 {count} / {total}";
+            OutputButton.Content = count == 0 ? "⇶" : total <= 1 ? Loc.Get("mainwindow.output.s10") : Loc.Get("mainwindow.output.s11", count, total);
         }
     }
 

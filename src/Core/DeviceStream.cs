@@ -106,7 +106,7 @@ public sealed partial class DeviceStream
     public void SetFormat(AudioFormatInfo fmt)
     {
         if (!PcmConvert.Supports(fmt))
-            throw new NotSupportedException($"対応していない音声形式です（{fmt.BitsPerSample}bit {(fmt.IsFloat ? "float" : "整数")}）");
+            throw new NotSupportedException(Loc.Get("devicestream.s01", fmt.BitsPerSample, (fmt.IsFloat ? "float" : Loc.Get("devicestream.s02"))));
         lock (_lock)
         {
             _fmt = fmt;

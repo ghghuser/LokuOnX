@@ -86,7 +86,7 @@ public sealed class OutputDevice : IOutputDevice
     {
         // (イベント駆動, バッファms)
         var attempts = new (bool Event, int Ms)[] { (true, 60), (true, 120), (true, 250), (false, 120), (false, 300) };
-        string last = "", fmtText = "不明";
+        string last = "", fmtText = Loc.Get("outputdevice.s01");
         foreach (var (ev, ms) in attempts)
         {
             MMDevice? d = null;
@@ -118,14 +118,14 @@ public sealed class OutputDevice : IOutputDevice
             }
             catch (Exception ex)
             {
-                last = $"{ex.Message} (0x{ex.HResult:X8} / デバイスの形式: {fmtText} / {(ev ? "イベント駆動" : "ポーリング")}・バッファ{ms}ms)";
+                last = Loc.Get("outputdevice.s02", ex.Message, (ex.HResult).ToString("X8"), fmtText, (ev ? Loc.Get("outputdevice.s04") : Loc.Get("outputdevice.s05")), ms);
                 try { w?.Dispose(); } catch (Exception) { }
                 try { d?.Dispose(); } catch (Exception) { }
             }
         }
         LastError = last;
         _failed = true;
-        return $"出力デバイスを開けません: {last}";
+        return Loc.Get("outputdevice.s03", last);
     }
 
     public void Dispose()

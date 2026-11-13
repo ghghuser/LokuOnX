@@ -96,16 +96,16 @@ public sealed class OutputRenderer
     public string Describe()
     {
         var sb = new System.Text.StringBuilder();
-        sb.Append($"デバイス {devRate}Hz/{devCh}ch 呼出{Interlocked.Read(ref RenderCalls)}回 途切れ{Interlocked.Read(ref Underruns)} 捨て{Interlocked.Read(ref Overflows)}");
+        sb.Append(Loc.Get("outputrenderer.s01", devRate, devCh, Interlocked.Read(ref RenderCalls), Interlocked.Read(ref Underruns), Interlocked.Read(ref Overflows)));
         for (int i = 0; i < chans.Length; i++)
         {
             var t = taps[i].Buffer;
             if (t == null && !Bus.IsSendOn(i)) continue;   // 使っていない枠は出さない
-            sb.Append($" | 入力{i + 1}: ");
-            if (t == null) { sb.Append("まだ音が届いていません"); continue; }
-            sb.Append($"送り{(Bus.IsSendOn(i) ? "オン" : "オフ")} たまり{t.AvailableFrames * 1000 / Math.Max(1, t.SampleRate)}ms {(chans[i].Primed ? "再生中" : "待機")}");
+            sb.Append((" " + Loc.Get("outputrenderer.s02", i + 1) + " "));
+            if (t == null) { sb.Append(Loc.Get("outputrenderer.s03")); continue; }
+            sb.Append(Loc.Get("outputrenderer.s04", (Bus.IsSendOn(i) ? Loc.Get("outputrenderer.s06") : Loc.Get("outputrenderer.s07")), t.AvailableFrames * 1000 / Math.Max(1, t.SampleRate), (chans[i].Primed ? Loc.Get("outputrenderer.s08") : Loc.Get("outputrenderer.s09"))));
         }
-        if (LastError.Length > 0) sb.Append(" | エラー: " + LastError);
+        if (LastError.Length > 0) sb.Append((" " + Loc.Get("outputrenderer.s05") + " ") + LastError);
         return sb.ToString();
     }
 

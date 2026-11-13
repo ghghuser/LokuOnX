@@ -106,7 +106,7 @@ public partial class MainWindow : IEffectHost
 
     bool IEffectHost.IsRecording => _session != null;
 
-    string IEffectHost.WindowTitle => "入力のエフェクト";
+    string IEffectHost.WindowTitle => Loc.Get("mainwindow.fx.s01");
 
     bool IEffectHost.HasRouting => true;
 

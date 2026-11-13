@@ -71,7 +71,7 @@ public sealed class FfmpegEncoder : IDisposable
         if (_failure != null) return;
         try
         {
-            if (!_queue.TryAdd(data, 2000)) Fail("エンコードが追いつきません（FFmpegが応答しません）");
+            if (!_queue.TryAdd(data, 2000)) Fail(Loc.Get("ffmpegencoder.s01"));
         }
         catch (InvalidOperationException)
         {
@@ -93,7 +93,7 @@ public sealed class FfmpegEncoder : IDisposable
         }
         catch (Exception ex)
         {
-            Fail("FFmpegへの書き込みに失敗しました: " + ex.Message);
+            Fail((Loc.Get("ffmpegencoder.s02") + " ") + ex.Message);
         }
         finally
         {
@@ -136,11 +136,11 @@ public sealed class FfmpegEncoder : IDisposable
         if (!_proc.WaitForExit(30000))
         {
             try { _proc.Kill(true); } catch (Exception) { }
-            Fail("FFmpegの終了待ちがタイムアウトしました");
+            Fail(Loc.Get("ffmpegencoder.s03"));
         }
         else if (_proc.ExitCode != 0 && _failure == null)
         {
-            Fail($"FFmpegがエラー終了しました（コード {_proc.ExitCode}）");
+            Fail(Loc.Get("ffmpegencoder.s04", _proc.ExitCode));
         }
     }
 

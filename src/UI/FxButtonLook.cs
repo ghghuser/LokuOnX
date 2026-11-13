@@ -1,3 +1,4 @@
+using Recorder.Core;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -25,7 +26,7 @@ internal static class FxButtonLook
         b.FontWeight = any ? FontWeights.Bold : FontWeights.Normal;
         b.Opacity = any && bypass ? 0.55 : 1.0;
         b.ToolTip = any
-            ? (bypass ? subject + "（設定あり・いまはバイパス中）" : subject + "（設定あり）") + "。クリックで開きます"
+            ? (bypass ? subject + Loc.Get("fxbuttonlook.s01") : subject + Loc.Get("fxbuttonlook.s02")) + Loc.Get("fxbuttonlook.s03")
             : idleTip;
     }
 }

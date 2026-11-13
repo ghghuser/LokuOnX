@@ -35,11 +35,11 @@ public static class FormatSummary
         if (f.Compression is { } spec && o.Compression >= 0) parts.Add($"{spec.Label} {o.Compression}");
 
         var bytes = kbps * 1000 / 8 * 3600;
-        parts.Add($"1時間 約 {SizeText(bytes)}");
+        parts.Add(Loc.Get("formatsummary.s01", SizeText(bytes)));
         return string.Join(" / ", parts);
     }
 
-    private static string ChannelText(int ch) => ch switch { 1 => "モノ", 2 => "ステレオ", _ => $"{ch}ch" };
+    private static string ChannelText(int ch) => ch switch { 1 => Loc.Get("formatsummary.s02"), 2 => Loc.Get("formatsummary.s03"), _ => $"{ch}ch" };
 
     private static string SizeText(double bytes)
     {

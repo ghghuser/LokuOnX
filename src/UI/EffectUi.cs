@@ -1,3 +1,4 @@
+using Recorder.Core;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -108,7 +109,7 @@ internal static class EffectUi
         var l = new TextBlock { Text = label, FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
         var v = new TextBlock { FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
         var s = MakeSlider(min, max, value, def, step, v, text, set);
-        l.ToolTip = s.ToolTip = (tip == null ? "" : tip + "\n") + "ダブルクリックで初期値に戻ります";
+        l.ToolTip = s.ToolTip = (tip == null ? "" : tip + "\n") + Loc.Get("effectui.s01");
         Grid.SetColumn(s, 1);
         Grid.SetColumn(v, 2);
         g.Children.Add(l);
@@ -126,7 +127,7 @@ internal static class EffectUi
         var v = new TextBlock { FontSize = 10, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         var s = MakeSlider(min, max, value, def, step, v, text, set);
         s.Margin = new Thickness(0, 0, 6, 0);
-        s.ToolTip = (tip == null ? "" : tip + "\n") + "ダブルクリックで初期値に戻ります";
+        s.ToolTip = (tip == null ? "" : tip + "\n") + Loc.Get("effectui.s01");
         Grid.SetColumn(s, col);
         Grid.SetColumn(v, col + 1);
         g.Children.Add(s);

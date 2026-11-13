@@ -15,24 +15,24 @@ public sealed partial class EffectWindow
         _toRec = null;
         if (_host.HasRouting)
         {
-            _toRec = new CheckBox { Content = "録音に反映", IsChecked = _fx.ToRecording, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
-                ToolTip = "オンにすると、エフェクトを掛けた音が録音されます（オフ＝録音は素の音のまま）。録音中は切り替えられません。メーター・無音検出・自動録音開始は、エフェクト前の音で判定します" };
-            var toOut = new CheckBox { Content = "出力に反映", IsChecked = _fx.ToOutput, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
-                ToolTip = "オンにすると、エフェクトを掛けた音が出力（再生デバイス）へ送られます（既定）。オフなら素の音が送られます" };
+            _toRec = new CheckBox { Content = Loc.Get("effectwindow.top.s01"), IsChecked = _fx.ToRecording, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
+                ToolTip = Loc.Get("effectwindow.top.s02") };
+            var toOut = new CheckBox { Content = Loc.Get("effectwindow.top.s03"), IsChecked = _fx.ToOutput, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
+                ToolTip = Loc.Get("effectwindow.top.s04") };
             _toRec.Click += (_, _) => Edit(() => _fx.ToRecording = _toRec.IsChecked == true);
             toOut.Click += (_, _) => Edit(() => _fx.ToOutput = toOut.IsChecked == true);
             row.Children.Add(_toRec);
             row.Children.Add(toOut);
         }
-        var bypass = new CheckBox { Content = "すべてバイパス", IsChecked = _fx.Bypass, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
-            ToolTip = _host.HasRouting ? "設定は残したまま、効果だけを一時的に切ります（録音・出力とも素の音になります）" : "設定は残したまま、効果だけを一時的に切ります" };
+        var bypass = new CheckBox { Content = Loc.Get("effectwindow.top.s05"), IsChecked = _fx.Bypass, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
+            ToolTip = _host.HasRouting ? Loc.Get("effectwindow.top.s06") : Loc.Get("effectwindow.top.s07") };
         bypass.Click += (_, _) => Edit(() => _fx.Bypass = bypass.IsChecked == true);
         row.Children.Add(bypass);
 
-        string what = _host.HasRouting ? "この入力" : "この出力";
-        var copy = new Button { Content = "コピー", Padding = new Thickness(12, 3, 12, 3), ToolTip = what + "の効果の設定をコピーします" + (_host.HasRouting ? "（録音・出力への反映先は含みません）" : "") };
+        string what = _host.HasRouting ? Loc.Get("effectwindow.top.s08") : Loc.Get("effectwindow.top.s09");
+        var copy = new Button { Content = Loc.Get("effectwindow.top.s10"), Padding = new Thickness(12, 3, 12, 3), ToolTip = what + Loc.Get("effectwindow.top.s11") + (_host.HasRouting ? Loc.Get("effectwindow.top.s12") : "") };
         copy.Click += (_, _) => { _clip = _fx.Clone(); UpdateEnabled(); };
-        _paste = new Button { Content = "貼り付け", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = "コピーした効果の設定を、" + what + "へ貼り付けます（入力と出力のあいだでも貼り付けられます）" };
+        _paste = new Button { Content = Loc.Get("effectwindow.top.s13"), Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s14") + what + Loc.Get("effectwindow.top.s15") };
         _paste.Click += (_, _) =>
         {
             if (_clip == null) return;
@@ -40,7 +40,7 @@ public sealed partial class EffectWindow
             Commit();
             Rebuild();
         };
-        var reset = new Button { Content = "すべて初期値に", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = what + "の効果の設定をすべて初期値（何も掛けない）に戻します" };
+        var reset = new Button { Content = Loc.Get("effectwindow.top.s16"), Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = what + Loc.Get("effectwindow.top.s17") };
         reset.Click += (_, _) =>
         {
             _fx.CopySoundFrom(new EffectSetting());
@@ -87,8 +87,8 @@ public sealed partial class EffectWindow
     {
         if (_tabs == null || _tabs.Items.Count < 2) return;
         var c = _fx;
-        ((TabItem)_tabs.Items[0]).Header = Header("イコライザ", Letters(c, "Lc,G,P"), c.Bypass);
-        ((TabItem)_tabs.Items[1]).Header = Header("ノイズゲート・エコー・リバーブ・リミッター", Letters(c, "N,E,R,Lm"), c.Bypass);
+        ((TabItem)_tabs.Items[0]).Header = Header(Loc.Get("effectwindow.top.s18"), Letters(c, "Lc,G,P"), c.Bypass);
+        ((TabItem)_tabs.Items[1]).Header = Header(Loc.Get("effectwindow.top.s19"), Letters(c, "N,E,R,Lm"), c.Bypass);
         if (_slot < _slotTabs.Items.Count && _slotTabs.Items[_slot] is TabItem t)
         {
             var name = _host.Slots().FirstOrDefault(s => s.Slot == _slot).Name ?? "";

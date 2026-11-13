@@ -25,7 +25,7 @@ public sealed class OutputEngine : IDisposable
     private volatile string?[] _runKeys = new string?[Lanes];   // 運転中の入力（複製先の枠ごと。空き枠は null）
     private double _volumeDb;
     private volatile OutputFxSetting _fx = new();
-    private volatile string _state = "停止中";
+    private volatile string _state = Loc.Get("outputengine.s01");
     private volatile string _error = "";
     private volatile OutputRenderer? _renderer;
     private bool _disposed;
@@ -139,8 +139,8 @@ public sealed class OutputEngine : IDisposable
         catch (Exception ex)
         {
             TearDown();
-            _error = "出力でエラーが起きました: " + ex.Message;
-            _state = "停止中";
+            _error = (Loc.Get("outputengine.s02") + " ") + ex.Message;
+            _state = Loc.Get("outputengine.s01");
             _nextTry = DateTime.Now.AddSeconds(RetrySeconds);
         }
         finally
@@ -158,8 +158,8 @@ public sealed class OutputEngine : IDisposable
         string? problem = null;
         if (_on)
         {
-            if (id.Length == 0) problem = "出力先のデバイスを選んでください。";
-            else if (keys.Count == 0) problem = "入力デバイスが選ばれていません（メイン画面で入力を選んでください）。";
+            if (id.Length == 0) problem = Loc.Get("outputengine.s03");
+            else if (keys.Count == 0) problem = Loc.Get("outputengine.s04");
             else if (OutputGuard.IsLoop(id, SafeDefaultRenderKey(), keys.Select(RealKey)))
                 problem = OutputGuard.LoopMessage;
         }
@@ -167,7 +167,7 @@ public sealed class OutputEngine : IDisposable
         {
             if (_dev != null || _renderer != null) TearDown();
             _error = problem ?? "";
-            _state = "停止中";
+            _state = Loc.Get("outputengine.s01");
             return;
         }
 
@@ -178,32 +178,32 @@ public sealed class OutputEngine : IDisposable
             {
                 var why = _dev.LastError;
                 TearDown();
-                _error = "出力デバイスが止まりました。" + (why.Length > 0 ? "（" + why + "）" : "") + $" {RetrySeconds}秒ごとにつなぎ直します。";
-                _state = "再接続待ち";
+                _error = Loc.Get("outputengine.s05") + (why.Length > 0 ? "（" + why + "）" : "") + (" " + Loc.Get("outputengine.s06", RetrySeconds));
+                _state = Loc.Get("outputengine.s07");
                 _nextTry = DateTime.Now.AddSeconds(RetrySeconds);
                 return;
             }
             SyncLanes(keys, inputs);   // 入力の増減は、複製先の付け外しだけ（出力は途切れない）
             ApplySends();
-            _state = "出力中";
+            _state = Loc.Get("outputengine.s08");
             return;
         }
         if (DateTime.Now < _nextTry) return;
 
-        _state = "開いています…";
+        _state = Loc.Get("outputengine.s09");
         var err = Open(id, keys, inputs);
         if (err != null)
         {
             TearDown();
-            _error = err + $" {RetrySeconds}秒ごとに自動でつなぎ直します。";
-            _state = "再接続待ち";
+            _error = err + (" " + Loc.Get("outputengine.s10", RetrySeconds));
+            _state = Loc.Get("outputengine.s07");
             _nextTry = DateTime.Now.AddSeconds(RetrySeconds);
             return;
         }
         _runSig = id;
         ApplySends();
         _error = "";
-        _state = "出力中";
+        _state = Loc.Get("outputengine.s08");
     }
 
     /// <summary>入力を借りて複製先を付け、出力デバイスを開く。失敗したら理由（片付けは呼び出し側の TearDown）。</summary>
@@ -300,7 +300,7 @@ public sealed class OutputEngine : IDisposable
         _disposed = true;
         _timer.Dispose();
         lock (_work) TearDown();
-        _state = "停止中";
+        _state = Loc.Get("outputengine.s01");
     }
 
     public void Dispose() => Shutdown();

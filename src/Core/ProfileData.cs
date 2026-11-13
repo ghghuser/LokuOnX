@@ -91,14 +91,14 @@ public static class ProfileJson
             var list = text.StartsWith('[')
                 ? JsonSerializer.Deserialize<List<ProfileData>>(text, Compact)
                 : new List<ProfileData?> { JsonSerializer.Deserialize<ProfileData>(text, Compact) }.OfType<ProfileData>().ToList();
-            if (list == null || list.Count == 0) { error = "プロファイルが入っていません。"; return null; }
+            if (list == null || list.Count == 0) { error = Loc.Get("profiledata.s01"); return null; }
             foreach (var p in list) p.Name = p.Name.Trim();
-            if (list.Any(p => p.Name.Length == 0)) { error = "名前のないプロファイルがあります。"; return null; }
+            if (list.Any(p => p.Name.Length == 0)) { error = Loc.Get("profiledata.s02"); return null; }
             return list;
         }
         catch (JsonException ex)
         {
-            error = "JSONを読めませんでした: " + ex.Message;
+            error = (Loc.Get("profiledata.s03") + " ") + ex.Message;
             return null;
         }
     }

@@ -47,7 +47,7 @@ public static class AsioDeviceCatalog
     }
 
     private static AudioDeviceInfo Item(string driver, int first, int count) =>
-        new(AsioKey.Make(driver, first, count), $"🎛 {driver} 入力{AsioKey.ChannelText(first, count)}",
+        new(AsioKey.Make(driver, first, count), Loc.Get("asiodevicecatalog.s01", driver, AsioKey.ChannelText(first, count)),
             false, 0, count);
 
     private static int InputChannels(string driver)

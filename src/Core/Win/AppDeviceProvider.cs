@@ -38,7 +38,7 @@ public sealed class AppDeviceProvider : IAudioDeviceProvider
         if (AsioKey.Is(key))
         {
             if (!AsioKey.TryParse(key, out var driver, out var first, out var count))
-                throw new ArgumentException("不明なASIOデバイスです: " + key);
+                throw new ArgumentException((Loc.Get("appdeviceprovider.s01") + " ") + key);
             return new AsioSource(driver, first, count);
         }
         return _wasapi.Create(key);
