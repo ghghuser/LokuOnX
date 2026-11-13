@@ -49,7 +49,7 @@ public static class FileNamer
             "End" => Clock(c.End, opt, false),
             "Length" => Clock(c.Length, opt, true),
             "Device" => c.Device,
-            "Profile" or "Preset" => c.Profile,   // {Preset} は旧名（以前のファイル名パターンが動くように残す）
+            "Profile" => c.Profile,
             "ext" or "Ext" => c.Ext,
             _ => null,
         };

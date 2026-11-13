@@ -49,8 +49,8 @@ public sealed partial class Settings
     /// <summary>いま使っているプロファイルの名前（{Profile} 変数）。未選択なら「既定」。</summary>
     public string CurrentProfile
     {
-        get { var p = Get("Preset", ""); return p.Length > 0 ? p : RecordingPlan.ProfileName; }
-        set => Set("Preset", value);
+        get { var p = Get("Profile", ""); return p.Length > 0 ? p : RecordingPlan.ProfileName; }
+        set => Set("Profile", value);
     }
 
     /// <summary>"auto"（Windowsの設定に合わせる・既定）/ "light" / "dark" / "soft" / "softdark"（試作）。</summary>

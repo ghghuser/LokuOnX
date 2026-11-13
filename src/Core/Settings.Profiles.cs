@@ -63,22 +63,6 @@ public sealed partial class Settings
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { SaveError = ex.Message; }
     }
 
-    /// <summary>M5初版で ini の [Profiles] に入れていたものを、Profiles フォルダのファイルへ移す。</summary>
-    private void MigrateProfiles()
-    {
-        if (ReadOnly || _ini.Get("Presets", "Count", "") == "") return;
-        int.TryParse(_ini.Get("Presets", "Count", "0"), out var count);
-        for (int i = 0; i < count; i++)
-        {
-            var parsed = ProfileJson.Parse(_ini.Get("Presets", $"Json{i}", ""), out _);
-            if (parsed is { Count: > 0 } && !File.Exists(ProfileFile(parsed[0].Name))) SaveProfile(parsed[0]);
-            _ini.Remove("Presets", $"Name{i}");
-            _ini.Remove("Presets", $"Json{i}");
-        }
-        _ini.Remove("Presets", "Count");
-        Save();
-    }
-
     /// <summary>いまの設定をプロファイルにまとめる。</summary>
     public ProfileData CaptureProfile(string name) => new()
     {

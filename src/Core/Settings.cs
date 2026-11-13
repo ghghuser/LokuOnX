@@ -21,25 +21,13 @@ public sealed partial class Settings
     {
         _ini = new IniFile(path);
         ReadOnly = readOnly;
-        var baseDir = Path.GetDirectoryName(Path.GetFullPath(path)) ?? "";
-        _profileDir = Path.Combine(baseDir, "Profiles");
-        if (!readOnly)
-        {
-            // 旧名のフォルダ「Presets」は、「Profiles」へ名前を変える（Profiles がまだ無いときだけ）
-            try
-            {
-                var old = Path.Combine(baseDir, "Presets");
-                if (Directory.Exists(old) && !Directory.Exists(_profileDir)) Directory.Move(old, _profileDir);
-            }
-            catch (Exception) { /* 変えられなければ、そのまま Profiles を新しく使う */ }
-        }
+        _profileDir = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)) ?? "", "Profiles");
         if (!_ini.Existed && !readOnly)
         {
             _ini.Set(Section, "Format", "flac");
             _ini.Set(Section, "NextNo", "1");
             Save();
         }
-        MigrateProfiles();   // M5 の初版は ini に入れていた。Profiles フォルダのファイルへ移す
         EnsureTemplates();   // 旧版の ini にはテンプレートが無いので、足りなければ初期テンプレートを登録
     }
 
