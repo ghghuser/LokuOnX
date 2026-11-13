@@ -20,10 +20,19 @@ public interface IEffectHost
 
     /// <summary>録音中か（録音中は「録音に反映」を切り替えない。つなぎ目でプツッと鳴るのを防ぐため）。</summary>
     bool IsRecording { get; }
+
+    /// <summary>ウィンドウのタイトル（「入力のエフェクト」「出力のエフェクト」）。</summary>
+    string WindowTitle { get; }
+
+    /// <summary>「録音に反映」「出力に反映」を出すか（入力のエフェクトだけ。出力のエフェクトは最終ミックスに掛かるだけ）。</summary>
+    bool HasRouting { get; }
+
+    /// <summary>ウィンドウの位置と大きさ（"左,上,幅,高さ"。空＝未保存）。入力用・出力用で別々に覚える。</summary>
+    string WindowRect { get; set; }
 }
 
 /// <summary>
-/// 入力ごとのエフェクトのウィンドウ（M11-4。確認後に、入力の切り替えをタブ式・効果をタブ分けに変更）。
+/// エフェクトのウィンドウ（M11-4。入力ごと／11-5確認後に、出力ごとも同じ画面を使うよう統一。違いは IEffectHost だけ）。
 /// 上のタブ＝入力1〜4（選んだ入力の内容だけを作って表示する）。その下に、反映先・コピー・初期値、さらに効果のタブ
 /// （イコライザ＝グラフィックEQ・ローカット・パラメトリックEQ／ノイズゲート／エコー・リバーブ）。
 /// 開き方: 入力デバイス欄の「FX」ボタン／入力の名前・波形・メーターの右クリック「エフェクト…」。
@@ -41,6 +50,7 @@ public sealed partial class EffectWindow : Window
     private int _slot;
     private EffectSetting _fx = new();
     private bool _building;
+    private string _slotSig = "";   // タブの名前・枚数の変化を見つけるための記録
     private int _innerIndex;   // 選んでいる効果のタブ（入力を切り替えても維持）
     private TabControl? _tabs;
     private CheckBox? _toRec;
@@ -50,8 +60,8 @@ public sealed partial class EffectWindow : Window
     {
         _host = host;
         _s = settings;
-        _slot = Math.Clamp(slot, 0, Settings.MaxInputs - 1);
-        Title = "エフェクト";
+        _slot = Math.Max(0, slot);
+        Title = host.WindowTitle;
         Width = 720;
         Height = 780;
         MinWidth = 600;
@@ -82,7 +92,7 @@ public sealed partial class EffectWindow : Window
 
         RefreshSlots();
         Load();
-        _timer.Tick += (_, _) => UpdateEnabled();
+        _timer.Tick += (_, _) => { SyncSlots(); UpdateEnabled(); };
         _timer.Start();
         Closed += (_, _) =>
         {
@@ -97,7 +107,7 @@ public sealed partial class EffectWindow : Window
     // ---- 位置と大きさ（閉じるときに保存し、次に開くときに復元する） ----
     private void RestoreRect()
     {
-        var parts = _s.EffectWindowRect.Split(',');
+        var parts = _host.WindowRect.Split(',');
         if (parts.Length != 4) return;
         var v = new double[4];
         for (int i = 0; i < 4; i++)
@@ -113,7 +123,7 @@ public sealed partial class EffectWindow : Window
     private void SaveRect()
     {
         if (WindowState != WindowState.Normal) return;
-        _s.EffectWindowRect = string.Join(",", new[] { Left, Top, Width, Height }.Select(d => Math.Round(d).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        _host.WindowRect = string.Join(",", new[] { Left, Top, Width, Height }.Select(d => Math.Round(d).ToString(System.Globalization.CultureInfo.InvariantCulture)));
     }
 
     // ---- 入力のタブ ----
@@ -128,12 +138,18 @@ public sealed partial class EffectWindow : Window
             _hosts.Add(h);
             _slotTabs.Items.Add(new TabItem { Content = h });
         }
+        while (_hosts.Count > slots.Count && _hosts.Count > 0)   // 出力カードが減ったとき
+        {
+            _hosts.RemoveAt(_hosts.Count - 1);
+            _slotTabs.Items.RemoveAt(_slotTabs.Items.Count - 1);
+        }
+        if (_slot >= slots.Count) _slot = Math.Max(0, slots.Count - 1);
         for (int i = 0; i < slots.Count; i++)
         {
             var (slot, name, active) = slots[i];
             var tab = (TabItem)_slotTabs.Items[i];
             var e = _host.GetEffect(slot);
-            tab.Header = Header(name, Letters(e, "NLGPER"), e.Bypass);
+            tab.Header = Header(name, Letters(e, AllOrder), e.Bypass);
             tab.Opacity = active ? 1.0 : 0.55;
             tab.ToolTip = active ? null : "いまデバイスが選ばれていない（または使わない）入力です。設定はしておけます";
         }
@@ -144,12 +160,12 @@ public sealed partial class EffectWindow : Window
     /// <summary>入力 slot のエフェクトを表示する（すでに開いているウィンドウを、別の入力へ切り替える）。</summary>
     public void ShowSlot(int slot)
     {
-        _slot = Math.Clamp(slot, 0, Settings.MaxInputs - 1);
+        _slot = Math.Max(0, slot);
         RefreshSlots();
         Load();
     }
 
-    /// <summary>設定が丸ごと変わったとき（プリセットの読み込みなど）。</summary>
+    /// <summary>設定が丸ごと変わったとき（プロファイルの読み込みなど）。</summary>
     public void Reload()
     {
         RefreshSlots();
@@ -180,6 +196,7 @@ public sealed partial class EffectWindow : Window
         fx.Children.Add(EffectSections.Gate(_fx, changed, Rebuild));
         fx.Children.Add(EffectSections.Echo(_fx, changed, Rebuild));
         fx.Children.Add(EffectSections.Reverb(_fx, changed, Rebuild));
+        fx.Children.Add(EffectSections.Limiter(_fx, changed, Rebuild));
         _tabs.Items.Add(new TabItem { Content = eq });
         _tabs.Items.Add(new TabItem { Content = fx });
         _tabs.SelectedIndex = Math.Clamp(_innerIndex, 0, 1);
@@ -192,7 +209,8 @@ public sealed partial class EffectWindow : Window
 
         root.Children.Add(new TextBlock
         {
-            Text = "掛かる順番: ノイズゲート → ローカット → グラフィックEQ → パラメトリックEQ → エコー → リバーブ。つまみのダブルクリックで初期値に戻ります。",
+            Text = (_host.HasRouting ? "掛かる順番: " : "この出力に流れる最終ミックス（全体音量のあと）にだけ掛かります。入力のエフェクト・録音には影響しません。掛かる順番: ")
+                + "ノイズゲート → ローカット → グラフィックEQ → パラメトリックEQ → エコー → リバーブ → リミッター。リミッターは1.5ミリ秒先読みするので、わずかに遅れます。つまみのダブルクリックで初期値に戻ります。",
             FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
         });
         return root;
@@ -218,6 +236,17 @@ public sealed partial class EffectWindow : Window
     {
         if (_building) return;
         _host.SetEffect(_slot, _fx.Clone());
+    }
+
+    /// <summary>タブの名前・枚数が変わったら（出力カードの追加・削除・名前の変更）、タブを作り直す。</summary>
+    private void SyncSlots()
+    {
+        var sig = string.Join("|", _host.Slots().Select(s => s.Slot + ":" + s.Name));
+        if (sig == _slotSig) return;
+        bool countChanged = _slotSig.Length > 0 && sig.Split('|').Length != _slotSig.Split('|').Length;
+        _slotSig = sig;
+        RefreshSlots();
+        if (countChanged) Load();
     }
 
     private void UpdateEnabled()

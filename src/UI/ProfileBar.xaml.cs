@@ -5,13 +5,13 @@ using Recorder.Core;
 
 namespace Recorder.UI;
 
-/// <summary>プリセットの選択・保存・削除・JSON入出力（PROJECT.md §3-6）。エラーは Error イベントで画面内の赤文字に出す。</summary>
-public partial class PresetBar : UserControl
+/// <summary>プロファイルの選択・保存・削除・JSON入出力（PROJECT.md §3-6）。エラーは Error イベントで画面内の赤文字に出す。</summary>
+public partial class ProfileBar : UserControl
 {
     private Settings? _s;
     private bool _loading;
 
-    /// <summary>プリセットを読み込んだ・保存した（画面の設定を読み直す）。</summary>
+    /// <summary>プロファイルを読み込んだ・保存した（画面の設定を読み直す）。</summary>
     public event Action? Applied;
 
     /// <summary>保存・削除をした（設定の値は変わっていないので、画面や出力は作り直さない）。</summary>
@@ -26,7 +26,7 @@ public partial class PresetBar : UserControl
     /// <summary>保存・書き出しの直前に呼ばれる（入力途中の欄を設定へ反映する）。</summary>
     public Action? Prepare { get; set; }
 
-    public PresetBar() => InitializeComponent();
+    public ProfileBar() => InitializeComponent();
 
     public void Init(Settings settings)
     {
@@ -40,20 +40,20 @@ public partial class PresetBar : UserControl
         if (_s == null) return;
         var was = _loading;
         _loading = true;
-        var names = _s.Presets.Select(p => p.Name).ToList();
-        PresetBox.ItemsSource = names;
-        var cur = select ?? _s.CurrentPreset;
-        if (names.Contains(cur)) PresetBox.SelectedItem = cur; else PresetBox.Text = select ?? "";
+        var names = _s.Profiles.Select(p => p.Name).ToList();
+        ProfileBox.ItemsSource = names;
+        var cur = select ?? _s.CurrentProfile;
+        if (names.Contains(cur)) ProfileBox.SelectedItem = cur; else ProfileBox.Text = select ?? "";
         _loading = was;
     }
 
-    private void Preset_Selected(object sender, SelectionChangedEventArgs e)
+    private void Profile_Selected(object sender, SelectionChangedEventArgs e)
     {
-        if (_loading || _s == null || PresetBox.SelectedItem is not string name) return;
-        var p = _s.Presets.FirstOrDefault(x => x.Name == name);
+        if (_loading || _s == null || ProfileBox.SelectedItem is not string name) return;
+        var p = _s.Profiles.FirstOrDefault(x => x.Name == name);
         if (p == null) return;
         Acting?.Invoke();
-        _s.ApplyPreset(p);
+        _s.ApplyProfile(p);
         Applied?.Invoke();
     }
 
@@ -61,25 +61,25 @@ public partial class PresetBar : UserControl
     {
         if (_s == null) return;
         Acting?.Invoke();
-        var name = PresetBox.Text.Trim();
-        if (name.Length == 0) { Error?.Invoke("プリセット名を入力してください。"); return; }
+        var name = ProfileBox.Text.Trim();
+        if (name.Length == 0) { Error?.Invoke("プロファイル名を入力してください。"); return; }
         Prepare?.Invoke();
-        _s.SavePreset(_s.CapturePreset(name));
-        if (_s.SaveError != null) { Error?.Invoke("プリセットを保存できませんでした: " + _s.SaveError); return; }
-        _s.CurrentPreset = name;
+        _s.SaveProfile(_s.CaptureProfile(name));
+        if (_s.SaveError != null) { Error?.Invoke("プロファイルを保存できませんでした: " + _s.SaveError); return; }
+        _s.CurrentProfile = name;
         Reload(name);
         Stored?.Invoke();
     }
 
-    /// <summary>選んでいる（名前欄にある）プリセットを、もう一度読み込む。保存していない変更を捨てて元に戻したいときに使う。</summary>
+    /// <summary>選んでいる（名前欄にある）プロファイルを、もう一度読み込む。保存していない変更を捨てて元に戻したいときに使う。</summary>
     private void Revert_Click(object sender, RoutedEventArgs e)
     {
         if (_s == null) return;
         Acting?.Invoke();
-        var name = PresetBox.Text.Trim();
-        var p = _s.Presets.FirstOrDefault(x => x.Name == name);
-        if (p == null) { Error?.Invoke("その名前のプリセットはありません。"); return; }
-        _s.ApplyPreset(p);
+        var name = ProfileBox.Text.Trim();
+        var p = _s.Profiles.FirstOrDefault(x => x.Name == name);
+        if (p == null) { Error?.Invoke("その名前のプロファイルはありません。"); return; }
+        _s.ApplyProfile(p);
         Applied?.Invoke();
     }
 
@@ -87,24 +87,24 @@ public partial class PresetBar : UserControl
     {
         if (_s == null) return;
         Acting?.Invoke();
-        var name = PresetBox.Text.Trim();
-        if (!_s.Presets.Any(p => p.Name == name)) { Error?.Invoke("その名前のプリセットはありません。"); return; }
-        var answer = MessageBox.Show(Window.GetWindow(this), $"プリセット「{name}」を削除しますか？",
+        var name = ProfileBox.Text.Trim();
+        if (!_s.Profiles.Any(p => p.Name == name)) { Error?.Invoke("その名前のプロファイルはありません。"); return; }
+        var answer = MessageBox.Show(Window.GetWindow(this), $"プロファイル「{name}」を削除しますか？",
             AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
-        _s.DeletePreset(name);
-        if (_s.CurrentPreset == name) _s.CurrentPreset = "";
+        _s.DeleteProfile(name);
+        if (_s.CurrentProfile == name) _s.CurrentProfile = "";
         Reload("");
         Stored?.Invoke();
     }
 
     /// <summary>プルダウンを開くとき、フォルダに入れた・消したファイルを反映する。</summary>
-    private void Preset_DropDownOpened(object? sender, EventArgs e)
+    private void Profile_DropDownOpened(object? sender, EventArgs e)
     {
         if (_s == null) return;
-        var text = PresetBox.Text;
+        var text = ProfileBox.Text;
         Reload(text);
-        PresetBox.Text = text;
+        ProfileBox.Text = text;
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -113,8 +113,8 @@ public partial class PresetBar : UserControl
         Acting?.Invoke();
         try
         {
-            Directory.CreateDirectory(_s.PresetFolder);
-            Process.Start(new ProcessStartInfo(_s.PresetFolder) { UseShellExecute = true });
+            Directory.CreateDirectory(_s.ProfileFolder);
+            Process.Start(new ProcessStartInfo(_s.ProfileFolder) { UseShellExecute = true });
         }
         catch (Exception ex)
         {

@@ -1,6 +1,6 @@
 namespace Recorder.Core;
 
-/// <summary>Settings のうち、圧縮率・タグ・プリセット名・見た目・スリープ防止（PROJECT.md §3-1, §3-5, §3-6）。</summary>
+/// <summary>Settings のうち、圧縮率・タグ・プロファイル名・見た目・スリープ防止（PROJECT.md §3-1, §3-5, §3-6）。</summary>
 public sealed partial class Settings
 {
     private const string TagSection = "Tags";
@@ -46,10 +46,10 @@ public sealed partial class Settings
         }
     }
 
-    /// <summary>いま使っているプリセットの名前（{Preset} 変数）。未選択なら「既定」。</summary>
-    public string CurrentPreset
+    /// <summary>いま使っているプロファイルの名前（{Profile} 変数）。未選択なら「既定」。</summary>
+    public string CurrentProfile
     {
-        get { var p = Get("Preset", ""); return p.Length > 0 ? p : RecordingPlan.PresetName; }
+        get { var p = Get("Preset", ""); return p.Length > 0 ? p : RecordingPlan.ProfileName; }
         set => Set("Preset", value);
     }
 

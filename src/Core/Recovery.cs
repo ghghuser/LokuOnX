@@ -80,7 +80,7 @@ public static class Recovery
             var pattern = m.Groups[4].Success
                 ? "{Date} {Time} (No.{No}-Track{Track}" + dev + ")＿restored.{ext}"
                 : "{Date} {Time} (No.{No}" + dev + ")＿restored.{ext}";
-            var ctx = new NameContext(time, no, track, TimeSpan.Zero, TimeSpan.Zero, "", RecordingPlan.PresetName, ext);
+            var ctx = new NameContext(time, no, track, TimeSpan.Zero, TimeSpan.Zero, "", RecordingPlan.ProfileName, ext);
             var name = FileNamer.FileName(pattern, ctx);
             var folder = Path.GetDirectoryName(path) ?? "";
             results.Add(FileFinalizer.Run(path, folder, name, new EncodeOptions(fmt.Key, 192, 0, 0), ffmpegPath, repair: true));

@@ -22,7 +22,7 @@ public partial class MainWindow : IEffectHost
         Devices.FxRequested += OpenFx;
     }
 
-    /// <summary>設定（ini・プリセット）から _fx を読み直す（起動時と、プリセットを読み込んだとき）。</summary>
+    /// <summary>設定（ini・プロファイル）から _fx を読み直す（起動時と、プロファイルを読み込んだとき）。</summary>
     private void LoadFx()
     {
         var saved = _settings.InputEffects;
@@ -44,7 +44,7 @@ public partial class MainWindow : IEffectHost
         for (int i = 0; i < _fx.Length; i++) Devices.SetFxState(i, _fx[i].HasAny, _fx[i].Bypass);
     }
 
-    /// <summary>遅れて保存する予定のエフェクト設定を、いま設定へ書く（プリセットに入る前・終了時）。</summary>
+    /// <summary>遅れて保存する予定のエフェクト設定を、いま設定へ書く（プロファイルに入る前・終了時）。</summary>
     private void FlushFx()
     {
         if (!_fxSaveTimer.IsEnabled) return;
@@ -105,4 +105,14 @@ public partial class MainWindow : IEffectHost
     }
 
     bool IEffectHost.IsRecording => _session != null;
+
+    string IEffectHost.WindowTitle => "入力のエフェクト";
+
+    bool IEffectHost.HasRouting => true;
+
+    string IEffectHost.WindowRect
+    {
+        get => _settings.EffectWindowRect;
+        set => _settings.EffectWindowRect = value;
+    }
 }

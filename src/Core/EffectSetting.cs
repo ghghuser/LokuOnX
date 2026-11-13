@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Recorder.Core;
 
-/// <summary>入力1本ぶんのエフェクト設定(ノイズゲート → ローカット/イコライザ → エコー → リバーブ の順に通す)。プリセットに保存される。</summary>
+/// <summary>入力1本ぶんのエフェクト設定(ノイズゲート → ローカット/イコライザ → エコー → リバーブ の順に通す)。プロファイルに保存される。</summary>
 public sealed class EffectSetting
 {
     // ---- 全体
@@ -45,13 +45,19 @@ public sealed class EffectSetting
     public double ReverbDamp { get; set; } = 0.5;
     public double ReverbMix { get; set; } = 0.25;
 
+    // ---- リミッター(いちばん最後にかかる。1.5ms先読みして、上限を超える音を滑らかに下げる)
+    public bool LimiterOn { get; set; }
+    /// <summary>上限(dB。0=クリップ寸前)。-24〜0。</summary>
+    public double CeilingDb { get; set; } = -1.0;
+    /// <summary>効いたあと、元の音量に戻るまでの時間(ミリ秒)。20〜1000。</summary>
+    public double ReleaseMs { get; set; } = 150;
 
     /// <summary>効果が実際にかかるか(バイパスでなく、どれかがオン)。</summary>
     [JsonIgnore]
     public bool IsActive => !Bypass && HasAny;
     /// <summary>設定が1つでも入っているか(FXボタンの色づけ用。バイパス中でも true)。</summary>
     [JsonIgnore]
-    public bool HasAny => GateOn || EqOn || HpfHz >= 20 || ParamOn || EchoOn || ReverbOn;
+    public bool HasAny => GateOn || EqOn || HpfHz >= 20 || ParamOn || EchoOn || ReverbOn || LimiterOn;
 
     public EffectSetting Clone()
     {
@@ -76,6 +82,7 @@ public sealed class EffectSetting
         GateThresholdDb = C(GateThresholdDb, -70, -10, -45); GateReleaseMs = C(GateReleaseMs, 20, 1000, 200); GateReductionDb = C(GateReductionDb, 6, 80, 40);
         EchoMs = C(EchoMs, 20, 1000, 300); EchoFeedback = C(EchoFeedback, 0, 0.9, 0.35); EchoMix = C(EchoMix, 0, 1, 0.3);
         ReverbRoom = C(ReverbRoom, 0, 1, 0.5); ReverbDamp = C(ReverbDamp, 0, 1, 0.5); ReverbMix = C(ReverbMix, 0, 1, 0.25);
+        CeilingDb = C(CeilingDb, -24, 0, -1.0); ReleaseMs = C(ReleaseMs, 20, 1000, 150);
     }
 
     /// <summary>設定が初期値のままか(iniに書かなくてよいか)。</summary>
@@ -92,6 +99,7 @@ public sealed class EffectSetting
         ParamOn = c.ParamOn; Params = c.Params;
         EchoOn = c.EchoOn; EchoMs = c.EchoMs; EchoFeedback = c.EchoFeedback; EchoMix = c.EchoMix;
         ReverbOn = c.ReverbOn; ReverbRoom = c.ReverbRoom; ReverbDamp = c.ReverbDamp; ReverbMix = c.ReverbMix;
+        LimiterOn = c.LimiterOn; CeilingDb = c.CeilingDb; ReleaseMs = c.ReleaseMs;
         Normalize();
     }
 
@@ -100,6 +108,7 @@ public sealed class EffectSetting
     {
         "Bypass", "ToRecording", "ToOutput", "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "EqOn", "HpfHz", "EqBands",
         "ParamOn", "ParamBands", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
+        "LimiterOn", "CeilingDb", "ReleaseMs",
     };
 
     public void WriteTo(IniSection s, string prefix, bool comment)
@@ -117,6 +126,7 @@ public sealed class EffectSetting
             C("パラメトリックEQ 4バンドの 周波数Hz:ゲインdB:幅(Q)"));
         s.Set(prefix + "EchoOn", EchoOn); s.Set(prefix + "EchoMs", EchoMs); s.Set(prefix + "EchoFeedback", EchoFeedback); s.Set(prefix + "EchoMix", EchoMix);
         s.Set(prefix + "ReverbOn", ReverbOn); s.Set(prefix + "ReverbRoom", ReverbRoom); s.Set(prefix + "ReverbDamp", ReverbDamp); s.Set(prefix + "ReverbMix", ReverbMix);
+        s.Set(prefix + "LimiterOn", LimiterOn, C("リミッター(上限dB -24〜0 / 戻りms 20〜1000)")); s.Set(prefix + "CeilingDb", CeilingDb); s.Set(prefix + "ReleaseMs", ReleaseMs);
     }
 
     public static EffectSetting ReadFrom(IniSection s, string prefix)
@@ -132,6 +142,7 @@ public sealed class EffectSetting
             EchoFeedback = s.GetDouble(prefix + "EchoFeedback", d.EchoFeedback), EchoMix = s.GetDouble(prefix + "EchoMix", d.EchoMix),
             ReverbOn = s.GetBool(prefix + "ReverbOn", d.ReverbOn), ReverbRoom = s.GetDouble(prefix + "ReverbRoom", d.ReverbRoom),
             ReverbDamp = s.GetDouble(prefix + "ReverbDamp", d.ReverbDamp), ReverbMix = s.GetDouble(prefix + "ReverbMix", d.ReverbMix),
+            LimiterOn = s.GetBool(prefix + "LimiterOn", d.LimiterOn), CeilingDb = s.GetDouble(prefix + "CeilingDb", d.CeilingDb), ReleaseMs = s.GetDouble(prefix + "ReleaseMs", d.ReleaseMs),
         };
         var parts = s.GetString(prefix + "EqBands").Split(',', StringSplitOptions.TrimEntries);
         for (int i = 0; i < EqBands.Count; i++)
@@ -161,5 +172,6 @@ public sealed class EffectSetting
     /// <summary>効果の中身(オン/オフと数値)が同じか。録音・出力への反映先の設定は比べない。</summary>
     public bool SameSound(EffectSetting o) =>
         Bypass == o.Bypass && GateOn == o.GateOn && GateThresholdDb == o.GateThresholdDb && GateReleaseMs == o.GateReleaseMs && GateReductionDb == o.GateReductionDb && EqOn == o.EqOn && HpfHz == o.HpfHz && SameBands(o) && ParamOn == o.ParamOn && SameParams(o) && EchoOn == o.EchoOn && EchoMs == o.EchoMs && EchoFeedback == o.EchoFeedback
-        && EchoMix == o.EchoMix && ReverbOn == o.ReverbOn && ReverbRoom == o.ReverbRoom && ReverbDamp == o.ReverbDamp && ReverbMix == o.ReverbMix;
+        && EchoMix == o.EchoMix && ReverbOn == o.ReverbOn && ReverbRoom == o.ReverbRoom && ReverbDamp == o.ReverbDamp && ReverbMix == o.ReverbMix
+        && LimiterOn == o.LimiterOn && CeilingDb == o.CeilingDb && ReleaseMs == o.ReleaseMs;
 }

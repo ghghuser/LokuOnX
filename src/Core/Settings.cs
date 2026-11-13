@@ -11,8 +11,8 @@ public sealed partial class Settings
 
     public bool ReadOnly { get; }
 
-    /// <summary>プリセットのJSONを入れるフォルダ（exeと同じ場所の Presets。PROJECT.md §3-6）。</summary>
-    private readonly string _presetDir;
+    /// <summary>プロファイルのJSONを入れるフォルダ（exeと同じ場所の Profiles。PROJECT.md §3-6）。</summary>
+    private readonly string _profileDir;
 
     /// <summary>直近の保存エラー（なければ null）。</summary>
     public string? SaveError { get; private set; }
@@ -21,14 +21,25 @@ public sealed partial class Settings
     {
         _ini = new IniFile(path);
         ReadOnly = readOnly;
-        _presetDir = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)) ?? "", "Presets");
+        var baseDir = Path.GetDirectoryName(Path.GetFullPath(path)) ?? "";
+        _profileDir = Path.Combine(baseDir, "Profiles");
+        if (!readOnly)
+        {
+            // 旧名のフォルダ「Presets」は、「Profiles」へ名前を変える（Profiles がまだ無いときだけ）
+            try
+            {
+                var old = Path.Combine(baseDir, "Presets");
+                if (Directory.Exists(old) && !Directory.Exists(_profileDir)) Directory.Move(old, _profileDir);
+            }
+            catch (Exception) { /* 変えられなければ、そのまま Profiles を新しく使う */ }
+        }
         if (!_ini.Existed && !readOnly)
         {
             _ini.Set(Section, "Format", "flac");
             _ini.Set(Section, "NextNo", "1");
             Save();
         }
-        MigratePresets();   // M5 の初版は ini に入れていた。Presets フォルダのファイルへ移す
+        MigrateProfiles();   // M5 の初版は ini に入れていた。Profiles フォルダのファイルへ移す
         EnsureTemplates();   // 旧版の ini にはテンプレートが無いので、足りなければ初期テンプレートを登録
     }
 

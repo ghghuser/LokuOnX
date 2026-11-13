@@ -6,7 +6,7 @@ namespace Recorder.Core;
 
 /// <summary>名前に使う値。Start / End は録音全体の0:00起点の経過時間（整数秒）。</summary>
 public sealed record NameContext(DateTime Time, int No, int Track, TimeSpan Start, TimeSpan End,
-    string Device, string Preset, string Ext)
+    string Device, string Profile, string Ext)
 {
     public TimeSpan Length => End - Start;
 }
@@ -49,7 +49,7 @@ public static class FileNamer
             "End" => Clock(c.End, opt, false),
             "Length" => Clock(c.Length, opt, true),
             "Device" => c.Device,
-            "Preset" => c.Preset,
+            "Profile" or "Preset" => c.Profile,   // {Preset} は旧名（以前のファイル名パターンが動くように残す）
             "ext" or "Ext" => c.Ext,
             _ => null,
         };

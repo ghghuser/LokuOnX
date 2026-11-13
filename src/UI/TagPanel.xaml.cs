@@ -18,7 +18,7 @@ public partial class TagPanel : UserControl
         Reload();
     }
 
-    /// <summary>設定の値を画面へ読み直す（プリセットを読み込んだとき）。</summary>
+    /// <summary>設定の値を画面へ読み直す（プロファイルを読み込んだとき）。</summary>
     public void Reload()
     {
         if (_s == null) return;

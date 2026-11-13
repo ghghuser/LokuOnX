@@ -83,7 +83,7 @@ public sealed partial class Settings
     private static double Num(string text) =>
         double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : 0;
 
-    /// <summary>入力の名前（入力1〜4。空＝既定の「入力N」）。メイン画面・出力カードで共通に使う。プリセットに含む。</summary>
+    /// <summary>入力の名前（入力1〜4。空＝既定の「入力N」）。メイン画面・出力カードで共通に使う。プロファイルに含む。</summary>
     public IReadOnlyList<string> InputNames
     {
         get => Enumerable.Range(1, OutputConfig.InputSlots)

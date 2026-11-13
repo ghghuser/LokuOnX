@@ -76,15 +76,12 @@ public sealed class Limiter
 /// <summary>出力1台ぶんの最終ミックス用エフェクト。設定は別スレッドから Update で渡してよい。何もかけない設定のときは配列に触れない。</summary>
 public sealed class OutputFxChain
 {
-    private readonly EffectChain eq;
-    private readonly Limiter lim;
+    private readonly EffectChain chain;   // 入力と同じチェーン（ゲート → ローカット → EQ → パラメトリック → エコー → リバーブ → リミッター）
     private volatile OutputFxSetting snap = new();
-    private bool limWasOn;
 
     public OutputFxChain(int sampleRate, int channels)
     {
-        eq = new EffectChain(sampleRate, channels);
-        lim = new Limiter(sampleRate, channels);
+        chain = new EffectChain(sampleRate, channels);
     }
 
     public bool IsActive => snap.IsActive;
@@ -92,21 +89,13 @@ public sealed class OutputFxChain
     public void Update(OutputFxSetting s)
     {
         var c = s.Clone(); c.Normalize();
-        eq.Update(c.IsActive ? c.ToEqSetting() : new EffectSetting());
-        lim.Set(c.CeilingDb, c.ReleaseMs);
+        chain.Update(c.IsActive ? c.ToEffectSetting() : new EffectSetting());
         snap = c;
     }
 
     public void Process(float[] buf, int frames)
     {
-        var s = snap;
-        if (!s.IsActive) { limWasOn = false; return; }
-        if (s.EqOn || s.HpfHz >= 20 || s.ParamOn) eq.Process(buf, frames);
-        if (s.LimiterOn)
-        {
-            if (!limWasOn) { lim.Reset(); limWasOn = true; }
-            lim.Process(buf, frames);
-        }
-        else limWasOn = false;
+        if (!snap.IsActive) return;
+        chain.Process(buf, frames);
     }
 }

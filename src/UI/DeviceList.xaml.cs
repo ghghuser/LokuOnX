@@ -66,13 +66,16 @@ public partial class DeviceList : UserControl
 
     private MenuItem FxItem(Row row)
     {
-        var item = new MenuItem { Header = "エフェクト…" };
+        var item = new MenuItem { Header = "入力のエフェクト…" };
         item.Click += (_, _) => FxRequested?.Invoke(_rows.IndexOf(row));
         return item;
     }
 
     /// <summary>「既定のデバイス」を実際のデバイスに置き換える（MainWindow が設定する）。同じデバイスの重複を赤文字で知らせるのに使う。</summary>
     public Func<string, string>? Resolve { get; set; }
+
+    /// <summary>入力デバイス（Key）を選ぶと、音が回るため出力できなくなる出力の名前（なければ空）。プルダウンの黄文字と、デバイス欄の下の黄色い一行に使う。</summary>
+    public Func<string, IReadOnlyList<string>>? LoopOutputs { get; set; }
 
     /// <summary>録音に使う行（デバイスが選ばれていて有効）の、行の番号（0始まり）と表示名。上から順。</summary>
     public IReadOnlyList<(int Slot, string Name)> ActiveInputs =>
@@ -126,7 +129,7 @@ public partial class DeviceList : UserControl
         Rebuild(defaultKey);
     }
 
-    /// <summary>設定（settings.ini）の内容で行を作り直す。起動時と、プリセットを読み込んだとき。</summary>
+    /// <summary>設定（settings.ini）の内容で行を作り直す。起動時と、プロファイルを読み込んだとき。</summary>
     public void Rebuild(string? defaultKey)
     {
         if (_s == null) return;
@@ -406,12 +409,38 @@ public partial class DeviceList : UserControl
         return warn;
     }
 
+    /// <summary>出力の出力先が変わったときなど、プルダウンの注意と黄色い一行を付け直す。</summary>
+    public void RefreshWarnings() => UpdateWarnings();
+
     private void UpdateWarnings()
     {
+        // 音が回るため出力が止まる入力（黄文字）。入力ごとに調べて、全デバイスぶんを一度だけ求める
+        var loopKeys = new HashSet<string>();
+        var loopMap = new Dictionary<string, IReadOnlyList<string>>();
+        if (LoopOutputs != null)
+        {
+            foreach (var d in _devices)
+            {
+                if (d.Key.Length == 0) continue;
+                IReadOnlyList<string> names;
+                try { names = LoopOutputs(d.Key); } catch (Exception) { continue; }
+                if (names.Count > 0) { loopKeys.Add(d.Key); loopMap[d.Key] = names; }
+            }
+        }
+        var lines = new List<string>();
+        for (int i = 0; i < _rows.Count; i++)
+        {
+            var r = _rows[i];
+            if (r.Key.Length == 0 || r.Use.IsChecked != true || !loopMap.TryGetValue(r.Key, out var outs)) continue;
+            lines.Add($"「{OutputConfig.InputLabel(_names, i)}」は、出力「{string.Join("」「", outs)}」の出力先と同じデバイスです。音が回るため、その出力は止まります。");
+        }
+        CautionText.Text = string.Join("\n", lines);
+        CautionText.Visibility = lines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
         foreach (var r in _rows)
         {
             var warn = WarnFor(r);
-            r.Combo.Tag = new WarnSet(warn);
+            r.Combo.Tag = new WarnSet(warn, loopKeys);
             // ランプがオンで、同じデバイスを重ねて使っている（プルダウンで赤文字になる状態）なら、ランプを赤にする
             r.Use.Tag = r.Key.Length > 0 && warn.Contains(r.Key) ? "Error" : null;
         }

@@ -31,7 +31,7 @@
         <!-- ファイル名プリセット（テンプレートの選択・保存・削除・初期化） -->
         <TextBlock Grid.Row="1" Text="ファイル名プリセット：" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
         <WrapPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,6">
-            <ComboBox x:Name="TemplateBox" Width="200" IsEditable="True" Margin="0,0,8,0"
+            <ComboBox x:Name="TemplateBox" Tag="InputBg" Width="200" IsEditable="True" Margin="0,0,8,0"
                       ToolTip="選ぶと下の「ファイル名」に入ります。名前を書いて「保存」すると新しいプリセットになります"
                       SelectionChanged="Template_Selected"/>
             <Button Content="保存" Padding="12,3" Margin="0,0,6,0" Click="SaveTemplate_Click"/>

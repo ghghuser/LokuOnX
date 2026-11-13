@@ -5,7 +5,7 @@ using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>
-/// エフェクトウィンドウの、イコライザ以外の効果のカード（M11-4。ノイズゲート・エコー・リバーブ。イコライザ系は EffectEq）。
+/// エフェクトウィンドウの、イコライザ以外の効果のカード（M11-4。ノイズゲート・エコー・リバーブ・リミッター。イコライザ系は EffectEq）。
 /// fx を直接書き換え、そのたびに changed を呼ぶ（画面→反映は EffectWindow が受ける）。
 /// 掛かる順番は ノイズゲート → ローカット → グラフィックEQ → パラメトリックEQ → エコー → リバーブ（Core/EffectChain）。
 /// </summary>
@@ -37,6 +37,18 @@ internal static class EffectSections
             v => { fx.EchoFeedback = v; changed(); }, 0.05, "大きいほど何回も繰り返します"));
         body.Children.Add(EffectUi.Slide("ミックス量", 0, 1, fx.EchoMix, 0.3, EffectUi.Percent,
             v => { fx.EchoMix = v; changed(); }, 0.05, "エコーの音の大きさ"));
+        return card;
+    }
+
+    public static Border Limiter(EffectSetting fx, Action changed, Action rebuild)
+    {
+        var card = EffectUi.Card(Head(EffectUi.Toggle("リミッター", fx.LimiterOn,
+            "音の大きすぎる部分を、割れないように自動で下げます。上限を超えない音量に収めます（最後に掛かります）", on => { fx.LimiterOn = on; changed(); }),
+            () => { var d = new EffectSetting(); fx.CeilingDb = d.CeilingDb; fx.ReleaseMs = d.ReleaseMs; }, changed, rebuild), out var body);
+        body.Children.Add(EffectUi.Slide("上限", -24, 0, fx.CeilingDb, -1.0, EffectUi.Db,
+            v => { fx.CeilingDb = v; changed(); }, 0.5, "この音量を超えないように下げます（0 dB＝割れる寸前）"));
+        body.Children.Add(EffectUi.Slide("戻り時間", 20, 1000, fx.ReleaseMs, 150, EffectUi.Ms,
+            v => { fx.ReleaseMs = v; changed(); }, 10, "下げたあと、元の音量に戻るまでの時間"));
         return card;
     }
 

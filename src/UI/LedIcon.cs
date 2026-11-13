@@ -114,7 +114,7 @@ public static class LedIcon
         {
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.Clear(System.Drawing.Color.Transparent);
-            using var amber = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 255, 184, 28));
+            using var amber = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 255, 160, 18));   // 一時停止の黄色（わずかにオレンジ寄り）
             g.FillEllipse(amber, K / 2f, K / 2f, big - K, big - K);
             using var edge = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(255, 110, 60, 0));
             using var white = new System.Drawing.SolidBrush(System.Drawing.Color.White);

@@ -64,7 +64,7 @@ public partial class DetailPanel : UserControl
     /// <summary>例の表示用。36：25 録音した場合の値。</summary>
     private NameContext SampleContext(DateTime now) =>
         new(now, _s!.NextNo, _s.TrackStart, TimeSpan.Zero, TimeSpan.FromSeconds(2185),
-            FileNamer.CleanDevice(_deviceLabel()), _s.CurrentPreset, _s.Encode.Fmt.Ext);
+            FileNamer.CleanDevice(_deviceLabel()), _s.CurrentProfile, _s.Encode.Fmt.Ext);
 
     private void UpdateExample()
     {

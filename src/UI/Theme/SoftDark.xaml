@@ -8,7 +8,7 @@
     <SolidColorBrush x:Key="PanelHover" Color="#32363E"/>
     <SolidColorBrush x:Key="CardBg" Color="#2C3036"/>
     <SolidColorBrush x:Key="CardBorder" Color="#3A3F47"/>
-    <SolidColorBrush x:Key="InputBg" Color="#1E2126"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プリセット欄が使う -->
+    <SolidColorBrush x:Key="InputBg" Color="#1E2126"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プロファイル欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#1E2126"/>
     <SolidColorBrush x:Key="MeterBg" Color="#1A1D21"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#181A1E"/>

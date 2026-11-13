@@ -39,6 +39,7 @@ public partial class MainWindow : Window
         InputCheckBox.IsChecked = settings.InputCheck;
         LoadDevices();
         Devices.Resolve = RealInputKey;
+        Devices.LoopOutputs = LoopOutputNames;
         Devices.AttachMaster(OutMeter.Gain, OutMeter.GainText);   // 全体ゲインは出力メーターと一体（Init の前に）
         Devices.Init(settings, _devices, DefaultCaptureKey());
         SyncOutputInputs();
@@ -60,12 +61,12 @@ public partial class MainWindow : Window
         Detail.Tags = TagsTab;
         Detail.Init(settings, () => Devices.NameLabel);
         Detail.Changed += UpdateInfo;
-        Presets.Init(settings);
-        Presets.Prepare = CommitInputs;
-        Presets.Acting += ClearErrors;
-        Presets.Error += ShowError;
-        Presets.Applied += ReloadFromSettings;
-        Presets.Stored += UpdateInfo;   // 保存・削除では、画面も出力も作り直さない（出力中でも止まらない）
+        Profiles.Init(settings);
+        Profiles.Prepare = CommitInputs;
+        Profiles.Acting += ClearErrors;
+        Profiles.Error += ShowError;
+        Profiles.Applied += ReloadFromSettings;
+        Profiles.Stored += UpdateInfo;   // 保存・削除では、画面も出力も作り直さない（出力中でも止まらない）
         if (settings.RecentFolders.Count == 0) settings.AddRecentFolder(settings.Folder);
         Files.Init(settings, AppPaths.Ffmpeg);
         Player.Init(AppPaths.Ffmpeg);
@@ -150,17 +151,17 @@ public partial class MainWindow : Window
         Quality.Refresh();
     }
 
-    /// <summary>入力途中の欄（保存先・自動分割・パターン・番号・タグ）を設定へ反映する（録音開始・プリセット保存の直前）。</summary>
+    /// <summary>入力途中の欄（保存先・自動分割・パターン・番号・タグ）を設定へ反映する（録音開始・プロファイル保存の直前）。</summary>
     private void CommitInputs()
     {
         FolderBox_LostFocus(this, new RoutedEventArgs());
         Split_LostFocus(this, new RoutedEventArgs());
         Detail.CommitAll();
-        FlushOutputs();   // 出力の設定も、プリセットに入る前に保存しておく
+        FlushOutputs();   // 出力の設定も、プロファイルに入る前に保存しておく
         FlushFx();        // 入力ごとのエフェクトも
     }
 
-    /// <summary>プリセットを読み込んだあと、画面の各欄を設定の値で読み直す。</summary>
+    /// <summary>プロファイルを読み込んだあと、画面の各欄を設定の値で読み直す。</summary>
     private void ReloadFromSettings()
     {
         _loading = true;
@@ -171,11 +172,11 @@ public partial class MainWindow : Window
         Devices.Rebuild(DefaultCaptureKey());
         CheckDuplicateRows();   // 読み込み後の設定でも、同じデバイスの重複などは赤文字で出し続ける（再読込で消えない）
         CheckAsioRows();
-        LoadFx();   // プリセットの入力エフェクトを読み直す（M11-4。SyncOutputInputs が開いている入力へ渡す）
+        LoadFx();   // プロファイルの入力エフェクトを読み直す（M11-4。SyncOutputInputs が開いている入力へ渡す）
         SyncOutputInputs();
         _fxWindow?.Reload();
-        ReloadOutputsFromSettings();   // プリセットの出力設定を反映（動いている出力は止める）
-        Presets.Reload(null);
+        ReloadOutputsFromSettings();   // プロファイルの出力設定を反映（動いている出力は止める）
+        Profiles.Reload(null);
         UpdateInfo();
     }
 

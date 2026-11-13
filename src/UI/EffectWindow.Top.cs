@@ -8,27 +8,31 @@ namespace Recorder.UI;
 // エフェクトウィンドウの上部（反映先・コピー・初期値）と、タブ見出しの印（M11-4確認後に EffectWindow.cs から分けた）
 public sealed partial class EffectWindow
 {
-    /// <summary>反映先（録音・出力）・バイパス・コピー／貼り付け・初期値。</summary>
+    /// <summary>反映先（録音・出力。入力のみ）・バイパス・コピー／貼り付け／すべて初期値に（この3つはひとまとまりで、折り返してもばらけない）。</summary>
     private UIElement BuildTopBar()
     {
-        var head = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
-        _toRec = new CheckBox { Content = "録音に反映", IsChecked = _fx.ToRecording, Margin = new Thickness(0, 0, 18, 0),
-            ToolTip = "オンにすると、エフェクトを掛けた音が録音されます（オフ＝録音は素の音のまま）。録音中は切り替えられません。メーター・無音検出・自動録音開始は、エフェクト前の音で判定します" };
-        var toOut = new CheckBox { Content = "出力に反映", IsChecked = _fx.ToOutput, Margin = new Thickness(0, 0, 18, 0),
-            ToolTip = "オンにすると、エフェクトを掛けた音が出力（再生デバイス）へ送られます（既定）。オフなら素の音が送られます" };
-        var bypass = new CheckBox { Content = "すべてバイパス", IsChecked = _fx.Bypass, ToolTip = "設定は残したまま、効果だけを一時的に切ります（録音・出力とも素の音になります）" };
-        _toRec.Click += (_, _) => Edit(() => _fx.ToRecording = _toRec.IsChecked == true);
-        toOut.Click += (_, _) => Edit(() => _fx.ToOutput = toOut.IsChecked == true);
+        var row = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) };
+        _toRec = null;
+        if (_host.HasRouting)
+        {
+            _toRec = new CheckBox { Content = "録音に反映", IsChecked = _fx.ToRecording, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
+                ToolTip = "オンにすると、エフェクトを掛けた音が録音されます（オフ＝録音は素の音のまま）。録音中は切り替えられません。メーター・無音検出・自動録音開始は、エフェクト前の音で判定します" };
+            var toOut = new CheckBox { Content = "出力に反映", IsChecked = _fx.ToOutput, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
+                ToolTip = "オンにすると、エフェクトを掛けた音が出力（再生デバイス）へ送られます（既定）。オフなら素の音が送られます" };
+            _toRec.Click += (_, _) => Edit(() => _fx.ToRecording = _toRec.IsChecked == true);
+            toOut.Click += (_, _) => Edit(() => _fx.ToOutput = toOut.IsChecked == true);
+            row.Children.Add(_toRec);
+            row.Children.Add(toOut);
+        }
+        var bypass = new CheckBox { Content = "すべてバイパス", IsChecked = _fx.Bypass, Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center,
+            ToolTip = _host.HasRouting ? "設定は残したまま、効果だけを一時的に切ります（録音・出力とも素の音になります）" : "設定は残したまま、効果だけを一時的に切ります" };
         bypass.Click += (_, _) => Edit(() => _fx.Bypass = bypass.IsChecked == true);
-        var row2 = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
-        row2.Children.Add(_toRec);
-        row2.Children.Add(toOut);
-        row2.Children.Add(bypass);
-        head.Children.Add(row2);
+        row.Children.Add(bypass);
 
-        var copy = new Button { Content = "コピー", Padding = new Thickness(12, 3, 12, 3), ToolTip = "この入力の効果の設定をコピーします（録音・出力への反映先は含みません）" };
+        string what = _host.HasRouting ? "この入力" : "この出力";
+        var copy = new Button { Content = "コピー", Padding = new Thickness(12, 3, 12, 3), ToolTip = what + "の効果の設定をコピーします" + (_host.HasRouting ? "（録音・出力への反映先は含みません）" : "") };
         copy.Click += (_, _) => { _clip = _fx.Clone(); UpdateEnabled(); };
-        _paste = new Button { Content = "貼り付け", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = "コピーした効果の設定を、この入力へ貼り付けます（録音・出力への反映先は変わりません）" };
+        _paste = new Button { Content = "貼り付け", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = "コピーした効果の設定を、" + what + "へ貼り付けます（入力と出力のあいだでも貼り付けられます）" };
         _paste.Click += (_, _) =>
         {
             if (_clip == null) return;
@@ -36,32 +40,32 @@ public sealed partial class EffectWindow
             Commit();
             Rebuild();
         };
-        var reset = new Button { Content = "すべて初期値に", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = "この入力の効果の設定をすべて初期値（何も掛けない）に戻します" };
+        var reset = new Button { Content = "すべて初期値に", Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = what + "の効果の設定をすべて初期値（何も掛けない）に戻します" };
         reset.Click += (_, _) =>
         {
             _fx.CopySoundFrom(new EffectSetting());
             Commit();
             Rebuild();
         };
-        var row3 = new StackPanel { Orientation = Orientation.Horizontal };
-        row3.Children.Add(copy);
-        row3.Children.Add(_paste);
-        row3.Children.Add(reset);
-        head.Children.Add(row3);
-        return head;
+        var set = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        set.Children.Add(copy);
+        set.Children.Add(_paste);
+        set.Children.Add(reset);
+        row.Children.Add(set);
+        return row;
     }
 
-    /// <summary>
-    /// 掛かっている効果の頭文字（掛かる順番 N=ノイズゲート L=ローカット G=グラフィックEQ P=パラメトリックEQ E=エコー R=リバーブ）のうち、
-    /// order に含まれるものを順に並べる（例 "NGR"）。
-    /// </summary>
-    private static string Letters(EffectSetting c, string order)
+    /// <summary>省略文字の並び（掛かる順番）。N＝ノイズゲート Lc＝ローカット G＝グラフィックEQ P＝パラメトリックEQ E＝エコー R＝リバーブ Lm＝リミッター。</summary>
+    private const string AllOrder = "N,Lc,G,P,E,R,Lm";
+
+    /// <summary>掛かっている効果の省略文字のうち、order（カンマ区切り）に含まれるものを順に並べる（例 "NGRLm"）。</summary>
+    internal static string Letters(EffectSetting c, string order)
     {
-        bool On(char ch) => ch switch
+        bool On(string t) => t switch
         {
-            'N' => c.GateOn, 'L' => c.HpfHz >= 20, 'G' => c.EqOn, 'P' => c.ParamOn, 'E' => c.EchoOn, 'R' => c.ReverbOn, _ => false,
+            "N" => c.GateOn, "Lc" => c.HpfHz >= 20, "G" => c.EqOn, "P" => c.ParamOn, "E" => c.EchoOn, "R" => c.ReverbOn, "Lm" => c.LimiterOn, _ => false,
         };
-        return new string(order.Where(On).ToArray());
+        return string.Concat(order.Split(',').Where(On));
     }
 
     /// <summary>タブの見出し。名前の後ろに「⚡NGR」のように、掛かっている効果を緑（入力ランプと同じ緑）で出す。バイパス中は灰色。</summary>
@@ -83,12 +87,12 @@ public sealed partial class EffectWindow
     {
         if (_tabs == null || _tabs.Items.Count < 2) return;
         var c = _fx;
-        ((TabItem)_tabs.Items[0]).Header = Header("イコライザ", Letters(c, "LGP"), c.Bypass);
-        ((TabItem)_tabs.Items[1]).Header = Header("ノイズゲート・エコー・リバーブ", Letters(c, "NER"), c.Bypass);
+        ((TabItem)_tabs.Items[0]).Header = Header("イコライザ", Letters(c, "Lc,G,P"), c.Bypass);
+        ((TabItem)_tabs.Items[1]).Header = Header("ノイズゲート・エコー・リバーブ・リミッター", Letters(c, "N,E,R,Lm"), c.Bypass);
         if (_slot < _slotTabs.Items.Count && _slotTabs.Items[_slot] is TabItem t)
         {
             var name = _host.Slots().FirstOrDefault(s => s.Slot == _slot).Name ?? "";
-            t.Header = Header(name, Letters(c, "NLGPER"), c.Bypass);
+            t.Header = Header(name, Letters(c, AllOrder), c.Bypass);
         }
     }
 }

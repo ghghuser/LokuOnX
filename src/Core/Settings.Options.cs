@@ -2,7 +2,7 @@ namespace Recorder.Core;
 
 /// <summary>
 /// Settings のうち、M7 のオプション機能（PROJECT.md §3-8）。いずれも既定OFF（トレイのアイコン表示だけ既定ON）。
-/// 無音検出・ホットキー・予約録音・デバイス待機/復帰分割・トレイ。プリセットには含めない。
+/// 無音検出・ホットキー・予約録音・デバイス待機/復帰分割・トレイ。プロファイルには含めない。
 /// </summary>
 public sealed partial class Settings
 {
@@ -49,7 +49,7 @@ public sealed partial class Settings
     public bool SplitOnReturn { get => Flag("SplitOnReturn", false); set => SetFlag("SplitOnReturn", value); }
 
     // ---- ASIO（M8） ----
-    /// <summary>入力デバイスの一覧にASIOを表示する（既定OFF）。ONでも、ASIOドライバが入っていなければ何も増えない。プリセットには含めない。</summary>
+    /// <summary>入力デバイスの一覧にASIOを表示する（既定OFF）。ONでも、ASIOドライバが入っていなければ何も増えない。プロファイルには含めない。</summary>
     public bool AsioEnabled { get => Flag("AsioEnabled", false); set => SetFlag("AsioEnabled", value); }
 
     // ---- ホットキー ----

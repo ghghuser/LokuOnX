@@ -45,10 +45,15 @@ public sealed class EffectChain
     private static readonly int[] AllpassTuning = { 556, 441, 341, 225 };
     private const int StereoSpread = 23;
 
+    // --- リミッター(いちばん最後)
+    private readonly Limiter lim;
+    private bool limOn, limWasOn;
+
     public EffectChain(int sampleRate, int channels)
     {
         sr = sampleRate; ch = Math.Max(1, channels);
         eqAll = new[] { hpfBq }.Concat(bands).Concat(paramBq).ToArray();
+        lim = new Limiter(sampleRate, ch);
     }
 
     /// <summary>設定を渡す(コピーして持つ。次の Process から反映)。</summary>
@@ -71,6 +76,7 @@ public sealed class EffectChain
         if (eqOnNow) ProcessEq(buf, frames);
         if (echoOn) ProcessEcho(buf, frames);
         if (revOn) ProcessReverb(buf, frames);
+        if (limOn) lim.Process(buf, frames);
     }
 
     private bool eqOnNow;
@@ -100,7 +106,7 @@ public sealed class EffectChain
     private void ResetStates()
     {
         foreach (var b in eqAll) { Array.Clear(b.Z1); Array.Clear(b.Z2); }
-        echo = null; combs = null; allpasses = null; echoWasOn = revWasOn = eqWasOn = false; gateWasOn = false; gateOpen = true; gateG = 1f;
+        echo = null; combs = null; allpasses = null; echoWasOn = revWasOn = eqWasOn = limWasOn = false; gateWasOn = false; gateOpen = true; gateG = 1f;
     }
 
     // ------------------------------------------------------------ 設定の反映
@@ -192,6 +198,15 @@ public sealed class EffectChain
             revMix = (float)s.ReverbMix;
         }
         revWasOn = s.ReverbOn;
+
+        // リミッター
+        limOn = s.LimiterOn;
+        if (limOn)
+        {
+            lim.Set(s.CeilingDb, s.ReleaseMs);
+            if (!limWasOn) lim.Reset();
+        }
+        limWasOn = limOn;
     }
 
     // ------------------------------------------------------------ 処理

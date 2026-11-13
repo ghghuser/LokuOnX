@@ -3,25 +3,25 @@ using System.Text;
 namespace Recorder.Core;
 
 /// <summary>
-/// Settings のうち、プリセットに関する部分（PROJECT.md §3-6）。
-/// プリセットは exe と同じ場所の Presets フォルダに「名前.json」で1件ずつ保存する（そのままバックアップ・共有できる）。
+/// Settings のうち、プロファイルに関する部分（PROJECT.md §3-6）。
+/// プロファイルは exe と同じ場所の Profiles フォルダに「名前.json」で1件ずつ保存する（そのままバックアップ・共有できる）。
 /// </summary>
 public sealed partial class Settings
 {
-    /// <summary>保存されているプリセット（名前順）。読めないファイルは飛ばす。</summary>
-    public IReadOnlyList<PresetData> Presets
+    /// <summary>保存されているプロファイル（名前順）。読めないファイルは飛ばす。</summary>
+    public IReadOnlyList<ProfileData> Profiles
     {
         get
         {
-            var list = new List<PresetData>();
+            var list = new List<ProfileData>();
             try
             {
-                if (!Directory.Exists(_presetDir)) return list;
-                foreach (var file in Directory.EnumerateFiles(_presetDir, "*.json"))
+                if (!Directory.Exists(_profileDir)) return list;
+                foreach (var file in Directory.EnumerateFiles(_profileDir, "*.json"))
                 {
                     try
                     {
-                        var parsed = PresetJson.Parse(File.ReadAllText(file, Encoding.UTF8), out _);
+                        var parsed = ProfileJson.Parse(File.ReadAllText(file, Encoding.UTF8), out _);
                         if (parsed is { Count: > 0 }) list.Add(parsed[0]);
                     }
                     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
@@ -32,21 +32,21 @@ public sealed partial class Settings
         }
     }
 
-    /// <summary>プリセットのJSONを入れるフォルダ（画面の「Presetsフォルダを開く」で開く）。</summary>
-    public string PresetFolder => _presetDir;
+    /// <summary>プロファイルのJSONを入れるフォルダ（画面の「Profilesフォルダを開く」で開く）。</summary>
+    public string ProfileFolder => _profileDir;
 
-    private string PresetFile(string name) => Path.Combine(_presetDir, FileNamer.Sanitize(name) + ".json");
+    private string ProfileFile(string name) => Path.Combine(_profileDir, FileNamer.Sanitize(name) + ".json");
 
     /// <summary>同じ名前があれば上書き、なければ追加。2つ目の起動（ReadOnly）では書かない。</summary>
-    public void SavePreset(PresetData p)
+    public void SaveProfile(ProfileData p)
     {
         if (ReadOnly) return;
         try
         {
-            Directory.CreateDirectory(_presetDir);
-            var path = PresetFile(p.Name);
+            Directory.CreateDirectory(_profileDir);
+            var path = ProfileFile(p.Name);
             var tmp = path + ".tmp";
-            File.WriteAllText(tmp, PresetJson.ToFile(p), new UTF8Encoding(false));
+            File.WriteAllText(tmp, ProfileJson.ToFile(p), new UTF8Encoding(false));
             File.Move(tmp, path, overwrite: true);
             SaveError = null;
         }
@@ -56,22 +56,22 @@ public sealed partial class Settings
         }
     }
 
-    public void DeletePreset(string name)
+    public void DeleteProfile(string name)
     {
         if (ReadOnly) return;
-        try { File.Delete(PresetFile(name)); }
+        try { File.Delete(ProfileFile(name)); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { SaveError = ex.Message; }
     }
 
-    /// <summary>M5初版で ini の [Presets] に入れていたものを、Presets フォルダのファイルへ移す。</summary>
-    private void MigratePresets()
+    /// <summary>M5初版で ini の [Profiles] に入れていたものを、Profiles フォルダのファイルへ移す。</summary>
+    private void MigrateProfiles()
     {
         if (ReadOnly || _ini.Get("Presets", "Count", "") == "") return;
         int.TryParse(_ini.Get("Presets", "Count", "0"), out var count);
         for (int i = 0; i < count; i++)
         {
-            var parsed = PresetJson.Parse(_ini.Get("Presets", $"Json{i}", ""), out _);
-            if (parsed is { Count: > 0 } && !File.Exists(PresetFile(parsed[0].Name))) SavePreset(parsed[0]);
+            var parsed = ProfileJson.Parse(_ini.Get("Presets", $"Json{i}", ""), out _);
+            if (parsed is { Count: > 0 } && !File.Exists(ProfileFile(parsed[0].Name))) SaveProfile(parsed[0]);
             _ini.Remove("Presets", $"Name{i}");
             _ini.Remove("Presets", $"Json{i}");
         }
@@ -79,8 +79,8 @@ public sealed partial class Settings
         Save();
     }
 
-    /// <summary>いまの設定をプリセットにまとめる。</summary>
-    public PresetData CapturePreset(string name) => new()
+    /// <summary>いまの設定をプロファイルにまとめる。</summary>
+    public ProfileData CaptureProfile(string name) => new()
     {
         Name = name,
         Format = Format,
@@ -88,7 +88,7 @@ public sealed partial class Settings
         SampleRate = SampleRate,
         Channels = Channels,
         Compression = Compression,
-        Inputs = Inputs.Select(i => new PresetInput { Key = i.Key, GainDb = i.GainDb, Enabled = i.Enabled }).ToList(),
+        Inputs = Inputs.Select(i => new ProfileInput { Key = i.Key, GainDb = i.GainDb, Enabled = i.Enabled }).ToList(),
         SeparateFiles = SeparateFiles,
         SplitSeconds = SplitSeconds,
         Template = Template,
@@ -96,20 +96,20 @@ public sealed partial class Settings
         DateFolder = DateFolder,
         DateFolderFormat = DateFolderFormat,
         Tags = Tags,
-        Outputs = Outputs.Select(o => new PresetOutput
+        Outputs = Outputs.Select(o => new ProfileOutput
         {
             Name = o.Name,
             DeviceId = o.DeviceId,
             VolumeDb = o.VolumeDb,
-            Sends = Enumerable.Range(0, OutputConfig.InputSlots).Select(i => new PresetSend { On = o.SendAt(i).On, Db = o.SendAt(i).Db }).ToList(),
+            Sends = Enumerable.Range(0, OutputConfig.InputSlots).Select(i => new ProfileSend { On = o.SendAt(i).On, Db = o.SendAt(i).Db }).ToList(),
             Fx = o.Fx is { IsDefault: false } ? o.Fx.Clone() : null,
         }).ToList(),
         InputNames = InputNames.ToList(),
         InputEffects = InputEffects.Select(e => e.Clone()).ToList(),
     };
 
-    /// <summary>プリセットの内容を設定へ書き込む（保存先フォルダと番号は変えない）。値は読み出し側で範囲に丸められる。</summary>
-    public void ApplyPreset(PresetData p)
+    /// <summary>プロファイルの内容を設定へ書き込む（保存先フォルダと番号は変えない）。値は読み出し側で範囲に丸められる。</summary>
+    public void ApplyProfile(ProfileData p)
     {
         Format = OutputFormat.Get(p.Format).Key;
         BitrateKbps = EncodeOptions.Bitrates.Contains(p.Bitrate) ? p.Bitrate : 192;
@@ -131,6 +131,6 @@ public sealed partial class Settings
             Outputs = p.Outputs.Take(OutputConfig.MaxOutputs).Select((o, i) => new OutputConfig(o.Name, o.DeviceId, o.VolumeDb,
                 Enumerable.Range(0, OutputConfig.InputSlots).Select(k => k < (o.Sends?.Count ?? 0) ? new OutSend(o.Sends![k].On, o.Sends[k].Db) : new OutSend()).ToList(),
                 o.Fx).Normalize(i)).ToList();
-        CurrentPreset = p.Name;
+        CurrentProfile = p.Name;
     }
 }

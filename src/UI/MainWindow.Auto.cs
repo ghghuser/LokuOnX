@@ -143,7 +143,7 @@ public partial class MainWindow
         SetRecordButton(on);
         FolderBox.IsEnabled = SplitBox.IsEnabled = BrowseButton.IsEnabled = !on;
         Devices.SetRecording(on);
-        Quality.IsEnabled = Detail.IsEnabled = TagsTab.IsEnabled = Presets.IsEnabled = !on;
+        Quality.IsEnabled = Detail.IsEnabled = TagsTab.IsEnabled = Profiles.IsEnabled = !on;
         StateText.Text = on ? "待機中（音を待っています）" : "待機中";
         SleepGuard.Prevent(on && _settings.PreventSleep);   // 待機中にスリープすると音を待てない
     }

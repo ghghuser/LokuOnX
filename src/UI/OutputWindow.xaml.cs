@@ -42,7 +42,7 @@ public partial class OutputWindow : Window
         };
     }
 
-    /// <summary>設定（出力カードの枚数・内容）が変わったとき（プリセットの読み込みなど）に、カードを作り直す。</summary>
+    /// <summary>設定（出力カードの枚数・内容）が変わったとき（プロファイルの読み込みなど）に、カードを作り直す。</summary>
     public void Reload()
     {
         Cards.Children.Clear();

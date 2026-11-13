@@ -131,6 +131,15 @@
                                 </Setter.Value>
                             </Setter>
                         </MultiTrigger>
+                        <!-- 赤ランプ（Tag="Error"）がOFFのとき、マウスを乗せた輪は赤（緑ランプがOFFのときは従来どおり緑） -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Error"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
+                        </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

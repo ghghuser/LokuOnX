@@ -1,7 +1,7 @@
 namespace Recorder.Core;
 
 /// <summary>
-/// Settings のうち、入力ごとのエフェクト（M11-4。PROJECT.md §3-9）。入力1〜4（入力デバイス欄の行）ごとに1つ。プリセットに含む。
+/// Settings のうち、入力ごとのエフェクト（M11-4。PROJECT.md §3-9）。入力1〜4（入力デバイス欄の行）ごとに1つ。プロファイルに含む。
 /// ini: [InputFx] Fx1_GateOn / Fx1_EqBands …（入力1。2〜4は Fx2_ …）。初期値（かけない・録音に反映しない・出力に反映する）のままの入力は書かない。
 /// </summary>
 public sealed partial class Settings

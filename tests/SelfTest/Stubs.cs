@@ -1,6 +1,6 @@
 namespace Recorder.Core;
 
-// テストでは Settings.cs（ini・プリセットなど大きな依存がある）を取り込まない。
+// テストでは Settings.cs（ini・プロファイルなど大きな依存がある）を取り込まない。
 // Core が参照する定数と型だけを、本物（src/Core/Settings.Devices.cs）と同じ値・同じ形で用意する。本物を変えたらここも合わせること。
 public sealed partial class Settings
 {

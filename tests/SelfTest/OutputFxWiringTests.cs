@@ -69,7 +69,7 @@ static class OutputFxWiringTests
             var json = JsonSerializer.Serialize(new List<OutputFxSetting?> { fx, null });
             var back = JsonSerializer.Deserialize<List<OutputFxSetting?>>(json)!;
             back[0]!.Normalize();
-            check(back[0]!.SameSound(fx) && back[1] == null, "プリセットのJSONで往復できる（無い出力は null のまま＝かけない）");
+            check(back[0]!.SameSound(fx) && back[1] == null, "プロファイルのJSONで往復できる（無い出力は null のまま＝かけない）");
             check(!json.Contains("IsActive") && !json.Contains("HasAny") && !json.Contains("IsDefault"), "計算で出る項目（IsActive など）はJSONに書かない");
         }
 

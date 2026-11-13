@@ -18,7 +18,7 @@ public partial class MainWindow : IOutputHost
     private OutputHub _outHub = null!;
     private IOutputDeviceProvider _outProvider = null!;
     private OutputWindow? _outWindow;
-    private readonly List<OutputFxWindow> _outFxWindows = new();   // 出力ごとのエフェクトのウィンドウ（M11-5。出力1枚につき1つ）
+    private EffectWindow? _outFxWindow;   // 出力のエフェクトのウィンドウ（1つだけ。出力カードはタブ）
     private List<OutputConfig> _outCfgs = new();
     private readonly DispatcherTimer _outTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer _outSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
@@ -80,15 +80,16 @@ public partial class MainWindow : IOutputHost
         ApplySends(i);
     }
 
-    /// <summary>プリセットなどで設定が丸ごと変わったとき。動いている出力は止めてから（E: プリセット適用時は出力を止める）作り直す。</summary>
+    /// <summary>プロファイルなどで設定が丸ごと変わったとき。動いている出力は止めてから（E: プロファイル適用時は出力を止める）作り直す。</summary>
     private void ReloadOutputsFromSettings()
     {
         _outHub.StopAll(remember: false);
-        CloseOutputFxWindows();
         _outCfgs = _settings.Outputs.ToList();
         _outHub.EnsureCount(_outCfgs.Count);
         for (int i = 0; i < _outCfgs.Count; i++) ApplyOutput(i);
         _outWindow?.Reload();
+        _outFxWindow?.Reload();
+        Devices.RefreshWarnings();
     }
 
     /// <summary>遅れて保存する予定の出力設定を、いま設定へ書く。</summary>
@@ -105,7 +106,9 @@ public partial class MainWindow : IOutputHost
     void IOutputHost.Update(int index, OutputConfig config)
     {
         if (index < 0 || index >= _outCfgs.Count) return;
+        bool destChanged = _outCfgs[index].DeviceId != config.DeviceId;
         _outCfgs[index] = config.Normalize(index);
+        if (destChanged) Devices.RefreshWarnings();
         ApplyOutput(index);
         _outSaveTimer.Stop();
         _outSaveTimer.Start();
@@ -118,41 +121,40 @@ public partial class MainWindow : IOutputHost
         _outHub.EnsureCount(_outCfgs.Count);
         ApplyOutput(_outCfgs.Count - 1);
         _settings.Outputs = _outCfgs;
+        Devices.RefreshWarnings();
         return true;
     }
 
     void IOutputHost.RemoveOutput(int index)
     {
         if (index < 0 || index >= _outCfgs.Count || _outCfgs.Count <= 1) return;   // 最後の1枚は残す
-        CloseOutputFxWindows();   // 番号がずれるので、エフェクトのウィンドウは閉じる
         _outCfgs.RemoveAt(index);
         _outHub.RemoveAt(index);
         _settings.Outputs = _outCfgs;
+        _outFxWindow?.Reload();   // タブが減る
+        Devices.RefreshWarnings();
     }
 
     void IOutputHost.OpenOutputFx(int index, Window owner)
     {
         if (index < 0 || index >= _outCfgs.Count) return;
-        var open = _outFxWindows.FirstOrDefault(x => x.Index == index);
-        if (open != null)
+        if (_outFxWindow != null)
         {
-            if (open.WindowState == WindowState.Minimized) open.WindowState = WindowState.Normal;
-            open.Activate();
+            _outFxWindow.ShowSlot(index);
+            if (_outFxWindow.WindowState == WindowState.Minimized) _outFxWindow.WindowState = WindowState.Normal;
+            _outFxWindow.Activate();
             return;
         }
-        var w = new OutputFxWindow(this, _settings, index) { Owner = owner ?? this };
-        w.Closed += (_, _) => _outFxWindows.Remove(w);
-        _outFxWindows.Add(w);
+        var w = new EffectWindow(new OutputFxHost(this, _settings), _settings, index) { Owner = owner ?? this };
+        w.Closed += (_, _) => _outFxWindow = null;
+        _outFxWindow = w;
         w.Show();
     }
 
     private void CloseOutputFxWindows()
     {
-        foreach (var w in _outFxWindows.ToList())
-        {
-            try { w.Close(); } catch (Exception) { }
-        }
-        _outFxWindows.Clear();
+        try { _outFxWindow?.Close(); } catch (Exception) { }
+        _outFxWindow = null;
     }
 
     void IOutputHost.RenameInput(int slot, string name) => Devices.SetInputName(slot, name);
@@ -165,6 +167,20 @@ public partial class MainWindow : IOutputHost
         try { defaultRender = _provider.DefaultRenderKey(); }
         catch (Exception) { defaultRender = null; }
         return OutputGuard.IsLoop(id, defaultRender, Devices.Inputs.Select(i => RealInputKey(i.Key)));
+    }
+
+    /// <summary>この入力（Key）を使うと、音が回るため出力できなくなる出力カードの名前（出力先が未選択のカードは対象外）。</summary>
+    private IReadOnlyList<string> LoopOutputNames(string inputKey)
+    {
+        var real = RealInputKey(inputKey);
+        if (!real.StartsWith("render:", StringComparison.Ordinal)) return Array.Empty<string>();
+        string? defaultRender;
+        try { defaultRender = _provider.DefaultRenderKey(); }
+        catch (Exception) { defaultRender = null; }
+        var list = new List<string>();
+        foreach (var c in _outCfgs)
+            if (c.DeviceId.Length > 0 && OutputGuard.IsLoop(c.DeviceId, defaultRender, new[] { real })) list.Add(c.Name);
+        return list;
     }
 
     string IOutputHost.RealOutputId(string id)

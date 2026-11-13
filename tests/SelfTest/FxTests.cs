@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Recorder.Core;
 
-/// <summary>入力ごとのエフェクト（M11-4）: 録音・出力への反映先、ピークは掛ける前、設定の保存・プリセットの互換。</summary>
+/// <summary>入力ごとのエフェクト（M11-4）: 録音・出力への反映先、ピークは掛ける前、設定の保存・プロファイルの互換。</summary>
 static class FxTests
 {
     static float Tail(float[] a, int frames, int ch, int lastFrames)
@@ -102,7 +102,7 @@ static class FxTests
             hub.Release(e2);
         }
 
-        section("入力ごとのエフェクト: コピー・保存・プリセット");
+        section("入力ごとのエフェクト: コピー・保存・プロファイル");
         {
             var src = new EffectSetting { GateOn = true, GateThresholdDb = -50, HpfHz = 120, EqOn = true, EchoOn = true, EchoMs = 250, ToRecording = false, ToOutput = true };
             src.Bands[3] = 6;
@@ -130,12 +130,12 @@ static class FxTests
             }
             finally { try { Directory.Delete(dir, true); } catch { } }
 
-            // プリセット（JSON）: 4入力ぶんの往復。反映先も含む
+            // プロファイル（JSON）: 4入力ぶんの往復。反映先も含む
             var list = new List<EffectSetting> { dst, new EffectSetting(), new EffectSetting { ReverbOn = true, ToRecording = true }, new EffectSetting() };
             var json = JsonSerializer.Serialize(list);
             var back = JsonSerializer.Deserialize<List<EffectSetting>>(json)!;
             foreach (var x in back) x.Normalize();
-            check(back.Count == 4 && back[0].SameSound(dst) && back[0].ToRecording && !back[0].ToOutput && back[2].ReverbOn && back[2].ToRecording, "プリセットのJSONで往復できる（反映先も含む）");
+            check(back.Count == 4 && back[0].SameSound(dst) && back[0].ToRecording && !back[0].ToOutput && back[2].ReverbOn && back[2].ToRecording, "プロファイルのJSONで往復できる（反映先も含む）");
             check(!json.Contains("IsActive") && !json.Contains("HasAny") && !json.Contains("IsDefault"), "計算で出る項目（IsActive など）はJSONに書かない");
 
             // 壊れた・足りない値でも読める（範囲内に直る）

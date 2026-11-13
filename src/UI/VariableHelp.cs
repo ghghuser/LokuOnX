@@ -22,7 +22,7 @@ public static class VariableHelp
         new VarInfo("{End}", "このファイルの終了時間（録音全体の0：00から）"),
         new VarInfo("{Length}", "このファイルの長さ（End − Start）"),
         new VarInfo("{Device}", "入力デバイスの名前"),
-        new VarInfo("{Preset}", "プリセット名"),
+        new VarInfo("{Profile}", "プロファイル名"),
         new VarInfo("{ext}", "拡張子（flac / mp3 / m4a / aac / wav / ogg / opus）"),
         new VarInfo("{Start:min}", "開始時間を分だけで表す（例 125：30）"),
         new VarInfo("{End:min}", "終了時間を分だけで表す"),

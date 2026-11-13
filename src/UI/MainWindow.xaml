@@ -32,7 +32,7 @@
                                   Checked="InputCheck_Changed" Unchecked="InputCheck_Changed"/>
         </Border>
 
-        <!-- 最上段: プリセット ｜ ログ（保存しました など。常に2行分の高さ） ｜ 設定の歯車 -->
+        <!-- 最上段: プロファイル ｜ ログ（保存しました など。常に2行分の高さ） ｜ 設定の歯車 -->
         <Grid Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -42,8 +42,8 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="プリセット" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <ui:PresetBar x:Name="Presets"/>
+                <TextBlock Text="プロファイル" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ui:ProfileBar x:Name="Profiles"/>
             </StackPanel>
             <!-- 予約録音が有効なとき、次の予約を目立つ色で出す -->
             <Border x:Name="ScheduleBadge" Grid.Column="2" Visibility="Collapsed" CornerRadius="11" Padding="11,3" Margin="0,0,10,0"

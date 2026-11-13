@@ -6,7 +6,7 @@ namespace Recorder.Core;
 /// </summary>
 public sealed class RecordingPlan
 {
-    public const string PresetName = "既定";
+    public const string ProfileName = "既定";
 
     private readonly NameContext _ctx;
     private readonly string _pattern;
@@ -30,7 +30,7 @@ public sealed class RecordingPlan
     {
         var options = s.Encode;
         var ctx = new NameContext(now, s.NextNo, s.TrackStart, TimeSpan.Zero, TimeSpan.Zero,
-            FileNamer.CleanDevice(deviceLabel), s.CurrentPreset, options.Fmt.Ext);
+            FileNamer.CleanDevice(deviceLabel), s.CurrentProfile, options.Fmt.Ext);
         var folder = FileNamer.Folder(s.Folder, s.DateFolder, s.DateFolderFormat, ctx);
         return new RecordingPlan(ctx, addDevice ? FileNamer.WithDevice(s.Pattern) : s.Pattern, folder, options, lane);
     }
@@ -39,7 +39,7 @@ public sealed class RecordingPlan
     public static string PreviewFolder(Settings s, DateTime now)
     {
         var ctx = new NameContext(now, s.NextNo, s.TrackStart, TimeSpan.Zero, TimeSpan.Zero,
-            "", s.CurrentPreset, s.Encode.Fmt.Ext);
+            "", s.CurrentProfile, s.Encode.Fmt.Ext);
         return FileNamer.Folder(s.Folder, s.DateFolder, s.DateFolderFormat, ctx);
     }
 
