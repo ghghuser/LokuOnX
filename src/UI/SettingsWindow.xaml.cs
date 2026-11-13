@@ -17,9 +17,10 @@ public partial class SettingsWindow : Window
         public override string ToString() => Label;
     }
 
-    private static readonly ThemeChoice[] Themes =
+    private static ThemeChoice[] Themes() => new ThemeChoice[]
     {
-        new("auto", "自動（Windowsに合わせる）"), new("light", "ライト"), new("dark", "ダーク"), new("soft", "ライト (ニューモーフィズム風)"), new("softdark", "ダーク (ニューモーフィズム風)"),
+        new("auto", Loc.Get("theme.auto")), new("light", Loc.Get("theme.light")), new("dark", Loc.Get("theme.dark")),
+        new("soft", Loc.Get("theme.soft")), new("softdark", Loc.Get("theme.softdark")),
     };
 
     private readonly Settings _s;
@@ -43,7 +44,8 @@ public partial class SettingsWindow : Window
         _trayChanged = trayChanged;
         _asioChanged = asioChanged;
         AsioCheck.IsChecked = settings.AsioEnabled;
-        ThemeBox.ItemsSource = Themes;
+        ThemeBox.ItemsSource = Themes();
+        HelpText.Text = Loc.Block("help.");
         ThemeBox.SelectedValue = settings.Theme;
         SleepCheck.IsChecked = settings.PreventSleep;
         TrayCheck.IsChecked = settings.ShowTray;

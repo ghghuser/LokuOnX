@@ -89,7 +89,7 @@ public partial class HotkeyPanel : System.Windows.Controls.UserControl
         {
             if (other != tag && BoxOf(other).Text == text)
             {
-                SetMessage("既定のキー " + text + " は、ほかの操作に割り当て済みのため戻せません。先にそちらを変えるか解除してください。", true);
+                SetMessage(Loc.Get("hotkey.err.restoreTaken", text), true);
                 return;
             }
         }
@@ -121,7 +121,7 @@ public partial class HotkeyPanel : System.Windows.Controls.UserControl
         var name = KeyName(key);
         if (name == null || mods == ModifierKeys.None)
         {
-            SetMessage("Ctrl・Alt・Shift・Win のどれかを押しながら、F1〜F24・英字・数字などのキーを押してください。", true);
+            SetMessage(Loc.Get("hotkey.err.needModifier"), true);
             return;
         }
         var parts = new List<string>();
@@ -133,7 +133,7 @@ public partial class HotkeyPanel : System.Windows.Controls.UserControl
         var text = HotkeySpec.Format(string.Join("+", parts));
         if (text.Length == 0)
         {
-            SetMessage("そのキーは使えません。", true);
+            SetMessage(Loc.Get("hotkey.err.badKey"), true);
             return;
         }
         var tag = box.Tag as string;
@@ -141,7 +141,7 @@ public partial class HotkeyPanel : System.Windows.Controls.UserControl
         {
             if (other != tag && BoxOf(other).Text == text)
             {
-                SetMessage("同じキーを2つの操作に割り当てることはできません: " + text, true);
+                SetMessage(Loc.Get("hotkey.err.duplicate", text), true);
                 return;
             }
         }

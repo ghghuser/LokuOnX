@@ -29,6 +29,11 @@
     <Resource Include="..\assets\icon\LokuOnX.ico" Link="LokuOnX.ico" />
   </ItemGroup>
 
+  <!-- 画面の文言（既定の日本語）。exe に埋め込む。配布では Lang/ja.ini も exe の隣に置き、編集で上書きできる（PROJECT.md §3-10） -->
+  <ItemGroup>
+    <EmbeddedResource Include="Lang\ja.ini" LogicalName="Lang.ja.ini" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>

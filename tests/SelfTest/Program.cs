@@ -20,6 +20,7 @@ HubTests.Run(new CheckFn(Check), Section);
 EngineTests.Run(new CheckFn(Check), Section);
 OutputHubTests.Run(new CheckFn(Check), Section);
 OutputFxWiringTests.Run(new CheckFn(Check), Section);
+LocTests.Run(new CheckFn(Check), Section);
 IniTests.Run(new CheckFn(Check), Section);
 FxTests.Run(new CheckFn(Check), Section);
 

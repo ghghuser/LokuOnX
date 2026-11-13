@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:Recorder.UI"
-        Title="設定とヘルプ" Width="620" Height="720" MinHeight="480"
+        Title="{ui:T settings.title}" Width="620" Height="720" MinHeight="480"
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource WindowFg}"
         FontFamily="Yu Gothic UI, Meiryo UI" FontSize="14"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize">
@@ -14,53 +14,53 @@
 
         <TabControl x:Name="Tabs">
             <!-- 詳細設定: めったに使わない設定。見出し（色付き）と中身（左に縦線）で見分ける -->
-            <TabItem Header="詳細設定">
+            <TabItem Header="{ui:T settings.tab.advanced}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="0,0,10,0">
-                        <TextBlock Text="表示" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                        <TextBlock Text="{ui:T settings.section.display}" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="画面の色" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="{ui:T settings.theme}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <ComboBox x:Name="ThemeBox" Width="220" DisplayMemberPath="Label" SelectedValuePath="Key"
-                                          ToolTip="自動＝Windowsの設定に合わせます（起動時に判定）。ダークでは、Windows 11 なら半透明（アクリル）になります"
+                                          ToolTip="{ui:T settings.theme.tip}"
                                           SelectionChanged="Theme_Changed"/>
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Text="録音" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{ui:T settings.section.recording}" Style="{StaticResource SectionTitle}"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>
-                                <CheckBox x:Name="SleepCheck" Content="録音中はスリープさせない" Margin="0,0,0,10"
+                                <CheckBox x:Name="SleepCheck" Content="{ui:T settings.sleep}" Margin="0,0,0,10"
                                           Checked="Sleep_Changed" Unchecked="Sleep_Changed"/>
-                                <TextBlock Text="録音中にデバイスが外れたとき" FontSize="12" Opacity="0.65" Margin="0,0,0,4"/>
-                                <CheckBox x:Name="WaitCheck" Content="すべてのデバイスが未接続になったら、再接続されるまで一時停止する" Margin="0,0,0,4"
-                                          ToolTip="OFF：無音で埋めて録音を続けます。ON：使えるデバイスが1台も無くなったら一時停止し（無音は入れません）、再接続されたら自動で再開します。1台でも録れていれば続けます。"
+                                <TextBlock Text="{ui:T settings.lost.heading}" FontSize="12" Opacity="0.65" Margin="0,0,0,4"/>
+                                <CheckBox x:Name="WaitCheck" Content="{ui:T settings.lost.wait}" Margin="0,0,0,4"
+                                          ToolTip="{ui:T settings.lost.wait.tip}"
                                           Checked="Device_Changed" Unchecked="Device_Changed"/>
-                                <CheckBox x:Name="SplitReturnCheck" Content="デバイスが再接続されたら、録音ファイルを分割する"
-                                          ToolTip="外れていたデバイスが再接続された時点で、次のファイルへ分割します。上の「一時停止」とは関係なく、単独で使えます。"
+                                <CheckBox x:Name="SplitReturnCheck" Content="{ui:T settings.lost.split}"
+                                          ToolTip="{ui:T settings.lost.split.tip}"
                                           Checked="Device_Changed" Unchecked="Device_Changed"/>
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Text="ASIO（上級者向け）" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{ui:T settings.section.asio}" Style="{StaticResource SectionTitle}"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>
-                                <CheckBox x:Name="AsioCheck" Content="入力デバイスの一覧にASIOを表示する"
-                                          ToolTip="FlexASIO などのASIOドライバが入っているときだけ、一覧の最後に「🎛 ドライバ名 入力1-2」のように出ます。通常のマイクやスピーカーの録音には不要です"
+                                <CheckBox x:Name="AsioCheck" Content="{ui:T settings.asio}"
+                                          ToolTip="{ui:T settings.asio.tip}"
                                           Checked="Asio_Changed" Unchecked="Asio_Changed"/>
-                                <TextBlock Text="ASIOはドライバを専有するため、同時に使えるのは1行だけです（マイクやスピーカーとの同時録音は可能です）。録音中の切り替えは、録音が終わってから一覧に反映されます。"
+                                <TextBlock Text="{ui:T settings.asio.note}"
                                            TextWrapping="Wrap" FontSize="12" Opacity="0.65" Margin="0,6,0,0"/>
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Text="タスクトレイ" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{ui:T settings.section.tray}" Style="{StaticResource SectionTitle}"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>
-                                <CheckBox x:Name="TrayCheck" Content="タスクトレイにアイコンを表示する" Margin="0,0,0,4"
-                                          ToolTip="ダブルクリックで画面を開き、右クリックで 録音開始／停止・一時停止・分割・終了 を操作できます。録音中は、アイコンが赤い丸に変わります"
+                                <CheckBox x:Name="TrayCheck" Content="{ui:T settings.tray}" Margin="0,0,0,4"
+                                          ToolTip="{ui:T settings.tray.tip}"
                                           Checked="Tray_Changed" Unchecked="Tray_Changed"/>
-                                <CheckBox x:Name="MinTrayCheck" Content="最小化したらトレイへ格納する（タスクバーには残さない）"
-                                          ToolTip="OFFのときは、最小化してもタスクバーに残ります。トレイのアイコンを表示しているときだけ使えます。格納したままでも録音は続きます"
+                                <CheckBox x:Name="MinTrayCheck" Content="{ui:T settings.tray.min}"
+                                          ToolTip="{ui:T settings.tray.min.tip}"
                                           Checked="Tray_Changed" Unchecked="Tray_Changed"/>
                             </StackPanel>
                         </Border>
@@ -70,26 +70,25 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="ヘルプ">
+            <TabItem Header="{ui:T settings.tab.help}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <TextBlock TextWrapping="Wrap" LineHeight="24" Margin="2,2,10,0" Opacity="0.92"
-                               Text="■ ファイル名やフォルダ名の変数は、「ファイル名」欄の右の「？」ボタンで説明と入力補助が開きます。&#10;■ プロファイルは exe と同じ場所の Profiles フォルダに「名前.json」で保存されます（保存先と番号は含みません）。&#10;■ エラーは音の鳴るポップアップではなく、原因の近くに赤文字で表示されます。&#10;■ 長さを正しく表示したいときは、aac は m4a を選んでください。&#10;■ ファイル一覧の ＊ は、起動後に作られたファイル（白に近い文字）です。再生中は、別のファイルを選んでも止まりません。&#10;■ 予約録音が有効なときは、画面の上の段に「⏰ 予約 …」が黄色く出ます。録音中はトレイのアイコンが赤い丸、音を待っている待機中は黄色いリングに変わります。&#10;■ メーターの白い線は直近の最大値、右端の四角が赤くなるとクリップです。ゲインを左端にするとミュート（橙色の表示）になります。"/>
+                    <TextBlock x:Name="HelpText" TextWrapping="Wrap" LineHeight="24" Margin="2,2,10,0" Opacity="0.92"/>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="バージョン情報">
+            <TabItem Header="{ui:T settings.tab.about}">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock x:Name="VersionText" FontSize="20" FontWeight="SemiBold" TextAlignment="Center" Margin="0,0,0,10"/>
                     <TextBlock TextAlignment="Center" Margin="0,0,0,14">
-                        <Hyperlink x:Name="GitHubLink" NavigateUri="https://github.com/ghghuser/LokuOnX" RequestNavigate="Link_Navigate">GitHub のリポジトリ</Hyperlink>
+                        <Hyperlink x:Name="GitHubLink" NavigateUri="https://github.com/ghghuser/LokuOnX" RequestNavigate="Link_Navigate"><Run Text="{ui:T about.github}"/></Hyperlink>
                     </TextBlock>
                     <TextBlock TextAlignment="Center" Margin="0,0,0,14">
-                        <Hyperlink x:Name="FolderLink" Click="OpenFolder_Click">設定ファイル・ログのフォルダを開く</Hyperlink>
+                        <Hyperlink x:Name="FolderLink" Click="OpenFolder_Click"><Run Text="{ui:T about.folder}"/></Hyperlink>
                     </TextBlock>
                 </StackPanel>
             </TabItem>
         </TabControl>
 
-        <Button Grid.Row="1" Content="閉じる" Width="90" Padding="0,5" Margin="0,12,0,0" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"/>
+        <Button Grid.Row="1" Content="{ui:T settings.close}" Width="90" Padding="0,5" Margin="0,12,0,0" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"/>
     </Grid>
 </Window>

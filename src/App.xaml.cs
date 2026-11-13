@@ -12,6 +12,8 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        // 画面の文言（exe 内の既定 → exe の隣の Lang/ja.ini で上書き）。画面を作る前に読む
+        using (var res = typeof(App).Assembly.GetManifestResourceStream("Lang.ja.ini")) Loc.Init(res, AppPaths.Dir, "ja");
         // 想定外のエラーは lokuonx-crash.log に記録する。画面の処理の例外は握りつぶして、録音（別スレッド）は続ける
         DispatcherUnhandledException += (_, args) =>
         {
