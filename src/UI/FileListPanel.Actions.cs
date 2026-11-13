@@ -20,7 +20,7 @@ public partial class FileListPanel
     {
         ClearError();
         if (SelectedFiles.FirstOrDefault() is { } f) PlayRequested?.Invoke(f);
-        else ShowError("再生するファイルを選んでください。");
+        else ShowError(Loc.Get("filelistpanel.actions.s01"));
     }
 
     // ---- エクスプローラーで開く（複数選択のときは確認してから） ----
@@ -30,12 +30,12 @@ public partial class FileListPanel
         var files = SelectedFiles;
         if (files.Count == 0)
         {
-            ShowError("ファイルを選んでください。");
+            ShowError(Loc.Get("filelistpanel.actions.s02"));
             return;
         }
         if (files.Count > 1)
         {
-            var answer = MessageBox.Show(Owner!, $"選んだ {files.Count} 個のファイルを、それぞれエクスプローラーで開きます（{files.Count} 個のウィンドウが開きます）。よろしいですか？",
+            var answer = MessageBox.Show(Owner!, Loc.Get("filelistpanel.actions.s03", files.Count, files.Count),
                 AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
             if (answer != MessageBoxResult.Yes) return;
         }
@@ -46,7 +46,7 @@ public partial class FileListPanel
                 if (File.Exists(f.Path))
                     Process.Start(new ProcessStartInfo("explorer.exe") { Arguments = $"/select,\"{f.Path}\"", UseShellExecute = true });
             }
-            catch (Exception ex) { ShowError("エクスプローラーを開けませんでした: " + ex.Message); return; }
+            catch (Exception ex) { ShowError((Loc.Get("filelistpanel.actions.s04") + " ") + ex.Message); return; }
         }
     }
 
@@ -57,7 +57,7 @@ public partial class FileListPanel
         var files = SelectedFiles;
         if (files.Count != 1)
         {
-            ShowError("名前を変えるファイルを1つだけ選んでください。");
+            ShowError(Loc.Get("filelistpanel.actions.s05"));
             return;
         }
         var path = files[0].Path;
@@ -78,18 +78,18 @@ public partial class FileListPanel
         var files = SelectedFiles;
         if (files.Count == 0)
         {
-            ShowError("削除するファイルを選んでください。");
+            ShowError(Loc.Get("filelistpanel.actions.s06"));
             return;
         }
-        var what = files.Count == 1 ? $"「{files[0].Name}」" : $"選んだ {files.Count} 個のファイル";
-        var answer = MessageBox.Show(Owner!, $"{what}をごみ箱へ移します。よろしいですか？",
+        var what = files.Count == 1 ? $"「{files[0].Name}」" : Loc.Get("filelistpanel.actions.s07", files.Count);
+        var answer = MessageBox.Show(Owner!, Loc.Get("filelistpanel.actions.s08", what),
             AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
 
         var paths = files.Select(f => f.Path).ToList();
         Releasing?.Invoke(paths);
         var failed = await Task.Run(() => RecycleBin.Send(paths));
-        if (failed.Count > 0) ShowError("ごみ箱へ移せなかったファイル: " + string.Join(" / ", failed));
+        if (failed.Count > 0) ShowError((Loc.Get("filelistpanel.actions.s09") + " ") + string.Join(" / ", failed));
         _settings.RemoveFromHistory(paths.Where(p => !File.Exists(p)));
         Refresh();
     }
@@ -102,7 +102,7 @@ public partial class FileListPanel
         folder = folder.Trim();
         if (folder.Length == 0 || !Directory.Exists(folder))
         {
-            ShowError("フォルダが見つかりません: " + folder);
+            ShowError((Loc.Get("filelistpanel.actions.s10") + " ") + folder);
             return;
         }
         _settings.AddRecentFolder(folder);
@@ -123,13 +123,13 @@ public partial class FileListPanel
         var audio = string.Join(";", AudioLibrary.Extensions.Select(x => "*" + x));
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "表示するフォルダを開いて、そのまま「開く」を押してください（中の音声ファイルが見えます）",
-            Filter = $"音声ファイル（{audio}）|{audio}|すべてのファイル|*.*",
+            Title = Loc.Get("filelistpanel.actions.s11"),
+            Filter = Loc.Get("filelistpanel.actions.s12", audio, audio),
             CheckFileExists = false,   // 「このフォルダを表示」の仮の名前でも通す
             CheckPathExists = true,
             ValidateNames = false,
             Multiselect = false,
-            FileName = "このフォルダを表示",
+            FileName = Loc.Get("filelistpanel.actions.s13"),
         };
         if (Directory.Exists(start)) dlg.InitialDirectory = start;
         if (dlg.ShowDialog(Owner) != true) return;
@@ -148,7 +148,7 @@ public partial class FileListPanel
             Refresh();
             return;
         }
-        var answer = MessageBox.Show(Owner!, "録音履歴の一覧を空にします（ファイルは消えません）。よろしいですか？",
+        var answer = MessageBox.Show(Owner!, Loc.Get("filelistpanel.actions.s14"),
             AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
         _settings.ClearHistory();

@@ -97,7 +97,7 @@ public partial class PlayerPanel : UserControl
         if (_player == null || _file == null) return;
         if (!File.Exists(_file.Path))
         {
-            ShowError("ファイルが見つかりません。一覧を更新してください。");
+            ShowError(Loc.Get("playerpanel.s01"));
             return;
         }
         if (Length > 0 && _pos >= Length - 0.5) _pos = 0;
@@ -193,7 +193,7 @@ public partial class PlayerPanel : UserControl
     }
 
     private void UpdateName() =>
-        NameText.Text = _file == null ? "一覧のファイルを選ぶと、ここで再生できます" : (Playing ? "▶ 再生中: " : "") + _file.Name;
+        NameText.Text = _file == null ? Loc.Get("playerpanel.s02") : (Playing ? (Loc.Get("playerpanel.s03") + " ") : "") + _file.Name;
 
     private void OnFileChanged(object? sender, PropertyChangedEventArgs e)
     {

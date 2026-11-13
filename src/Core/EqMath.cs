@@ -4,7 +4,7 @@ namespace Recorder.Core;
 public sealed class ParamBand
 {
     public const int Count = 4;
-    public static readonly string[] Names = { "低域", "中低域", "中高域", "高域" };
+    public static readonly string[] Names = { Loc.Get("eq.band.low"), Loc.Get("eq.band.lowmid"), Loc.Get("eq.band.highmid"), Loc.Get("eq.band.high") };
     public static readonly double[] DefaultFreqs = { 100, 500, 2000, 8000 };
     public const double MaxDb = 12, MinQ = 0.3, MaxQ = 8, DefaultQ = 1.0, MinHz = 20, MaxHz = 20000;
 
@@ -51,16 +51,16 @@ public static class EqBands
     /// <summary>よく使う設定(名前, 10帯域のdB)。先頭は「フラット」。</summary>
     public static readonly (string Name, double[] Db)[] Presets =
     {
-        ("フラット", new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }),
-        ("低音を強く", new double[] { 6, 6, 5, 3, 1, 0, 0, 0, 0, 0 }),
-        ("高音を強く", new double[] { 0, 0, 0, 0, 0, 1, 2, 4, 5, 6 }),
-        ("声を聞きやすく", new double[] { -6, -5, -3, -1, 1, 3, 4, 3, 1, 0 }),
-        ("音楽/映画鑑賞向け", new double[] { 4, 5, 2, -1, -2, -3, -1, 3, 5, 5 }),
-        ("ロック", new double[] { 4, 3, 2, 0, -2, -1, 1, 3, 4, 4 }),
-        ("ポップ", new double[] { -1, 2, 3, 3, 2, 0, -1, -1, 1, 1 }),
-        ("クラシック", new double[] { 0, 0, 0, 0, 0, 0, -2, -3, -3, -4 }),
-        ("こもりを取る", new double[] { 0, 0, -2, -4, -3, 0, 1, 2, 2, 1 }),
-        ("ノイズ(シャー音)を抑える", new double[] { 0, 0, 0, 0, 0, 0, -1, -3, -6, -9 }),
+        (Loc.Get("eq.preset.flat"), new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }),
+        (Loc.Get("eq.preset.bass"), new double[] { 6, 6, 5, 3, 1, 0, 0, 0, 0, 0 }),
+        (Loc.Get("eq.preset.treble"), new double[] { 0, 0, 0, 0, 0, 1, 2, 4, 5, 6 }),
+        (Loc.Get("eq.preset.voice"), new double[] { -6, -5, -3, -1, 1, 3, 4, 3, 1, 0 }),
+        (Loc.Get("eq.preset.media"), new double[] { 4, 5, 2, -1, -2, -3, -1, 3, 5, 5 }),
+        (Loc.Get("eq.preset.rock"), new double[] { 4, 3, 2, 0, -2, -1, 1, 3, 4, 4 }),
+        (Loc.Get("eq.preset.pop"), new double[] { -1, 2, 3, 3, 2, 0, -1, -1, 1, 1 }),
+        (Loc.Get("eq.preset.classical"), new double[] { 0, 0, 0, 0, 0, 0, -2, -3, -3, -4 }),
+        (Loc.Get("eq.preset.clear"), new double[] { 0, 0, -2, -4, -3, 0, 1, 2, 2, 1 }),
+        (Loc.Get("eq.preset.hiss"), new double[] { 0, 0, 0, 0, 0, 0, -1, -3, -6, -9 }),
     };
 }
 

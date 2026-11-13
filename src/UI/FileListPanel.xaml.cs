@@ -20,7 +20,7 @@ public partial class FileListPanel : UserControl
         public override string ToString() => Label;
     }
 
-    private static readonly string[] Titles = { "ファイル名", "長さ", "サイズ", "作成日時" };
+    private static string[] Titles => new[] { Loc.Get("filelist.col.name"), Loc.Get("filelist.col.length"), Loc.Get("filelist.col.size"), Loc.Get("filelist.col.created") };
     private static readonly string[] SortKeys = { "Name", "LengthSeconds", "Size", "Created" };
     private const int AutoLengthLimit = 200;   // 長さを自動で調べるのは新しい順にこの数まで（選んだものは必ず調べる）
     private const string HistoryKey = "";
@@ -246,7 +246,7 @@ public partial class FileListPanel : UserControl
             : o => o is LibraryFile f && (f.IsRecording || f.Name.Contains(text, StringComparison.CurrentCultureIgnoreCase));
         int total = _items.Count(f => !f.IsRecording);
         int shown = text.Length == 0 ? total : List.Items.Cast<LibraryFile>().Count(f => !f.IsRecording);
-        CountText.Text = total == 0 ? "0 件" : text.Length == 0 ? $"{total} 件" : $"{shown} / {total} 件";
+        CountText.Text = total == 0 ? Loc.Get("filelistpanel.s01") : text.Length == 0 ? Loc.Get("filelistpanel.s02", total) : Loc.Get("filelistpanel.s03", shown, total);
     }
 
     private void ApplySort()

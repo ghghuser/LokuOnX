@@ -23,7 +23,7 @@ public partial class App : Application
             _errorDialogOpen = true;
             try
             {
-                MessageBox.Show($"予期しないエラーが発生しました。録音は続行されています。\n{args.Exception.Message}\n\n詳細は {CrashLog.FileName} に記録しました。",
+                MessageBox.Show(Loc.Get("app.s01", args.Exception.Message, CrashLog.FileName),
                     AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally { _errorDialogOpen = false; }
@@ -39,7 +39,7 @@ public partial class App : Application
         if (!first)
         {
             var answer = MessageBox.Show(
-                $"すでに『{AppInfo.Name}』が起動しています。設定は保存されませんが、それでも起動しますか？",
+                Loc.Get("app.s02", AppInfo.Name),
                 AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (answer != MessageBoxResult.Yes)
             {
@@ -58,7 +58,7 @@ public partial class App : Application
         {
             // 画面が作れなかったときは、窓の無いプロセスを残さず終了する（多重起動の誤検知を防ぐ）
             CrashLog.Write("Startup: " + ex);
-            MessageBox.Show($"起動中にエラーが発生したため終了します。\n{ex.Message}\n\n詳細は {CrashLog.FileName} に記録しました。",
+            MessageBox.Show(Loc.Get("app.s03", ex.Message, CrashLog.FileName),
                 AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }

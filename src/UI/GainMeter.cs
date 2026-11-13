@@ -1,3 +1,4 @@
+using Recorder.Core;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -92,7 +93,7 @@ public sealed class GainMeter : Grid
     {
         text.Background = Brushes.Transparent;   // 文字のすき間でも反応するように
         text.Cursor = Cursors.Hand;
-        text.ToolTip = "ダブルクリックで 0 dB に戻します";
+        text.ToolTip = Loc.Get("gainmeter.s01");
         text.MouseLeftButtonDown += (_, e) =>
         {
             if (e.ClickCount < 2) return;

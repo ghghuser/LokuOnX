@@ -183,7 +183,7 @@ public partial class MainWindow
         if (_pauseShown != s.Paused) SetPauseButton(s.Paused);   // トレイ・ホットキー・デバイス待機での一時停止もボタンへ反映
         _tray?.SetState(s.Paused ? TrayState.Paused : TrayState.Recording);   // 録音中は赤い丸、一時停止中は一時停止マーク
         _tray?.SetTip(Loc.Get("rec.tip.running", AppInfo.Name, Loc.Get(s.Paused ? "rec.state.paused" : "rec.state.recording"), Clock(f)) + ScheduleTip());
-        Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
+        Files.SetRecording(Loc.Get(s.Paused ? "files.recordingPaused" : "files.recording", s.CurrentTrackNumber));
         var devicePeaks = s.TakeDevicePeaks();
         var devicePairs = s.TakeDevicePeakPairs();
         Devices.SetLevels(devicePairs);
