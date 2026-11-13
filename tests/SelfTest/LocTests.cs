@@ -33,12 +33,12 @@ static class LocTests
         {
             if (f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)) continue;
             if (f.EndsWith(".xaml"))
-                foreach (Match m in xaml.Matches(File.ReadAllText(f))) if (!Loc.Has(m.Groups[1].Value)) missing.Add(m.Groups[1].Value);
+                foreach (Match x in xaml.Matches(File.ReadAllText(f))) if (!Loc.Has(x.Groups[1].Value)) missing.Add(x.Groups[1].Value);
             else if (f.EndsWith(".cs"))
             {
                 var t = File.ReadAllText(f);
-                foreach (Match m in code.Matches(t)) if (!Loc.Has(m.Groups[1].Value)) missing.Add(m.Groups[1].Value);
-                foreach (Match m in block.Matches(t)) if (!Loc.Has(m.Groups[1].Value + "1")) missing.Add(m.Groups[1].Value + "1");
+                foreach (Match c in code.Matches(t)) if (!Loc.Has(c.Groups[1].Value)) missing.Add(c.Groups[1].Value);
+                foreach (Match b in block.Matches(t)) if (!Loc.Has(b.Groups[1].Value + "1")) missing.Add(b.Groups[1].Value + "1");
             }
         }
         check(missing.Count == 0, "画面・コードが使う文言のキーが ja.ini に全部ある", string.Join(", ", missing.Distinct()));
