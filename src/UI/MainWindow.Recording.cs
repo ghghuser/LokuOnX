@@ -36,7 +36,7 @@ public partial class MainWindow
     private void ShowRecordingStatus()
     {
         if (_session is not { } s) return;
-        StatusText.Text = "録音中: " + s.OutputText + (_notice.Length > 0 ? "\n" + _notice : "");
+        StatusText.Text = Loc.Get("rec.status.recording", s.OutputText) + (_notice.Length > 0 ? "\n" + _notice : "");
     }
 
     // ---- 一時停止・分割 ----
@@ -69,7 +69,7 @@ public partial class MainWindow
         _scheduledStopAt = null;
         _silence = null;
         StartButton.IsEnabled = PauseButton.IsEnabled = SplitButton.IsEnabled = false;
-        StatusText.Text = "保存中...";
+        StatusText.Text = Loc.Get("rec.status.saving");
         await Task.Run(() =>
         {
             // 閉じたあとで最終のファイル名を確定する（名前は保存時に確定。録音中は仮名）
@@ -85,14 +85,14 @@ public partial class MainWindow
         SetRecording(false);
         if (failure != null)
         {
-            StatusText.Text = "録音が失敗しました（途中までのファイル: " + path + "）";
-            ShowError("録音中にエラーが発生しました。" + failure);
+            StatusText.Text = Loc.Get("rec.err.failedWithFile", path);
+            ShowError(Loc.Get("rec.err.failed", failure));
         }
         else
         {
             StatusText.Text = SavedText(results, seconds);
         }
-        if (warnings.Count > 0) StatusText.Text += "\n注意: " + string.Join(" / ", warnings);
+        if (warnings.Count > 0) StatusText.Text += Loc.Get("rec.status.warn", string.Join(" / ", warnings));
         if (_closeAfterStop) Close();
         else Files.Refresh();
     }
@@ -101,13 +101,13 @@ public partial class MainWindow
     {
         long total = results.Sum(r => File.Exists(r.Path) ? new FileInfo(r.Path).Length : 0);
         var mb = $"{total / 1024.0 / 1024.0:0.0} MB";
-        if (results.Count == 0) return "保存されたファイルがありません。";
-        if (total == 0) return "ファイルが空でした。入力デバイスに音が来ていない可能性があります: " + results[0].Path;
-        string Sec(int i) => i < seconds.Count ? $"（音声 {seconds[i]:0.00}秒）" : "";
-        if (results.Count == 1) return $"保存しました: {results[0].Path}（{mb}）{Sec(0)}";
+        if (results.Count == 0) return Loc.Get("rec.saved.none");
+        if (total == 0) return Loc.Get("rec.saved.empty", results[0].Path);
+        string Sec(int i) => i < seconds.Count ? Loc.Get("rec.saved.audioSeconds", seconds[i].ToString("0.00")) : "";
+        if (results.Count == 1) return Loc.Get("rec.saved.one", results[0].Path, mb, Sec(0));
         var lines = results.Take(5).Select((r, i) => r.Path + Sec(i)).ToList();
-        var more = results.Count > lines.Count ? $"\n…ほか {results.Count - lines.Count} 個" : "";
-        return $"{results.Count} 個のファイルを保存しました（合計 {mb}）:\n" + string.Join("\n", lines) + more;
+        var more = results.Count > lines.Count ? Loc.Get("rec.saved.more", results.Count - lines.Count) : "";
+        return Loc.Get("rec.saved.many", results.Count, mb) + "\n" + string.Join("\n", lines) + more;
     }
 
     /// <summary>
@@ -117,9 +117,9 @@ public partial class MainWindow
     private void SetRecordButton(bool recording)
     {
         var label = new System.Windows.Controls.TextBlock();
-        var mark = new System.Windows.Documents.Run(recording ? "■ " : "● ");
+        var mark = new System.Windows.Documents.Run((recording ? Loc.Get("rec.btn.markStop") : Loc.Get("rec.btn.markStart")) + " ");
         // 待機中は「待機をやめる」、自動開始がONなら開始前は「録音待機」
-        var text = new System.Windows.Documents.Run(recording ? (_standby ? "待機をやめる" : "停止") : (_settings.AutoStart ? "録音待機" : "録音開始"));
+        var text = new System.Windows.Documents.Run(Loc.Get(recording ? (_standby ? "rec.btn.standbyCancel" : "rec.btn.stop") : (_settings.AutoStart ? "rec.btn.standby" : "rec.btn.start")));
         mark.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, recording ? "StopFg" : "RecDot");
         text.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, recording ? "StopFg" : "StartFg");
         label.Inlines.Add(mark);
@@ -141,7 +141,7 @@ public partial class MainWindow
         BrowseButton.IsEnabled = !recording;
         if (!recording)
         {
-            StateText.Text = "待機中";
+            StateText.Text = Loc.Get("rec.state.idle");
             TotalPanel.Visibility = Visibility.Collapsed;
             Files.SetRecording(null);
         }
@@ -157,7 +157,7 @@ public partial class MainWindow
             if (_standby) TickStandby();
             else TickInputCheck();
             _tray?.SetState(_standby ? TrayState.Standby : TrayState.Idle);   // 待機中はトレイのアイコンが黄色いリングになる
-            _tray?.SetTip((_standby ? $"{AppInfo.Name} ― 音を待っています" : $"{AppInfo.Name} ― 待機中") + ScheduleTip());
+            _tray?.SetTip((_standby ? Loc.Get("rec.tip.waitingSound", AppInfo.Name) : Loc.Get("rec.tip.idle", AppInfo.Name)) + ScheduleTip());
             return;
         }
         if (_scheduledStopAt is { } stopAt && DateTime.Now >= stopAt)
@@ -179,10 +179,10 @@ public partial class MainWindow
         TimeText.Text = Clock(f);
         TotalPanel.Visibility = s.SplitCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         TotalText.Text = Clock(t);
-        StateText.Text = (s.Paused ? "一時停止中" : "録音中") + $" ― トラック {s.CurrentTrackNumber}";
+        StateText.Text = Loc.Get("rec.state.withTrack", Loc.Get(s.Paused ? "rec.state.paused" : "rec.state.recording"), s.CurrentTrackNumber);
         if (_pauseShown != s.Paused) SetPauseButton(s.Paused);   // トレイ・ホットキー・デバイス待機での一時停止もボタンへ反映
         _tray?.SetState(s.Paused ? TrayState.Paused : TrayState.Recording);   // 録音中は赤い丸、一時停止中は一時停止マーク
-        _tray?.SetTip($"{AppInfo.Name} ― {(s.Paused ? "一時停止中" : "録音中")} {Clock(f)}" + ScheduleTip());
+        _tray?.SetTip(Loc.Get("rec.tip.running", AppInfo.Name, Loc.Get(s.Paused ? "rec.state.paused" : "rec.state.recording"), Clock(f)) + ScheduleTip());
         Files.SetRecording($"{(s.Paused ? "Paused" : "Recording")}… Track {s.CurrentTrackNumber}");
         var devicePeaks = s.TakeDevicePeaks();
         var devicePairs = s.TakeDevicePeakPairs();
@@ -216,7 +216,7 @@ public partial class MainWindow
         });
         var panel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
         panel.Children.Add(icon);
-        panel.Children.Add(new System.Windows.Controls.TextBlock { Text = paused ? "再開" : "一時停止", VerticalAlignment = VerticalAlignment.Center });
+        panel.Children.Add(new System.Windows.Controls.TextBlock { Text = Loc.Get(paused ? "rec.btn.resume" : "rec.btn.pause"), VerticalAlignment = VerticalAlignment.Center });
         PauseButton.Content = panel;
     }
 
@@ -225,9 +225,9 @@ public partial class MainWindow
     {
         if (DiskSpace.FreeBytes(_settings.Folder) is not { } free) return;
         if (free < DiskSpace.StopBytes)
-            _ = StopAsync($"保存先の空き容量が {DiskSpace.Text(free)} になったため、データを守るために録音を止めて保存しました。");
+            _ = StopAsync(Loc.Get("rec.disk.stopped", DiskSpace.Text(free)));
         else if (free < DiskSpace.WarnBytes)
-            ShowError($"保存先のドライブの空きが少なくなっています（残り {DiskSpace.Text(free)}）。空きがなくなる前に録音を止めて、不要なファイルを整理してください。");
+            ShowError(Loc.Get("rec.disk.low", DiskSpace.Text(free)));
     }
 
     private static string Clock(TimeSpan t) => $"{(int)t.TotalHours}：{t.Minutes:00}：{t.Seconds:00}";
@@ -261,7 +261,7 @@ public partial class MainWindow
     {
         if (_session != null && !_closeAfterStop)
         {
-            var answer = MessageBox.Show(this, "録音中です。停止して保存してから終了しますか？",
+            var answer = MessageBox.Show(this, Loc.Get("rec.closeConfirm"),
                 AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             e.Cancel = true;
             if (answer != MessageBoxResult.Yes) return;

@@ -3,25 +3,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:Recorder.UI">
     <StackPanel>
-        <TextBlock Text="予約録音" Style="{StaticResource SectionTitle}"/>
+        <TextBlock Text="{ui:T schedulepanel.textblock1.text}" Style="{StaticResource SectionTitle}"/>
         <Border Style="{StaticResource SectionBody}">
         <StackPanel>
-        <CheckBox x:Name="OnCheck" Content="予約録音を使う（予約の時刻までアプリを起動したままにしてください）" Margin="0,0,0,6"
-                  ToolTip="決めた時刻になると、いまの設定で録音を始めます。パソコンをスリープから起こすことはできません"
+        <CheckBox x:Name="OnCheck" Content="{ui:T schedulepanel.oncheck.content}" Margin="0,0,0,6"
+                  ToolTip="{ui:T schedulepanel.oncheck.tooltip}"
                   Checked="Check_Changed" Unchecked="Check_Changed"/>
         <WrapPanel Margin="0,0,0,4">
-            <TextBlock Text="開始時刻" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBlock Text="{ui:T schedulepanel.textblock2.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
             <ui:ClockBox x:Name="StartTimeBox" Width="90" Margin="0,0,16,0"
-                         ToolTip="時:分:秒（例 07:30:00。730 や 0730 でも入ります）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
+                         ToolTip="{ui:T schedulepanel.starttimebox.tooltip}"
                          LostFocus="Start_LostFocus"/>
-            <TextBlock Text="録音する長さ" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBlock Text="{ui:T schedulepanel.textblock3.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
             <ui:TimeBox x:Name="LengthBox" Width="70"
-                        ToolTip="時:分:秒。この長さがたつと自動で停止して保存します。00:00:00 は自動では止めません。最長 24:00:00"
+                        ToolTip="{ui:T schedulepanel.lengthbox.tooltip}"
                         LostFocus="Length_LostFocus"/>
-            <TextBlock Text="(0＝止めない)" VerticalAlignment="Center" Margin="8,0,16,0" Opacity="0.75"/>
+            <TextBlock Text="{ui:T schedulepanel.textblock4.text}" VerticalAlignment="Center" Margin="8,0,16,0" Opacity="0.75"/>
             <ComboBox x:Name="RepeatBox" Width="128" SelectionChanged="Repeat_Changed">
-                <ComboBoxItem Content="次の1回だけ"/>
-                <ComboBoxItem Content="毎日くり返す"/>
+                <ComboBoxItem Content="{ui:T schedulepanel.comboboxitem1.content}"/>
+                <ComboBoxItem Content="{ui:T schedulepanel.comboboxitem2.content}"/>
             </ComboBox>
         </WrapPanel>
         <TextBlock x:Name="NextText" Margin="0,2,0,2" TextWrapping="Wrap"/>

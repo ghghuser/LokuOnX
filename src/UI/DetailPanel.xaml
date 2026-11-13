@@ -17,48 +17,48 @@
         </Grid.RowDefinitions>
 
         <!-- 保存フォルダ名（保存先の下の行） -->
-        <TextBlock Text="保存フォルダ名：" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
+        <TextBlock Text="{ui:T detailpanel.textblock1.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
         <WrapPanel Grid.Column="1" Margin="0,0,0,6">
-            <CheckBox x:Name="DateFolderCheck" Content="作る" VerticalAlignment="Center"
+            <CheckBox x:Name="DateFolderCheck" Content="{ui:T detailpanel.datefoldercheck.content}" VerticalAlignment="Center"
                       Margin="0,0,10,0" Checked="DateFolder_Changed" Unchecked="DateFolder_Changed"/>
             <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
-                     ToolTip="保存フォルダ名（録音開始日で固定）"
+                     ToolTip="{ui:T detailpanel.dateformatbox.tooltip}"
                      LostFocus="DateFormat_LostFocus"/>
             <Button Content="？" Width="28" Margin="6,0,0,0"
-                    ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="DateFormatHelp_Click"/>
+                    ToolTip="{ui:T detailpanel.button1.tooltip}" Click="DateFormatHelp_Click"/>
         </WrapPanel>
 
         <!-- ファイル名プリセット（テンプレートの選択・保存・削除・初期化） -->
-        <TextBlock Grid.Row="1" Text="ファイル名プリセット：" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
+        <TextBlock Grid.Row="1" Text="{ui:T detailpanel.textblock2.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
         <WrapPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,6">
             <ComboBox x:Name="TemplateBox" Tag="InputBg" Width="200" IsEditable="True" Margin="0,0,8,0"
-                      ToolTip="選ぶと下の「ファイル名」に入ります。名前を書いて「保存」すると新しいプリセットになります"
+                      ToolTip="{ui:T detailpanel.templatebox.tooltip}"
                       SelectionChanged="Template_Selected"/>
-            <Button Content="保存" Padding="12,3" Margin="0,0,6,0" Click="SaveTemplate_Click"/>
-            <Button Content="削除" Padding="12,3" Margin="0,0,6,0" Click="DeleteTemplate_Click"/>
-            <Button Content="↺" Padding="12,3" ToolTip="初期テンプレートを復元" Click="RestoreTemplates_Click"/>
+            <Button Content="{ui:T detailpanel.button2.content}" Padding="12,3" Margin="0,0,6,0" Click="SaveTemplate_Click"/>
+            <Button Content="{ui:T detailpanel.button3.content}" Padding="12,3" Margin="0,0,6,0" Click="DeleteTemplate_Click"/>
+            <Button Content="↺" Padding="12,3" ToolTip="{ui:T detailpanel.button4.tooltip}" Click="RestoreTemplates_Click"/>
         </WrapPanel>
 
         <!-- ファイル名（変数を使うパターン） -->
-        <TextBlock Grid.Row="2" Text="ファイル名：" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
+        <TextBlock Grid.Row="2" Text="{ui:T detailpanel.textblock3.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
         <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,6">
             <Button DockPanel.Dock="Right" Content="？" Width="28" Margin="6,0,0,0"
-                    ToolTip="変数の説明を開く（変数のボタンで入力もできます）" Click="PatternHelp_Click"/>
+                    ToolTip="{ui:T detailpanel.button5.tooltip}" Click="PatternHelp_Click"/>
             <TextBox x:Name="PatternBox" VerticalContentAlignment="Center"
                      TextChanged="Pattern_TextChanged" LostFocus="Pattern_LostFocus"/>
         </DockPanel>
         <TextBlock x:Name="ExampleText" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8" Opacity="0.75" TextWrapping="Wrap"/>
 
         <!-- 番号（常時表示） -->
-        <TextBlock Grid.Row="4" Text="番号：" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,8"/>
+        <TextBlock Grid.Row="4" Text="{ui:T detailpanel.textblock4.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,8"/>
         <WrapPanel Grid.Row="4" Grid.Column="1" Margin="0,0,0,8">
-            <TextBlock Text="No の開始値" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBlock Text="{ui:T detailpanel.textblock5.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
             <ui:NumberBox x:Name="NoBox" Width="70" Minimum="1" Maximum="999999999" Margin="0,0,18,0"
-                     ToolTip="次の録音に使う No。録音のたびに +1 され、終了後も維持されます"
+                     ToolTip="{ui:T detailpanel.nobox.tooltip}"
                      LostFocus="No_LostFocus"/>
-            <TextBlock Text="Track の開始値" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBlock Text="{ui:T detailpanel.textblock6.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
             <ui:NumberBox x:Name="TrackBox" Width="70" Minimum="1" Maximum="999999999"
-                     ToolTip="新しい録音ごとにこの番号へ戻ります（分割のたびに +1）"
+                     ToolTip="{ui:T detailpanel.trackbox.tooltip}"
                      LostFocus="Track_LostFocus"/>
         </WrapPanel>
     </Grid>

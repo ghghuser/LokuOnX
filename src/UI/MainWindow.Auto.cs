@@ -36,13 +36,13 @@ public partial class MainWindow
             ScheduleBadge.Visibility = Visibility.Collapsed;
             return;
         }
-        var day = at.Date == DateTime.Today ? "今日" : at.Date == DateTime.Today.AddDays(1) ? "明日" : at.ToString("M/d");
-        ScheduleBadgeText.Text = $"⏰ 予約 {day} {at:HH:mm:ss}（{(_settings.ScheduleDaily ? "毎日" : "1回")}）";
+        var day = at.Date == DateTime.Today ? Loc.Get("sched.today") : at.Date == DateTime.Today.AddDays(1) ? Loc.Get("sched.tomorrow") : at.ToString("M/d");
+        ScheduleBadgeText.Text = Loc.Get("sched.badge", day, at.ToString("HH:mm:ss"), Loc.Get(_settings.ScheduleDaily ? "sched.daily" : "sched.once"));
         ScheduleBadge.Visibility = Visibility.Visible;
     }
 
     /// <summary>トレイのツールチップの末尾に付ける予約の表示（予約が有効なときだけ）。</summary>
-    private string ScheduleTip() => (_scheduleAt is { } at ? $"　⏰ 予約 {at:HH:mm}" : "") + OutputTip();
+    private string ScheduleTip() => (_scheduleAt is { } at ? "　" + Loc.Get("sched.tip", at.ToString("HH:mm")) : "") + OutputTip();
 
     /// <summary>50msごと。予約の時刻になっていれば録音を始める。</summary>
     private void CheckSchedule()
@@ -63,18 +63,18 @@ public partial class MainWindow
 
         if (now - at > TimeSpan.FromSeconds(60))
         {
-            StatusText.Text = $"予約の時刻（{at:HH:mm:ss}）を過ぎていたため、予約録音は見送りました（パソコンがスリープしていた可能性があります）。";
+            StatusText.Text = Loc.Get("sched.skipped", at.ToString("HH:mm:ss"));
             return;
         }
         if (_session != null || !StartButton.IsEnabled)
         {
-            StatusText.Text = $"予約の時刻（{at:HH:mm:ss}）でしたが、録音中（または保存中）のため開始しませんでした。";
+            StatusText.Text = Loc.Get("sched.busy", at.ToString("HH:mm:ss"));
             return;
         }
         if (_standby) EndStandby(null);
         if (!StartRecording()) return;
         if (_settings.ScheduleSeconds > 0) _scheduledStopAt = DateTime.Now.AddSeconds(_settings.ScheduleSeconds);
-        _notice = "予約録音です" + (_scheduledStopAt is { } stop ? $"（{stop:HH:mm:ss} に自動で停止します）" : "（手動で停止するまで続けます）");
+        _notice = Loc.Get("sched.notice") + (_scheduledStopAt is { } stop ? Loc.Get("sched.noticeStopAt", stop.ToString("HH:mm:ss")) : Loc.Get("sched.noticeManual"));
         ShowRecordingStatus();
     }
 
@@ -106,12 +106,12 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            ShowError("待機を始められませんでした。" + ex.Message);
+            ShowError(Loc.Get("standby.err.cannotStart", ex.Message));
             return false;
         }
         _standby = true;
         SetStandbyUi(true);
-        StatusText.Text = $"音を待っています（−{-_settings.AutoStartDb} dB を超えたら録音を始めます）。もう一度押すと待機をやめます。";
+        StatusText.Text = Loc.Get("standby.waiting", -_settings.AutoStartDb);
         return true;
     }
 
@@ -144,7 +144,7 @@ public partial class MainWindow
         FolderBox.IsEnabled = SplitBox.IsEnabled = BrowseButton.IsEnabled = !on;
         Devices.SetRecording(on);
         Quality.IsEnabled = Detail.IsEnabled = TagsTab.IsEnabled = Profiles.IsEnabled = !on;
-        StateText.Text = on ? "待機中（音を待っています）" : "待機中";
+        StateText.Text = Loc.Get(on ? "standby.stateWaiting" : "rec.state.idle");
         SleepGuard.Prevent(on && _settings.PreventSleep);   // 待機中にスリープすると音を待てない
     }
 
@@ -167,7 +167,7 @@ public partial class MainWindow
         if (!started) SetStandbyUi(false);
         else
         {
-            _notice = "音が出たため、自動で録音を始めました。";
+            _notice = Loc.Get("standby.autoStarted");
             ShowRecordingStatus();
         }
         Task.Run(() =>

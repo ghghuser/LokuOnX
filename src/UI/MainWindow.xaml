@@ -27,8 +27,8 @@
 
         <!-- 「インジケーター(常時)」のチェックは、起動時に入力デバイス欄の下の行（デバイス再取得の左）へ移す -->
         <Border x:Name="CheckHolder" Grid.Row="0" Visibility="Collapsed">
-            <CheckBox x:Name="InputCheckBox" Content="インジケーター(常時)" FontSize="12"
-                                  ToolTip="録音していないあいだも、選んだデバイスの音量をメーター・波形・各デバイスのレベルに出します（ファイルには何も書きません）。オフにすると、録音するまでデバイスを開きません"
+            <CheckBox x:Name="InputCheckBox" Content="{ui:T mainwindow.inputcheckbox.content}" FontSize="12"
+                                  ToolTip="{ui:T mainwindow.inputcheckbox.tooltip}"
                                   Checked="InputCheck_Changed" Unchecked="InputCheck_Changed"/>
         </Border>
 
@@ -42,23 +42,23 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="プロファイル" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="{ui:T mainwindow.textblock1.text}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <ui:ProfileBar x:Name="Profiles"/>
             </StackPanel>
             <!-- 予約録音が有効なとき、次の予約を目立つ色で出す -->
             <Border x:Name="ScheduleBadge" Grid.Column="2" Visibility="Collapsed" CornerRadius="11" Padding="11,3" Margin="0,0,10,0"
                     VerticalAlignment="Center" Background="{DynamicResource ScheduleOnBg}"
-                    ToolTip="予約録音が有効です。予約の時刻までアプリを起動したままにしてください（設定はオプション欄の「予約録音」）">
+                    ToolTip="{ui:T mainwindow.schedulebadge.tooltip}">
                 <TextBlock x:Name="ScheduleBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ScheduleOnFg}"/>
             </Border>
             <!-- 出力（M11-2）: 出力ウィンドウを開く。出力中は色が変わる -->
             <Button x:Name="OutputButton" Grid.Column="3" Content="⇶" FontFamily="Segoe UI Symbol"
                     FontSize="16" MinWidth="34" Height="28" Padding="6,0" Margin="0,0,6,0" VerticalAlignment="Center"
-                    ToolTip="出力（クリックで出力ウィンドウ、右クリックでメニュー）" Click="Output_Click"
+                    ToolTip="{ui:T mainwindow.outputbutton.tooltip}" Click="Output_Click"
                     PreviewMouseRightButtonUp="Output_RightClick"/>
             <Button x:Name="SettingsButton" Grid.Column="4" Content="⚙" FontFamily="Segoe UI Symbol"
                     FontSize="17" Width="34" Height="28" Padding="0" VerticalAlignment="Center"
-                    ToolTip="設定とヘルプ（画面の色・スリープ防止・バージョン情報）" Click="Settings_Click"/>
+                    ToolTip="{ui:T mainwindow.settingsbutton.tooltip}" Click="Settings_Click"/>
         </Grid>
 
         <!-- 録音コンソール: 左＝時間・メーター・録音ボタン、右＝入力デバイスのストリップ（選択・波形・ゲイン・レベル） -->
@@ -76,19 +76,19 @@
                         <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40"
                                    FontFamily="Bahnschrift, Consolas, Yu Gothic UI" Typography.NumeralAlignment="Tabular"/>
                         <StackPanel x:Name="TotalPanel" Margin="16,0,0,4" VerticalAlignment="Bottom" Visibility="Collapsed"
-                                    ToolTip="録音を始めてからの連続録音時間（分割しても続きます）">
+                                    ToolTip="{ui:T mainwindow.totalpanel.tooltip}">
                             <TextBlock Text="Total Time" FontSize="12" Opacity="0.75"/>
                             <TextBlock x:Name="TotalText" FontSize="20" Opacity="0.9"
                                        FontFamily="Bahnschrift, Consolas, Yu Gothic UI" Typography.NumeralAlignment="Tabular"/>
                         </StackPanel>
                     </StackPanel>
                     <Grid Margin="0,0,0,8">
-                        <TextBlock x:Name="StateText" Text="待機中" Opacity="0.7" Margin="2,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StateText" Text="{ui:T mainwindow.statetext.text}" Opacity="0.7" Margin="2,0,0,0" VerticalAlignment="Center"/>
 
                     </Grid>
                     <!-- 全体波形（録音する音全体。右端が最新） -->
                     <ui:BigWave x:Name="OverallWave" Margin="0,0,0,10"
-                                ToolTip="録音する音全体の波形（右端が最新。約60秒ぶん）。小さい音も見えるよう強調して表示します。赤＝クリップ"/>
+                                ToolTip="{ui:T mainwindow.overallwave.tooltip}"/>
 
                     <!-- 出力レベルと全体ゲインの融合メーター: L・R と dB の目盛り。白い線＝最大値、右端＝クリップ、縦長のつまみ＝全体ゲイン -->
                     <ui:OutputMeter x:Name="OutMeter" Margin="2,0,0,12"/>
@@ -103,13 +103,13 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Button x:Name="StartButton" Height="46" FontSize="16" FontWeight="SemiBold"
-                                ToolTip="押すと録音を始めます。録音中は「■ 停止」になり、もう一度押すと停止して保存します"
+                                ToolTip="{ui:T mainwindow.startbutton.tooltip}"
                                 Click="Start_Click"/>
                         <Button x:Name="PauseButton" Grid.Column="2" Height="46" MinWidth="96" Padding="10,0" FontSize="13"
                                 IsEnabled="False" Click="Pause_Click"/>
                         <Button x:Name="SplitButton" Grid.Column="4" Height="46" MinWidth="78" Padding="10,0" FontSize="13"
-                                IsEnabled="False" ToolTip="途切れずに次のファイルへ切り替えます" Click="Split_Click">
-                            <TextBlock><Run FontFamily="Segoe UI Symbol" Text="✂"/><Run Text=" 分割"/></TextBlock>
+                                IsEnabled="False" ToolTip="{ui:T mainwindow.splitbutton.tooltip}" Click="Split_Click">
+                            <TextBlock><Run FontFamily="Segoe UI Symbol" Text="✂"/><Run Text="{ui:T mainwindow.run1.text}"/></TextBlock>
                         </Button>
                     </Grid>
                 </StackPanel>
@@ -126,12 +126,12 @@
         <!-- 左下: 設定（縦に長いときはスクロール）。「形式・音質」「保存先・ファイル名」は枠で囲み、その下にタブ -->
         <ScrollViewer Grid.Row="3" Grid.Column="0" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,10,0">
-                <GroupBox Header="形式・音質" Style="{StaticResource GroupFrame}">
+                <GroupBox Header="{ui:T mainwindow.groupbox1.header}" Style="{StaticResource GroupFrame}">
                     <ui:QualityBar x:Name="Quality"/>
                 </GroupBox>
 
                 <TabControl x:Name="LowerTabs">
-                    <TabItem Header="保存先・ファイル名">
+                    <TabItem Header="{ui:T mainwindow.tabitem1.header}">
                         <!-- 項目名の列（FormLabel）は、保存先と下の DetailPanel でそろえる -->
                         <StackPanel Margin="2,8,0,6" Grid.IsSharedSizeScope="True">
                             <Grid Margin="0,0,0,6">
@@ -140,27 +140,27 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="保存先：" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBlock Text="{ui:T mainwindow.textblock2.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <TextBox x:Name="FolderBox" Grid.Column="1" Margin="0,0,8,0"
                                          VerticalContentAlignment="Center" LostFocus="FolderBox_LostFocus"/>
-                                <Button x:Name="BrowseButton" Grid.Column="2" Content="参照..."
+                                <Button x:Name="BrowseButton" Grid.Column="2" Content="{ui:T mainwindow.browsebutton.content}"
                                         Padding="12,3" Click="Browse_Click"/>
                             </Grid>
                             <ui:DetailPanel x:Name="Detail"/>
                         </StackPanel>
                     </TabItem>
-                    <TabItem Header="タグ(メタデータ)">
+                    <TabItem Header="{ui:T mainwindow.tabitem2.header}">
                         <ui:TagPanel x:Name="TagsTab" Margin="2,0,0,6"/>
                     </TabItem>
-                    <TabItem Header="自動オプション">
+                    <TabItem Header="{ui:T mainwindow.tabitem3.header}">
                         <StackPanel Margin="2,0,0,4">
-                            <TextBlock Text="自動分割" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                            <TextBlock Text="{ui:T mainwindow.textblock3.text}" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
                             <Border Style="{StaticResource SectionBody}">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:TimeBox x:Name="SplitBox" Width="70"
-                                                ToolTip="時:分:秒。00:00:00 は自動分割しません。最短 00:00:10、最長 24:00:00（1つのファイルは最長24時間で必ず分割されます）。▲▼ はカーソルのある桁を ±1（↑↓キーも可）"
+                                                ToolTip="{ui:T mainwindow.splitbox.tooltip}"
                                                 LostFocus="Split_LostFocus"/>
-                                    <TextBlock Text="ごとに分割 (0＝無効。最長24時間)" VerticalAlignment="Center"
+                                    <TextBlock Text="{ui:T mainwindow.textblock4.text}" VerticalAlignment="Center"
                                                Margin="8,0,0,0" Opacity="0.75"/>
                                 </StackPanel>
                             </Border>
@@ -180,7 +180,7 @@
                 BorderBrush="{DynamicResource CardBorder}">
             <TextBlock x:Name="StatusText" VerticalAlignment="Center"
                        FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" Height="32"
-                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Opacity="0.85" Text="待機中"
+                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Opacity="0.85" Text="{ui:T mainwindow.statustext.text}"
                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
         </Border>
 

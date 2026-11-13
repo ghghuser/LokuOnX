@@ -25,6 +25,11 @@ static class LocTests
         Loc.Init(null, Path.GetTempPath(), "none");
         Loc.Load(File.ReadAllText(Path.Combine(root, "src", "Lang", "ja.ini")));
 
+        var dup = File.ReadAllLines(Path.Combine(root, "src", "Lang", "ja.ini")).Select(l => l.Trim())
+            .Where(l => l.Length > 0 && l[0] != ';' && l[0] != '#' && l[0] != '[' && l.Contains('='))
+            .Select(l => l[..l.IndexOf('=')].Trim().ToLowerInvariant()).GroupBy(k => k).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        check(dup.Count == 0, "ja.ini のキーに重複がない（大文字小文字は区別しない）", string.Join(", ", dup));
+
         var missing = new List<string>();
         var xaml = new Regex(@"\{ui:T\s+([\w.]+)\}");
         var code = new Regex(@"Loc\.(?:Get|Has)\(""([\w.]+)""");

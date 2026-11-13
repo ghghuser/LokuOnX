@@ -32,9 +32,9 @@
                 <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="70"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="1" Text="入力デバイス" ToolTip="PC内部音（🔊）・マイク（🎤）。最大4台を同時に録音できます（使う行だけデバイスを選んでください）"/>
-            <TextBlock Grid.Column="2" Text="波形" Margin="2,0,0,0"/>
-            <TextBlock Grid.Column="3" Text="レベル・ゲイン" ToolTip="メーター＝音量（左右。下の数字は dB）、縦長のつまみ＝ゲイン。録音中も調整できます。下の数字をダブルクリックで 0 dB"/>
+            <TextBlock Grid.Column="1" Text="{ui:T devicelist.textblock1.text}" ToolTip="{ui:T devicelist.textblock2.tooltip}"/>
+            <TextBlock Grid.Column="2" Text="{ui:T devicelist.textblock3.text}" Margin="2,0,0,0"/>
+            <TextBlock Grid.Column="3" Text="{ui:T devicelist.textblock4.text}" ToolTip="{ui:T devicelist.textblock5.tooltip}"/>
         </Grid>
 
         <StackPanel Grid.Row="1">
@@ -44,14 +44,14 @@
         <!-- 下段（コンソールの底にそろえる） -->
         <StackPanel x:Name="FooterPanel" Grid.Row="4" Margin="0,4,0,0" VerticalAlignment="Bottom" TextElement.FontSize="12">
             <DockPanel x:Name="FooterRow" LastChildFill="False">
-                <Button x:Name="RefreshButton" Content="デバイス再取得" Padding="12,2" Margin="0,0,24,0"
-                        ToolTip="接続されているデバイスの一覧を読み直します（3秒ごとの自動更新もあります）"
+                <Button x:Name="RefreshButton" Content="{ui:T devicelist.refreshbutton.content}" Padding="12,2" Margin="0,0,24,0"
+                        ToolTip="{ui:T devicelist.refreshbutton.tooltip}"
                         Click="Refresh_Click"/>
-                <TextBlock Text="複入力時の保存方法：" VerticalAlignment="Center" Margin="0,0,10,0"
-                           ToolTip="2台以上のデバイスを同時に録音するときの保存のしかた"/>
-                <RadioButton x:Name="MixRadio" Content="ミックスして1ファイル" GroupName="DeviceMode"
+                <TextBlock Text="{ui:T devicelist.textblock6.text}" VerticalAlignment="Center" Margin="0,0,10,0"
+                           ToolTip="{ui:T devicelist.textblock7.tooltip}"/>
+                <RadioButton x:Name="MixRadio" Content="{ui:T devicelist.mixradio.content}" GroupName="DeviceMode"
                              Margin="0,0,16,0" VerticalAlignment="Center" Checked="Mode_Checked"/>
-                <RadioButton x:Name="SeparateRadio" Content="デバイスごとに別ファイル" GroupName="DeviceMode"
+                <RadioButton x:Name="SeparateRadio" Content="{ui:T devicelist.separateradio.content}" GroupName="DeviceMode"
                              VerticalAlignment="Center" Checked="Mode_Checked"/>
             </DockPanel>
         </StackPanel>

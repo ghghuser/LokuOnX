@@ -62,10 +62,10 @@ public partial class ProfileBar : UserControl
         if (_s == null) return;
         Acting?.Invoke();
         var name = ProfileBox.Text.Trim();
-        if (name.Length == 0) { Error?.Invoke("プロファイル名を入力してください。"); return; }
+        if (name.Length == 0) { Error?.Invoke(Loc.Get("profile.err.noName")); return; }
         Prepare?.Invoke();
         _s.SaveProfile(_s.CaptureProfile(name));
-        if (_s.SaveError != null) { Error?.Invoke("プロファイルを保存できませんでした: " + _s.SaveError); return; }
+        if (_s.SaveError != null) { Error?.Invoke(Loc.Get("profile.err.saveFailed", _s.SaveError)); return; }
         _s.CurrentProfile = name;
         Reload(name);
         Stored?.Invoke();
@@ -78,7 +78,7 @@ public partial class ProfileBar : UserControl
         Acting?.Invoke();
         var name = ProfileBox.Text.Trim();
         var p = _s.Profiles.FirstOrDefault(x => x.Name == name);
-        if (p == null) { Error?.Invoke("その名前のプロファイルはありません。"); return; }
+        if (p == null) { Error?.Invoke(Loc.Get("profile.err.noSuch")); return; }
         _s.ApplyProfile(p);
         Applied?.Invoke();
     }
@@ -88,8 +88,8 @@ public partial class ProfileBar : UserControl
         if (_s == null) return;
         Acting?.Invoke();
         var name = ProfileBox.Text.Trim();
-        if (!_s.Profiles.Any(p => p.Name == name)) { Error?.Invoke("その名前のプロファイルはありません。"); return; }
-        var answer = MessageBox.Show(Window.GetWindow(this), $"プロファイル「{name}」を削除しますか？",
+        if (!_s.Profiles.Any(p => p.Name == name)) { Error?.Invoke(Loc.Get("profile.err.noSuch")); return; }
+        var answer = MessageBox.Show(Window.GetWindow(this), Loc.Get("profile.deleteConfirm", name),
             AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
         _s.DeleteProfile(name);
@@ -118,7 +118,7 @@ public partial class ProfileBar : UserControl
         }
         catch (Exception ex)
         {
-            Error?.Invoke("フォルダを開けませんでした: " + ex.Message);
+            Error?.Invoke(Loc.Get("profile.err.openFolder", ex.Message));
         }
     }
 }

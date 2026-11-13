@@ -6,10 +6,9 @@ namespace Recorder.UI;
 /// <summary>メイン画面のうち、録音の開始（録音ボタン・確認・組み立て）。停止・一時停止・分割・表示の更新は MainWindow.Recording.cs。</summary>
 public partial class MainWindow
 {
-    private const string AsioOneRowMessage =
-        "ASIOは同時に1行しか使えません（ドライバを専有するため）。他の行はマイクやスピーカー（WASAPI）にするか、チェックを外してください。";
+    private static string AsioOneRowMessage => Loc.Get("start.err.asioOneRow");
 
-    private const string DuplicateMessage = "同じデバイスが重複しています（「既定のデバイス（変更に追従）」と、その実際のデバイスも同じ扱いです）。どちらかを外してください。";
+    private static string DuplicateMessage => Loc.Get("start.err.duplicate");
 
     /// <summary>デバイスを選んだ（チェックを変えた）時点で、同じデバイスの重複を赤文字で知らせる（録音の開始時にも調べる）。</summary>
     private void CheckDuplicateRows()
@@ -38,7 +37,7 @@ public partial class MainWindow
         if (!StartButton.IsEnabled) return;   // 保存中
         if (_standby)
         {
-            EndStandby("待機をやめました。");
+            EndStandby(Loc.Get("start.standbyCancelled"));
             return;
         }
         if (_settings.AutoStart) BeginStandby();
@@ -50,7 +49,7 @@ public partial class MainWindow
     {
         if (inputs.Count == 0)
         {
-            Devices.ShowError("入力デバイスが選ばれていません。「（未選択）」ではなくデバイスを選び、左のチェックを入れてください。");
+            Devices.ShowError(Loc.Get("start.err.noDevice"));
             return false;
         }
         if (HasDuplicateDevice(inputs))
@@ -65,7 +64,7 @@ public partial class MainWindow
         }
         if (!File.Exists(AppPaths.Ffmpeg))
         {
-            ShowError($"FFmpeg が見つかりません: {AppPaths.Ffmpeg}");
+            ShowError(Loc.Get("start.err.noFfmpeg", AppPaths.Ffmpeg));
             return false;
         }
         return true;
@@ -86,7 +85,7 @@ public partial class MainWindow
             AddRecentFolder(_settings.Folder);
             if (DiskSpace.FreeBytes(_settings.Folder) is { } free && free < DiskSpace.StopBytes)
             {
-                ShowError($"保存先のドライブの空きが {DiskSpace.Text(free)} しかないため、録音を始められません。空き容量を増やすか、保存先を変えてください。");
+                ShowError(Loc.Get("start.err.diskLow", DiskSpace.Text(free)));
                 return false;
             }
             var no = _settings.NextNo;
@@ -105,7 +104,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             group?.Dispose();
-            ShowError("録音を開始できませんでした。" + ex.Message);
+            ShowError(Loc.Get("start.err.cannotStart", ex.Message));
             return false;
         }
         Devices.StartWave();

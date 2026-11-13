@@ -29,7 +29,7 @@ public partial class MainWindow : Window
         InitOutput();   // 入力の持ち主（InputHub）と出力エンジン（M11-2）。録音・待機・出力が同じ入力を共有する
         SetRecordButton(false);
         SetPauseButton(false);
-        Title = settings.ReadOnly ? $"{AppInfo.Name}（2つ目の起動・設定は保存されません）" : AppInfo.Name;
+        Title = settings.ReadOnly ? Loc.Get("main.title.second", AppInfo.Name) : AppInfo.Name;
 
         _loading = true;
         FolderBox.Text = settings.Folder;
@@ -121,7 +121,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             _devices = new List<AudioDeviceInfo>();
-            StatusText.Text = "デバイス一覧を取得できませんでした: " + ex.Message;
+            StatusText.Text = Loc.Get("main.err.deviceList", ex.Message);
         }
     }
 

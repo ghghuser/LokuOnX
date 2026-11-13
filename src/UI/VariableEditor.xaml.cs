@@ -1,3 +1,4 @@
+using Recorder.Core;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -36,7 +37,7 @@ public partial class VariableEditor : Window
             Buttons.Children.Add(b);
         }
         HelpText.Text = string.Join("\n", vars.Select(v => $"{v.Token}　{v.Description}"))
-                        + "\n\nコロンは自動で全角「：」になります。使えない文字は別の文字に置き換わります。";
+                        + "\n\n" + Loc.Get("vareditor.note");
 
         Box.Text = initial;
         Box.CaretIndex = Box.Text.Length;
@@ -57,7 +58,7 @@ public partial class VariableEditor : Window
     private void UpdatePreview()
     {
         if (PreviewText == null) return;   // 初期化中
-        PreviewText.Text = "例: " + _preview(Box.Text);
+        PreviewText.Text = Loc.Get("vareditor.preview", _preview(Box.Text));
     }
 
     private void Ok_Click(object sender, RoutedEventArgs e)

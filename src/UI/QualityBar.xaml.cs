@@ -15,11 +15,11 @@ public partial class QualityBar : UserControl
 {
     private static readonly Choice[] RateChoices =
     {
-        new(0, "自動"), new(22050, "22.05 kHz"), new(32000, "32.0 kHz"),
+        new(0, Loc.Get("quality.auto")), new(22050, "22.05 kHz"), new(32000, "32.0 kHz"),
         new(44100, "44.1 kHz"), new(48000, "48.0 kHz"), new(88200, "88.2 kHz"), new(96000, "96.0 kHz"),
     };
 
-    private static readonly Choice[] ChannelChoices = { new(0, "自動"), new(1, "モノ"), new(2, "ステレオ") };
+    private static readonly Choice[] ChannelChoices = { new(0, Loc.Get("quality.auto")), new(1, Loc.Get("quality.mono")), new(2, Loc.Get("quality.stereo")) };
 
     private Settings? _s;
     private bool _loading;
@@ -74,7 +74,7 @@ public partial class QualityBar : UserControl
             var list = new List<Choice>();
             if (spec.NoneLabel != null) list.Add(new Choice(-1, spec.NoneLabel));
             for (int v = spec.Min; v <= spec.Max; v++)
-                list.Add(new Choice(v, v == spec.Default ? $"{v}（既定）" : v.ToString()));
+                list.Add(new Choice(v, v == spec.Default ? Loc.Get("quality.defaultMark", v) : v.ToString()));
             CompBox.ItemsSource = list;
             _compFormat = fmt.Key;
             _loading = was;

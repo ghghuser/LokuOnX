@@ -28,7 +28,7 @@ public partial class MainWindow
         {
             _tray = null;
             _hotkeys = null;
-            StatusText.Text = "タスクトレイ・ホットキーを準備できませんでした: " + ex.Message;
+            StatusText.Text = Loc.Get("tray.err.prepare", ex.Message);
         }
         ApplyTray();
         ApplyHotkeys();
@@ -75,16 +75,16 @@ public partial class MainWindow
     private IReadOnlyList<TrayMenuItem> BuildTrayMenu()
     {
         bool rec = _session != null;
-        var start = rec ? "録音を停止" : _standby ? "待機をやめる" : _settings.AutoStart ? "録音待機を始める" : "録音を開始";
+        var start = Loc.Get(rec ? "tray.menu.stop" : _standby ? "tray.menu.standbyCancel" : _settings.AutoStart ? "tray.menu.standby" : "tray.menu.start");
         return new[]
         {
-            new TrayMenuItem(CmdOpen, $"{AppInfo.Name} を表示"),
+            new TrayMenuItem(CmdOpen, Loc.Get("tray.menu.show", AppInfo.Name)),
             TrayMenuItem.Separator,
             new TrayMenuItem(CmdStart, start, StartButton.IsEnabled),
-            new TrayMenuItem(CmdPause, _session?.Paused == true ? "再開" : "一時停止", rec && PauseButton.IsEnabled),
-            new TrayMenuItem(CmdSplit, "分割", rec && SplitButton.IsEnabled),
+            new TrayMenuItem(CmdPause, Loc.Get(_session?.Paused == true ? "tray.menu.resume" : "tray.menu.pause"), rec && PauseButton.IsEnabled),
+            new TrayMenuItem(CmdSplit, Loc.Get("tray.menu.split"), rec && SplitButton.IsEnabled),
             TrayMenuItem.Separator,
-            new TrayMenuItem(CmdExit, "終了"),
+            new TrayMenuItem(CmdExit, Loc.Get("tray.menu.exit")),
         };
     }
 
@@ -125,7 +125,7 @@ public partial class MainWindow
         if (_settings.ReadOnly)
         {
             ShowHotkeyInfo(false);
-            return ("2つ目の起動ではホットキーは使えません（最初に起動したほうで使います）。", true);
+            return (Loc.Get("tray.err.hotkeySecond"), true);
         }
         var failed = new List<string>();
         void Register(int id, string text)
@@ -138,7 +138,7 @@ public partial class MainWindow
         Register(HkSplit, _settings.HotkeySplit);
         ShowHotkeyInfo(true);
         return failed.Count == 0 ? ("", false) :
-            ("登録できなかったキーがあります（ほかのアプリが使っています）: " + string.Join("、", failed) + "。別のキーに変えてください。", true);
+            (Loc.Get("tray.err.hotkeyFailed", string.Join("、", failed)), true);
     }
 
     /// <summary>オプション欄の最下段に、いまのホットキーを薄い文字で出す（ホットキーがONで、1つ以上割り当てがあるときだけ）。</summary>
@@ -150,10 +150,10 @@ public partial class MainWindow
             var t = HotkeySpec.Format(text);
             if (t.Length > 0) items.Add($"{label} {t}");
         }
-        Add("録音の開始・停止", _settings.HotkeyStart);
-        Add("一時停止・再開", _settings.HotkeyPause);
-        Add("分割", _settings.HotkeySplit);
-        HotkeyInfo.Text = "ホットキー　" + string.Join("　／　", items);
+        Add(Loc.Get("hotkey.start"), _settings.HotkeyStart);
+        Add(Loc.Get("hotkey.pause"), _settings.HotkeyPause);
+        Add(Loc.Get("hotkey.split"), _settings.HotkeySplit);
+        HotkeyInfo.Text = Loc.Get("tray.hotkeyInfo", string.Join("　／　", items));
         HotkeyInfo.Visibility = on && items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 

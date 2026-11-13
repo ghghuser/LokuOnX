@@ -3,32 +3,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:Recorder.UI">
     <StackPanel>
-        <TextBlock Text="無音検出" Style="{StaticResource SectionTitle}"/>
+        <TextBlock Text="{ui:T optionpanel.textblock1.text}" Style="{StaticResource SectionTitle}"/>
         <Border Style="{StaticResource SectionBody}">
             <StackPanel>
                 <WrapPanel Margin="0,0,0,6">
-                    <CheckBox x:Name="AutoStartCheck" Content="音が乗ったら自動で録音開始" VerticalAlignment="Center" Margin="0,0,10,0"
-                              ToolTip="ONにすると、録音ボタンが「録音待機」になります。押すと音を待ち、しきい値を超えたら録音を始めます。音が出てから始まるまで少し（0.3秒ほど）かかるため、音の出だしがわずかに欠けることがあります"
+                    <CheckBox x:Name="AutoStartCheck" Content="{ui:T optionpanel.autostartcheck.content}" VerticalAlignment="Center" Margin="0,0,10,0"
+                              ToolTip="{ui:T optionpanel.autostartcheck.tooltip}"
                               Checked="Check_Changed" Unchecked="Check_Changed"/>
-                    <TextBlock Text="しきい値 −" VerticalAlignment="Center"/>
+                    <TextBlock Text="{ui:T optionpanel.textblock2.text}" VerticalAlignment="Center"/>
                     <ui:NumberBox x:Name="AutoStartDbBox" Width="70" Minimum="10" Maximum="80" Margin="2,0,2,0"
-                                  ToolTip="この音量（dB）を超えたら録音を始めます（既定 40）"
+                                  ToolTip="{ui:T optionpanel.autostartdbbox.tooltip}"
                                   LostFocus="Number_LostFocus"/>
-                    <TextBlock Text="dB を超えたら" VerticalAlignment="Center"/>
+                    <TextBlock Text="{ui:T optionpanel.textblock3.text}" VerticalAlignment="Center"/>
                 </WrapPanel>
                 <WrapPanel Margin="0,0,0,4">
-                    <CheckBox x:Name="SilenceSplitCheck" Content="無音が続いたら自動で分割" VerticalAlignment="Center" Margin="0,0,10,0"
-                              ToolTip="音がしなくなって指定の秒数がたつと、次のファイルへ分割します（前のファイルの終わりに無音がその秒数ぶん入ります）。分割したあと、次の音が出るまでは再び分割しません"
+                    <CheckBox x:Name="SilenceSplitCheck" Content="{ui:T optionpanel.silencesplitcheck.content}" VerticalAlignment="Center" Margin="0,0,10,0"
+                              ToolTip="{ui:T optionpanel.silencesplitcheck.tooltip}"
                               Checked="Check_Changed" Unchecked="Check_Changed"/>
-                    <TextBlock Text="しきい値 −" VerticalAlignment="Center"/>
+                    <TextBlock Text="{ui:T optionpanel.textblock4.text}" VerticalAlignment="Center"/>
                     <ui:NumberBox x:Name="SilenceDbBox" Width="70" Minimum="10" Maximum="80" Margin="2,0,2,0"
-                                  ToolTip="この音量（dB）以下を無音とみなします。数字が大きいほど小さい音まで無音にします（既定 50）"
+                                  ToolTip="{ui:T optionpanel.silencedbbox.tooltip}"
                                   LostFocus="Number_LostFocus"/>
-                    <TextBlock Text="dB 以下が" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Text="{ui:T optionpanel.textblock5.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <ui:NumberBox x:Name="SilenceSecBox" Width="70" Minimum="1" Maximum="600"
-                                  ToolTip="無音がこの秒数続いたら分割します（1〜600）"
+                                  ToolTip="{ui:T optionpanel.silencesecbox.tooltip}"
                                   LostFocus="Number_LostFocus"/>
-                    <TextBlock Text="秒続いたら" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                    <TextBlock Text="{ui:T optionpanel.textblock6.text}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                 </WrapPanel>
             </StackPanel>
         </Border>

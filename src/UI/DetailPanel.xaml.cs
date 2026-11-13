@@ -70,15 +70,14 @@ public partial class DetailPanel : UserControl
     {
         if (_s == null) return;
         var now = DateTime.Now;
-        ExampleText.Text = "ファイル名の例（36：25 録音した場合）: " + FileNamer.FileName(PatternBox.Text, SampleContext(now))
-                           + "\n保存先の例: " + RecordingPlan.PreviewFolder(_s, now);
+        ExampleText.Text = Loc.Get("detail.example", FileNamer.FileName(PatternBox.Text, SampleContext(now)), RecordingPlan.PreviewFolder(_s, now));
     }
 
     // ---- 「？」ボタン：変数の説明と入力補助の別ウィンドウ ----
     private void PatternHelp_Click(object sender, RoutedEventArgs e)
     {
         if (_s == null) return;
-        var win = new VariableEditor("ファイル名", PatternBox.Text, VariableHelp.Pattern,
+        var win = new VariableEditor(Loc.Get("detail.editor.pattern"), PatternBox.Text, VariableHelp.Pattern,
             p => FileNamer.FileName(p, SampleContext(DateTime.Now))) { Owner = Window.GetWindow(this) };
         if (win.ShowDialog() != true) return;
         PatternBox.Text = win.Result;
@@ -88,7 +87,7 @@ public partial class DetailPanel : UserControl
     private void DateFormatHelp_Click(object sender, RoutedEventArgs e)
     {
         if (_s == null) return;
-        var win = new VariableEditor("保存フォルダ名", DateFormatBox.Text, VariableHelp.Date,
+        var win = new VariableEditor(Loc.Get("detail.editor.dateFolder"), DateFormatBox.Text, VariableHelp.Date,
             f => FileNamer.Folder(_s.Folder, true, f, SampleContext(DateTime.Now))) { Owner = Window.GetWindow(this) };
         if (win.ShowDialog() != true) return;
         DateFormatBox.Text = win.Result;
@@ -164,7 +163,7 @@ public partial class DetailPanel : UserControl
     {
         if (_s == null) return;
         var name = TemplateBox.Text.Trim();
-        if (name.Length == 0) { Warn("テンプレート名を入力してください。"); return; }
+        if (name.Length == 0) { Warn(Loc.Get("detail.err.noName")); return; }
         var pattern = CommitPattern();
         _s.SaveTemplate(name, pattern);
         _s.Template = name;
@@ -176,8 +175,8 @@ public partial class DetailPanel : UserControl
     {
         if (_s == null) return;
         var name = TemplateBox.Text.Trim();
-        if (!_s.Templates.Any(t => t.Name == name)) { Warn("その名前のテンプレートはありません。"); return; }
-        var answer = MessageBox.Show(Window.GetWindow(this), $"テンプレート「{name}」を削除しますか？",
+        if (!_s.Templates.Any(t => t.Name == name)) { Warn(Loc.Get("detail.err.noSuchTemplate")); return; }
+        var answer = MessageBox.Show(Window.GetWindow(this), Loc.Get("detail.deleteConfirm", name),
             AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
         _s.DeleteTemplate(name);

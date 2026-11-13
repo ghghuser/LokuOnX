@@ -14,18 +14,17 @@ public static class RecoveryPrompt
         if (files.Count == 0 || busy()) return;
 
         var answer = MessageBox.Show(owner,
-            $"前回、正しく閉じられなかった録音ファイルが {files.Count} 個見つかりました。\n名前を付けて整えますか？\n\n"
-            + "「いいえ」の場合はそのまま残し、次回の起動時にもう一度確認します。",
+            Loc.Get("recovery.confirm", files.Count),
             AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
         if (answer != MessageBoxResult.Yes) return;
 
-        status("録音ファイルを整えています...");
+        status(Loc.Get("recovery.working"));
         var results = await Task.Run(() => Recovery.Repair(files, AppPaths.Ffmpeg));
         var lines = results.Take(5).Select(r => r.Path).ToList();
-        var text = $"{results.Count} 個のファイルを整えました:\n" + string.Join("\n", lines);
-        if (results.Count > lines.Count) text += $"\n…ほか {results.Count - lines.Count} 個";
+        var text = Loc.Get("recovery.done", results.Count) + "\n" + string.Join("\n", lines);
+        if (results.Count > lines.Count) text += "\n" + Loc.Get("recovery.more", results.Count - lines.Count);
         var warnings = results.Where(r => r.Warning != null).Select(r => r.Warning!).Distinct().Take(3).ToList();
-        if (warnings.Count > 0) text += "\n注意: " + string.Join(" / ", warnings);
+        if (warnings.Count > 0) text += "\n" + Loc.Get("recovery.warn", string.Join(" / ", warnings));
         status(text);
     }
 }

@@ -1,3 +1,4 @@
+using Recorder.Core;
 namespace Recorder.UI;
 
 /// <summary>変数1つの説明。Token は入力欄にそのまま挿入される文字列。</summary>
@@ -8,25 +9,25 @@ public static class VariableHelp
 {
     private static readonly VarInfo[] DateParts =
     {
-        new("{yyyy}", "年（4桁）"), new("{yy}", "年（下2桁）"), new("{MM}", "月（2桁）"),
-        new("{dd}", "日（2桁）"), new("{HH}", "時（24時間・2桁）"), new("{mm}", "分（2桁）"), new("{ss}", "秒（2桁）"),
-        new("{Date}", "日付。{yyyy}_{MM}_{dd} と同じ"), new("{Time}", "時刻。{HH}_{mm}_{ss} と同じ"),
+        new("{yyyy}", Loc.Get("var.year4")), new("{yy}", Loc.Get("var.year2")), new("{MM}", Loc.Get("var.month")),
+        new("{dd}", Loc.Get("var.day")), new("{HH}", Loc.Get("var.hour")), new("{mm}", Loc.Get("var.minute")), new("{ss}", Loc.Get("var.second")),
+        new("{Date}", Loc.Get("var.Date")), new("{Time}", Loc.Get("var.Time")),
     };
 
     /// <summary>ファイル名パターンで使える変数。</summary>
     public static readonly IReadOnlyList<VarInfo> Pattern = new[]
     {
-        new VarInfo("{No}", "通し番号。録音のたびに +1、終了後も維持"),
-        new VarInfo("{Track}", "トラック番号（3桁）。新しい録音ごとに開始値へ戻り、分割ごとに +1"),
-        new VarInfo("{Start}", "このファイルの開始時間（録音全体の0：00から）"),
-        new VarInfo("{End}", "このファイルの終了時間（録音全体の0：00から）"),
-        new VarInfo("{Length}", "このファイルの長さ（End − Start）"),
-        new VarInfo("{Device}", "入力デバイスの名前"),
-        new VarInfo("{Profile}", "プロファイル名"),
-        new VarInfo("{ext}", "拡張子（flac / mp3 / m4a / aac / wav / ogg / opus）"),
-        new VarInfo("{Start:min}", "開始時間を分だけで表す（例 125：30）"),
-        new VarInfo("{End:min}", "終了時間を分だけで表す"),
-        new VarInfo("{Length:min}", "長さを分だけで表す"),
+        new VarInfo("{No}", Loc.Get("var.No")),
+        new VarInfo("{Track}", Loc.Get("var.Track")),
+        new VarInfo("{Start}", Loc.Get("var.Start")),
+        new VarInfo("{End}", Loc.Get("var.End")),
+        new VarInfo("{Length}", Loc.Get("var.Length")),
+        new VarInfo("{Device}", Loc.Get("var.Device")),
+        new VarInfo("{Profile}", Loc.Get("var.Profile")),
+        new VarInfo("{ext}", Loc.Get("var.ext")),
+        new VarInfo("{Start:min}", Loc.Get("var.Start_min")),
+        new VarInfo("{End:min}", Loc.Get("var.End_min")),
+        new VarInfo("{Length:min}", Loc.Get("var.Length_min")),
     }.Concat(DateParts).ToArray();
 
     /// <summary>日付フォルダの名前で使える変数（日時の部品のみ）。</summary>

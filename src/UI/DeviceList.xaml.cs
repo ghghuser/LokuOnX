@@ -60,13 +60,13 @@ public partial class DeviceList : UserControl
     public void SetFxState(int slot, bool any, bool bypass)
     {
         if (slot < 0 || slot >= _rows.Count) return;
-        FxButtonLook.Apply(_rows[slot].FxButton, any, bypass, "この入力のエフェクト",
-            "この入力のエフェクト（ゲート・ローカット・EQ・エコー・リバーブ）。クリックで開きます。名前・波形・メーターの右クリックでも開けます");
+        FxButtonLook.Apply(_rows[slot].FxButton, any, bypass, Loc.Get("devlist.fx.short"),
+            Loc.Get("devlist.fx.tip"));
     }
 
     private MenuItem FxItem(Row row)
     {
-        var item = new MenuItem { Header = "入力のエフェクト…" };
+        var item = new MenuItem { Header = Loc.Get("devlist.menu.fx") };
         item.Click += (_, _) => FxRequested?.Invoke(_rows.IndexOf(row));
         return item;
     }
@@ -202,7 +202,7 @@ public partial class DeviceList : UserControl
                 ? _devices.FirstOrDefault(d => d.IsDefault && d.IsLoopback == sel[0].IsLoopback) ?? sel[0]
                 : sel[0];
             if (sel.Count == 1 || (_s?.SeparateFiles ?? false)) return first.Label;
-            return "ミックス";
+            return Loc.Get("devlist.mix");
         }
     }
 
@@ -220,7 +220,7 @@ public partial class DeviceList : UserControl
         row.Use.IsChecked = key.Length > 0 && enabled;   // 空き行（デバイス未選択）は消灯。初期状態で点灯するのは1行目だけ
         row.Use.VerticalAlignment = VerticalAlignment.Center;
         row.Use.Margin = new Thickness(0, 0, 6, 0);
-        row.Use.ToolTip = "消灯にすると、このデバイスは録音しません（設定は残ります。録音中は変えられません）";
+        row.Use.ToolTip = Loc.Get("devlist.use.tip");
         Grid.SetColumn(row.Use, 0);
 
         row.Combo.ItemTemplate = (DataTemplate)Resources["DeviceItem"];
@@ -233,14 +233,14 @@ public partial class DeviceList : UserControl
         row.NameText.Opacity = 0.7;
         row.NameText.Margin = new Thickness(2, 0, 0, 1);
         row.NameText.Cursor = Cursors.IBeam;
-        row.NameText.ToolTip = "入力の名前（ダブルクリックか右クリックで変更。12文字まで。出力カードにも同じ名前が出ます）";
+        row.NameText.ToolTip = Loc.Get("devlist.name.tip");
         row.NameBox.FontSize = 10;
         row.NameBox.Height = 17;
         row.NameBox.Padding = new Thickness(1, 0, 1, 0);
         row.NameBox.MaxLength = OutputConfig.MaxNameLength;
         row.NameBox.Visibility = Visibility.Collapsed;
         row.NameText.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) BeginRename(row); };
-        var rename = new MenuItem { Header = "名前を変更" };
+        var rename = new MenuItem { Header = Loc.Get("devlist.menu.rename") };
         rename.Click += (_, _) => BeginRename(row);
         row.NameText.ContextMenu = new ContextMenu { Items = { rename, FxItem(row) } };
         row.NameBox.KeyDown += (_, e) =>
@@ -279,14 +279,14 @@ public partial class DeviceList : UserControl
         row.Lane.ClipToBounds = true;
         row.Lane.SetResourceReference(Border.BackgroundProperty, key.Length > 0 ? "WaveBg" : "WaveBgOff");
         row.Lane.SetResourceReference(Border.BorderBrushProperty, "WaveBorder");
-        row.Lane.ToolTip = "このデバイスの波形（録音中、右から左へ流れます）";
+        row.Lane.ToolTip = Loc.Get("devlist.lane.tip");
         Grid.SetColumn(row.Lane, 2);
 
         row.Gain.Minimum = Settings.MinGainDb;
         row.Gain.Maximum = Settings.MaxGainDb;
         row.Gain.Value = Math.Clamp(gainDb, Settings.MinGainDb, Settings.MaxGainDb);
         row.Gain.VerticalAlignment = VerticalAlignment.Center;
-        row.Gain.ToolTip = "メーター＝このデバイスの音量（左右。ゲインを掛けたあと。白い線＝直近の最大値、右端の四角が赤＝クリップ）。縦長のつまみ＝ゲイン（左端＝ミュート。下の数字をダブルクリックで 0 dB。録音中も調整可能）";
+        row.Gain.ToolTip = Loc.Get("devlist.gain.tip");
         row.MeterBox.VerticalAlignment = VerticalAlignment.Center;
         row.MeterBox.Children.Add(row.Gain);
         row.MeterBox.Children.Add(new LevelScale { Margin = new Thickness(0, 1, 0, 0) });
@@ -432,7 +432,7 @@ public partial class DeviceList : UserControl
         {
             var r = _rows[i];
             if (r.Key.Length == 0 || r.Use.IsChecked != true || !loopMap.TryGetValue(r.Key, out var outs)) continue;
-            lines.Add($"「{OutputConfig.InputLabel(_names, i)}」は、出力「{string.Join("」「", outs)}」の出力先と同じデバイスです。音が回るため、その出力は止まります。");
+            lines.Add(Loc.Get("devlist.loopWarn", OutputConfig.InputLabel(_names, i), string.Join("」「", outs)));
         }
         CautionText.Text = string.Join("\n", lines);
         CautionText.Visibility = lines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -447,7 +447,7 @@ public partial class DeviceList : UserControl
     }
 
     private static string GainLabel(double db) => GainMath.IsMuted(db)
-        ? "ミュート"
+        ? Loc.Get("devlist.mute")
         : db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + " dB";
 
     /// <summary>ミュート（ゲイン最小）のとき、数値の文字・スライダー・メーターを橙にして、一目で分かるようにする。</summary>
@@ -502,11 +502,11 @@ public partial class DeviceList : UserControl
 
     private List<AudioDeviceInfo> ItemsFor(string key)
     {
-        var items = new List<AudioDeviceInfo> { new("", "（未選択）", false, 0, 0) };
+        var items = new List<AudioDeviceInfo> { new("", Loc.Get("devlist.none"), false, 0, 0) };
         items.AddRange(_devices);
         if (key.Length > 0 && !items.Any(d => d.Key == key))
             items.Add(new AudioDeviceInfo(key,
-                AsioKey.Is(key) ? $"🎛 {AsioKey.Describe(key)}（未接続／ASIO非表示）" : "（接続されていないデバイス）",
+                AsioKey.Is(key) ? Loc.Get("devlist.asioMissing", AsioKey.Describe(key)) : Loc.Get("devlist.missing"),
                 AudioKeys.IsLoopback(key), 0, 0));
         return items;
     }

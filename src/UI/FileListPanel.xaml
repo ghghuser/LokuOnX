@@ -1,6 +1,7 @@
 <UserControl x:Class="Recorder.UI.FileListPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:Recorder.UI">
     <UserControl.Resources>
         <!-- タブの見出しだけ（中身は下の一覧を共有するので、タブの中身の領域は持たない） -->
         <ControlTemplate x:Key="HeaderOnlyTabs" TargetType="TabControl">
@@ -53,28 +54,28 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,4">
             <TabControl x:Name="SourceTabs" Template="{StaticResource HeaderOnlyTabs}" Margin="0,0,0,8"
                         SelectionChanged="SourceTab_Changed">
-                <TabItem Header="録音履歴"
-                         ToolTip="録音したファイルを、空にするまで残します"/>
-                <TabItem Header="フォルダ"
-                         ToolTip="好きなフォルダの中身を表示します（最近のフォルダ10件まで）"/>
+                <TabItem Header="{ui:T filelistpanel.tabitem1.header}"
+                         ToolTip="{ui:T filelistpanel.tabitem2.tooltip}"/>
+                <TabItem Header="{ui:T filelistpanel.tabitem3.header}"
+                         ToolTip="{ui:T filelistpanel.tabitem4.tooltip}"/>
             </TabControl>
             <WrapPanel>
-                <Button x:Name="ClearButton" Content="履歴を空にする" Padding="10,3" Margin="0,0,10,4" Click="Clear_Click"
-                        ToolTip="録音履歴の一覧を空にします（ファイルは消えません）"/>
+                <Button x:Name="ClearButton" Content="{ui:T filelistpanel.clearbutton.content}" Padding="10,3" Margin="0,0,10,4" Click="Clear_Click"
+                        ToolTip="{ui:T filelistpanel.clearbutton.tooltip}"/>
                 <ComboBox x:Name="SourceBox" Width="250" Margin="0,0,10,4" DisplayMemberPath="Label"
                           SelectionChanged="Source_Changed"
-                          ToolTip="表示するフォルダ（最近のフォルダ10件まで）"/>
-                <Button x:Name="SaveFolderButton" Content="保存先を表示" Padding="10,3" Margin="0,0,6,4" Click="ShowSaveFolder_Click"
-                        ToolTip="いまの保存先フォルダの中身を一覧に表示します"/>
-                <Button x:Name="PickFolderButton" Content="フォルダを選んで表示…" Padding="10,3" Margin="0,0,10,4" Click="PickFolder_Click"
-                        ToolTip="好きなフォルダを選んで、その中身を一覧に表示します（最近の10件に入ります）"/>
-                <Button x:Name="RefreshButton" Content="更新" Padding="10,3" Margin="0,0,10,4" Click="Refresh_Click"/>
-                <TextBlock Text="絞り込み" VerticalAlignment="Center" Margin="0,0,6,4" Opacity="0.8"/>
+                          ToolTip="{ui:T filelistpanel.sourcebox.tooltip}"/>
+                <Button x:Name="SaveFolderButton" Content="{ui:T filelistpanel.savefolderbutton.content}" Padding="10,3" Margin="0,0,6,4" Click="ShowSaveFolder_Click"
+                        ToolTip="{ui:T filelistpanel.savefolderbutton.tooltip}"/>
+                <Button x:Name="PickFolderButton" Content="{ui:T filelistpanel.pickfolderbutton.content}" Padding="10,3" Margin="0,0,10,4" Click="PickFolder_Click"
+                        ToolTip="{ui:T filelistpanel.pickfolderbutton.tooltip}"/>
+                <Button x:Name="RefreshButton" Content="{ui:T filelistpanel.refreshbutton.content}" Padding="10,3" Margin="0,0,10,4" Click="Refresh_Click"/>
+                <TextBlock Text="{ui:T filelistpanel.textblock1.text}" VerticalAlignment="Center" Margin="0,0,6,4" Opacity="0.8"/>
                 <TextBox x:Name="FilterBox" Width="130" Margin="0,0,10,4" VerticalContentAlignment="Center"
-                         ToolTip="ファイル名に含まれる文字で絞り込みます（大文字・小文字は区別しません）。ファイル名に日付が入っていれば、日付でも探せます（例: 2026_10 ＝ 2026年10月）"
+                         ToolTip="{ui:T filelistpanel.filterbox.tooltip}"
                          TextChanged="Filter_Changed"/>
                 <TextBlock x:Name="CountText" VerticalAlignment="Center" MinWidth="64" Margin="0,0,0,4" Opacity="0.8"
-                           ToolTip="表示中のファイル数（絞り込み中は「表示 / 全体」。4桁までは幅が固定で、5桁以上になると広がります）"/>
+                           ToolTip="{ui:T filelistpanel.counttext.tooltip}"/>
             </WrapPanel>
         </StackPanel>
 
@@ -84,17 +85,17 @@
                   GridViewColumnHeader.Click="Header_Click">
             <ListView.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="再生" Click="Play_Click"/>
-                    <MenuItem Header="エクスプローラーで開く" Click="Explorer_Click"/>
-                    <MenuItem Header="名前の変更" InputGestureText="F2" Click="Rename_Click"/>
-                    <MenuItem Header="ごみ箱へ削除" InputGestureText="Delete" Click="Delete_Click"/>
+                    <MenuItem Header="{ui:T filelistpanel.menuitem1.header}" Click="Play_Click"/>
+                    <MenuItem Header="{ui:T filelistpanel.menuitem2.header}" Click="Explorer_Click"/>
+                    <MenuItem Header="{ui:T filelistpanel.menuitem3.header}" InputGestureText="F2" Click="Rename_Click"/>
+                    <MenuItem Header="{ui:T filelistpanel.menuitem4.header}" InputGestureText="Delete" Click="Delete_Click"/>
                     <Separator/>
-                    <MenuItem Header="更新" Click="Refresh_Click"/>
+                    <MenuItem Header="{ui:T filelistpanel.menuitem5.header}" Click="Refresh_Click"/>
                 </ContextMenu>
             </ListView.ContextMenu>
             <ListView.View>
                 <GridView AllowsColumnReorder="False">
-                    <GridViewColumn Header="ファイル名" Width="260">
+                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn1.header}" Width="260">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid Margin="-7,0,0,0">
@@ -108,17 +109,17 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="長さ" Width="80">
+                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn2.header}" Width="80">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate><TextBlock Text="{Binding LengthText}" Style="{StaticResource RowText}"/></DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="サイズ" Width="76">
+                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn3.header}" Width="76">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate><TextBlock Text="{Binding SizeText}" Style="{StaticResource RowText}"/></DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="作成日時" Width="130">
+                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn4.header}" Width="130">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate><TextBlock Text="{Binding CreatedText}" Style="{StaticResource RowText}"/></DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -135,11 +136,11 @@
 
         <!-- ファイル操作（プレイヤーの下） -->
         <WrapPanel Grid.Row="4" Margin="0,8,0,0">
-            <Button x:Name="ExplorerButton" Content="エクスプローラーで開く" Padding="10,3" Margin="0,0,6,0" Click="Explorer_Click"/>
-            <Button x:Name="RenameButton" Content="名前の変更" Padding="10,3" Margin="0,0,6,0" Click="Rename_Click"
-                    ToolTip="F2 キーでも開けます"/>
-            <Button x:Name="DeleteButton" Content="ごみ箱へ削除" Padding="10,3" Margin="0,0,0,0" Click="Delete_Click"
-                    ToolTip="Delete キーでも実行できます（複数選択可）"/>
+            <Button x:Name="ExplorerButton" Content="{ui:T filelistpanel.explorerbutton.content}" Padding="10,3" Margin="0,0,6,0" Click="Explorer_Click"/>
+            <Button x:Name="RenameButton" Content="{ui:T filelistpanel.renamebutton.content}" Padding="10,3" Margin="0,0,6,0" Click="Rename_Click"
+                    ToolTip="{ui:T filelistpanel.renamebutton.tooltip}"/>
+            <Button x:Name="DeleteButton" Content="{ui:T filelistpanel.deletebutton.content}" Padding="10,3" Margin="0,0,0,0" Click="Delete_Click"
+                    ToolTip="{ui:T filelistpanel.deletebutton.tooltip}"/>
         </WrapPanel>
     </Grid>
 </UserControl>

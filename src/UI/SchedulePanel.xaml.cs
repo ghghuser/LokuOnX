@@ -36,14 +36,14 @@ public partial class SchedulePanel : System.Windows.Controls.UserControl
     {
         if (next is { } t)
         {
-            var len = _s.ScheduleSeconds > 0 ? $"、{SplitTime.Format(_s.ScheduleSeconds)} 録音して自動停止" : "、手動で停止するまで録音";
-            NextText.Text = $"次の予約: {t:yyyy/MM/dd HH:mm:ss}{len}";
+            var len = _s.ScheduleSeconds > 0 ? Loc.Get("schedule.next.lenAuto", SplitTime.Format(_s.ScheduleSeconds)) : Loc.Get("schedule.next.lenManual");
+            NextText.Text = Loc.Get("schedule.next", t.ToString("yyyy/MM/dd HH:mm:ss"), len);
         }
         else
         {
             NextText.Text = _s.ReadOnly && _s.ScheduleOn
-                ? "次の予約: なし（2つ目の起動では予約録音は動きません）"
-                : "次の予約: なし（予約録音は使っていません）";
+                ? Loc.Get("schedule.next.noneSecond")
+                : Loc.Get("schedule.next.none");
         }
         ApplyOnState(next != null);
     }
