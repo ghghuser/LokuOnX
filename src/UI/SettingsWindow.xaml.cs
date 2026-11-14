@@ -46,6 +46,10 @@ public partial class SettingsWindow : Window
         _trayChanged = trayChanged;
         _asioChanged = asioChanged;
         AsioCheck.IsChecked = settings.AsioEnabled;
+        var langs = LangList.Scan(Path.Combine(AppPaths.Dir, "Lang"), new[] { "ja" }, c => App.ReadEmbeddedLang(c + ".ini"));
+        if (!langs.Any(l => l.Code.Equals(settings.Language, StringComparison.OrdinalIgnoreCase))) langs.Add(new LangInfo(settings.Language, settings.Language));
+        LangBox.ItemsSource = langs;
+        LangBox.SelectedValue = langs.First(l => l.Code.Equals(settings.Language, StringComparison.OrdinalIgnoreCase)).Code;
         ThemeBox.ItemsSource = Themes();
         BuildHelp();
         LoadAboutIcon();
@@ -110,6 +114,13 @@ public partial class SettingsWindow : Window
             AboutIcon.Source = decoder.Frames.OrderByDescending(f => f.PixelWidth).First();
         }
         catch (Exception) { }
+    }
+
+    private void Lang_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || LangBox.SelectedValue is not string code) return;
+        _s.Language = code;
+        LangNote.Visibility = Visibility.Visible;   // 反映は再起動後
     }
 
     private void Theme_Changed(object sender, SelectionChangedEventArgs e)

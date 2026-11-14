@@ -19,11 +19,21 @@
                     <StackPanel Margin="0,0,10,0">
                         <TextBlock Text="{ui:T settings.section.display}" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
                         <Border Style="{StaticResource SectionBody}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{ui:T settings.theme}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <ComboBox x:Name="ThemeBox" Width="220" DisplayMemberPath="Label" SelectedValuePath="Key"
-                                          ToolTip="{ui:T settings.theme.tip}"
-                                          SelectionChanged="Theme_Changed"/>
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{ui:T settings.language}" Width="72" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox x:Name="LangBox" Width="220" DisplayMemberPath="Name" SelectedValuePath="Code"
+                                              ToolTip="{ui:T settings.language.tip}"
+                                              SelectionChanged="Lang_Changed"/>
+                                </StackPanel>
+                                <TextBlock x:Name="LangNote" Text="{ui:T settings.language.restart}" Visibility="Collapsed"
+                                           FontSize="12" Opacity="0.65" Margin="80,4,0,0" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="{ui:T settings.theme}" Width="72" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox x:Name="ThemeBox" Width="220" DisplayMemberPath="Label" SelectedValuePath="Key"
+                                              ToolTip="{ui:T settings.theme.tip}"
+                                              SelectionChanged="Theme_Changed"/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 

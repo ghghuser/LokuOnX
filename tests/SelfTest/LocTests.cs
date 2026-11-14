@@ -14,6 +14,8 @@ static class LocTests
         check(Loc.Get("d", "X", 2) == "値Xと2", "{0} {1} を置き換える");
         check(Loc.Get("missing.key") == "missing.key", "キーが無ければキー名を返す");
         check(Loc.Get("A.B") == "こんにちは", "キーの大文字小文字は区別しない");
+        Loc.Load("lbl=保存先:\\s\n");
+        check(Loc.Get("lbl") == "保存先: ", "\\s は半角空白（行末の空白も残せる）");
         Loc.Load("a.b=上書き");
         check(Loc.Get("a.b") == "上書き", "あとから読んだ内容で上書きされる");
         Loc.Load("h.1=一\nh.2=二\nh.4=四\n");

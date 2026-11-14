@@ -12,8 +12,8 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        // 画面の文言（exe 内の既定 → exe の隣の Lang/ja.ini で上書き）。画面を作る前に読む
-        using (var res = typeof(App).Assembly.GetManifestResourceStream("Lang.ja.ini")) Loc.Init(res, AppPaths.Dir, "ja");
+        // 画面の文言（exe 内の既定の日本語 → 選んだ言語の Lang/{コード}.ini で上書き）。画面を作る前に読む
+        using (var res = ReadEmbeddedStream("ja.ini")) Loc.Init(res, AppPaths.Dir, SavedLanguage());
         // 想定外のエラーは lokuonx-crash.log に記録する。画面の処理の例外は握りつぶして、録音（別スレッド）は続ける
         DispatcherUnhandledException += (_, args) =>
         {
@@ -51,13 +51,7 @@ public partial class App : Application
         // 文言ファイルが手で書き換えられていたら .bak に控える（最初の起動だけ。軽い処理）
         if (first)
         {
-            LangBackup.Run(Path.Combine(AppPaths.Dir, "Lang"), name =>
-            {
-                using var res = typeof(App).Assembly.GetManifestResourceStream("Lang." + name);
-                if (res == null) return null;
-                using var reader = new StreamReader(res, System.Text.Encoding.UTF8);
-                return reader.ReadToEnd();
-            });
+            LangBackup.Run(Path.Combine(AppPaths.Dir, "Lang"), ReadEmbeddedLang);
         }
 
         var settings = new Settings(AppPaths.SettingsIni, readOnly: !first);
@@ -74,6 +68,29 @@ public partial class App : Application
                 AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
+    }
+
+    /// <summary>exe に埋め込んだ言語ファイル（Lang.{名前}）。</summary>
+    internal static Stream? ReadEmbeddedStream(string fileName) => typeof(App).Assembly.GetManifestResourceStream("Lang." + fileName);
+
+    /// <summary>埋め込みの内容を文字列で（無ければ null）。</summary>
+    internal static string? ReadEmbeddedLang(string fileName)
+    {
+        using var res = ReadEmbeddedStream(fileName);
+        if (res == null) return null;
+        using var reader = new StreamReader(res, System.Text.Encoding.UTF8);
+        return reader.ReadToEnd();
+    }
+
+    /// <summary>settings.ini の Language を、設定の読み込みより前に読む（読めなければ ja）。</summary>
+    private static string SavedLanguage()
+    {
+        try
+        {
+            var code = new IniFile(AppPaths.SettingsIni).Get("Recorder", "Language", "ja");
+            return LangList.IsValidCode(code) ? code : "ja";
+        }
+        catch (Exception) { return "ja"; }
     }
 
     private static void OnTextBoxKeyDown(object sender, KeyEventArgs e)

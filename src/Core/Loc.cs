@@ -11,7 +11,7 @@ public static class Loc
 {
     private static readonly Dictionary<string, string> Texts = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>ini 形式のテキストを読み込む。空行・「;」「#」で始まる行・「[見出し]」の行は無視。値の「\n」は改行、「\\」は「\」。</summary>
+    /// <summary>ini 形式のテキストを読み込む。空行・「;」「#」で始まる行・「[見出し]」の行は無視。値の「\n」は改行、「\s」は半角空白、「\\」は「\」。</summary>
     public static void Load(string text)
     {
         foreach (var raw in text.Split('\n'))
@@ -75,6 +75,7 @@ public static class Loc
                 var c = s[i + 1];
                 if (c == 'n') { sb.Append('\n'); i++; continue; }
                 if (c == '\\') { sb.Append('\\'); i++; continue; }
+                if (c == 's') { sb.Append(' '); i++; continue; }   // 行末などの半角空白（ini では前後の空白が消えるため）
             }
             sb.Append(s[i]);
         }

@@ -54,6 +54,13 @@ public sealed partial class Settings
     }
 
     /// <summary>"auto"（Windowsの設定に合わせる・既定）/ "light" / "dark" / "soft" / "softdark"（試作）。</summary>
+    /// <summary>画面の文言の言語（Lang/{コード}.ini）。変えたら再起動で反映。</summary>
+    public string Language
+    {
+        get { var l = Get("Language", "ja"); return LangList.IsValidCode(l) ? l : "ja"; }
+        set => Set("Language", LangList.IsValidCode(value) ? value : "ja");
+    }
+
     public string Theme
     {
         get { var t = Get("Theme", "auto"); return t is "light" or "dark" or "soft" or "softdark" ? t : "auto"; }

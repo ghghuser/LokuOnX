@@ -24,7 +24,7 @@
             <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
                      ToolTip="{ui:T detailpanel.dateformatbox.tooltip}"
                      LostFocus="DateFormat_LostFocus"/>
-            <Button Content="？" Width="28" Margin="6,0,0,0"
+            <Button Content="💡" FontFamily="Segoe UI Emoji" Width="28" Margin="6,0,0,0"
                     ToolTip="{ui:T detailpanel.button1.tooltip}" Click="DateFormatHelp_Click"/>
         </WrapPanel>
 
@@ -42,12 +42,12 @@
         <!-- ファイル名（変数を使うパターン） -->
         <TextBlock Grid.Row="2" Text="{ui:T detailpanel.textblock3.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
         <DockPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,6">
-            <Button DockPanel.Dock="Right" Content="？" Width="28" Margin="6,0,0,0"
+            <Button DockPanel.Dock="Right" Content="💡" FontFamily="Segoe UI Emoji" Width="28" Margin="6,0,0,0"
                     ToolTip="{ui:T detailpanel.button5.tooltip}" Click="PatternHelp_Click"/>
             <TextBox x:Name="PatternBox" VerticalContentAlignment="Center"
                      TextChanged="Pattern_TextChanged" LostFocus="Pattern_LostFocus"/>
         </DockPanel>
-        <TextBlock x:Name="ExampleText" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8" Opacity="0.75" TextWrapping="Wrap"/>
+        <TextBlock x:Name="ExampleText" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8" FontSize="12" Opacity="0.75" TextWrapping="Wrap"/>
 
         <!-- 番号（常時表示） -->
         <TextBlock Grid.Row="4" Text="{ui:T detailpanel.textblock4.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,8"/>
