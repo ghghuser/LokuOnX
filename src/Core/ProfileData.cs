@@ -98,7 +98,7 @@ public static class ProfileJson
         }
         catch (JsonException ex)
         {
-            error = (Loc.Get("profiledata.s03") + " ") + ex.Message;
+            error = Loc.Get("profiledata.s03") + ex.Message;
             return null;
         }
     }

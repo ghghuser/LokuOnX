@@ -48,7 +48,7 @@ public static class FileOps
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return (Loc.Get("fileops.s04") + " ") + ex.Message;
+            return Loc.Get("fileops.s04") + ex.Message;
         }
     }
 }

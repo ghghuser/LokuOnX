@@ -92,8 +92,8 @@ public sealed class FfmpegPlayer : IDisposable
         lock (err) detail = err.ToString().Trim();
         _start = 0;
         Halt();
-        if (error != null) Failed?.Invoke((Loc.Get("ffmpegplayer.s02") + " ") + error.Message);
-        else if (source.BytesRead == 0 && detail.Length > 0) Failed?.Invoke((Loc.Get("ffmpegplayer.s02") + " ") + detail);
+        if (error != null) Failed?.Invoke(Loc.Get("ffmpegplayer.s02") + error.Message);
+        else if (source.BytesRead == 0 && detail.Length > 0) Failed?.Invoke(Loc.Get("ffmpegplayer.s02") + detail);
         else Ended?.Invoke();
     }
 

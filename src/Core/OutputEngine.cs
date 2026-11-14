@@ -139,7 +139,7 @@ public sealed class OutputEngine : IDisposable
         catch (Exception ex)
         {
             TearDown();
-            _error = (Loc.Get("outputengine.s02") + " ") + ex.Message;
+            _error = Loc.Get("outputengine.s02") + ex.Message;
             _state = Loc.Get("outputengine.s01");
             _nextTry = DateTime.Now.AddSeconds(RetrySeconds);
         }

@@ -27,7 +27,7 @@ public static class FileFinalizer
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return new FinalizeResult(tempPath, (Loc.Get("filefinalizer.s02") + " ") + ex.Message);
+            return new FinalizeResult(tempPath, Loc.Get("filefinalizer.s02") + ex.Message);
         }
 
         string? warning = null;
@@ -41,8 +41,8 @@ public static class FileFinalizer
                 return new FinalizeResult(dest, null);
             }
             warning = options.Format == "wav"
-                ? (Loc.Get("filefinalizer.s03") + " ") + err
-                : (Loc.Get("filefinalizer.s04") + " ") + err;
+                ? Loc.Get("filefinalizer.s03") + err
+                : Loc.Get("filefinalizer.s04") + err;
             TryDelete(dest);
         }
 
@@ -53,7 +53,7 @@ public static class FileFinalizer
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return new FinalizeResult(tempPath, (Loc.Get("filefinalizer.s05") + " ") + ex.Message);
+            return new FinalizeResult(tempPath, Loc.Get("filefinalizer.s05") + ex.Message);
         }
     }
 
