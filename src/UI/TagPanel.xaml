@@ -16,6 +16,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock Text="{ui:T tagpanel.textblock1.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
             <TextBox x:Name="TitleBox" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
@@ -27,11 +28,14 @@
             <TextBox x:Name="GenreBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
             <TextBlock Grid.Row="4" Text="{ui:T tagpanel.textblock5.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
             <TextBox x:Name="YearBox" Grid.Row="4" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
-            <TextBlock Grid.Row="5" Text="{ui:T tagpanel.textblock6.text}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBlock Grid.Row="5" Text="{ui:T tagpanel.textblock6.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0"/>
             <TextBox x:Name="CommentBox" Grid.Row="5" Grid.Column="1" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
-        </Grid>
-        <CheckBox x:Name="TrackCheck" Margin="0,8,0,0" Content="{ui:T tagpanel.trackcheck.content}"
+            <CheckBox x:Name="TrackCheck" Grid.Row="6" Grid.Column="1" Margin="0,8,0,0"
                   ToolTip="{ui:T tagpanel.trackcheck.tooltip}"
-                  Checked="Track_Changed" Unchecked="Track_Changed"/>
+                  Checked="Track_Changed" Unchecked="Track_Changed">
+                <TextBlock Text="{ui:T tagpanel.trackcheck.content}" TextWrapping="Wrap"/>
+            </CheckBox>
+        </Grid>
+
     </StackPanel>
 </UserControl>

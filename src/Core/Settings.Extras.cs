@@ -57,8 +57,8 @@ public sealed partial class Settings
     /// <summary>画面の文言の言語（Lang/{コード}.ini）。変えたら再起動で反映。</summary>
     public string Language
     {
-        get { var l = Get("Language", "ja"); return LangList.IsValidCode(l) ? l : "ja"; }
-        set => Set("Language", LangList.IsValidCode(value) ? value : "ja");
+        get { var l = Get("Language", LangList.Auto); return LangList.IsValidSetting(l) ? l : LangList.Auto; }
+        set => Set("Language", LangList.IsValidSetting(value) ? value : LangList.Auto);
     }
 
     public string Theme

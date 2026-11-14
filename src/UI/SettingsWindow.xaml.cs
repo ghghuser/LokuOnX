@@ -47,6 +47,7 @@ public partial class SettingsWindow : Window
         _asioChanged = asioChanged;
         AsioCheck.IsChecked = settings.AsioEnabled;
         var langs = LangList.Scan(Path.Combine(AppPaths.Dir, "Lang"), new[] { "ja" }, c => App.ReadEmbeddedLang(c + ".ini"));
+        langs.Insert(0, new LangInfo(LangList.Auto, Loc.Get("settings.language.auto")));
         if (!langs.Any(l => l.Code.Equals(settings.Language, StringComparison.OrdinalIgnoreCase))) langs.Add(new LangInfo(settings.Language, settings.Language));
         LangBox.ItemsSource = langs;
         LangBox.SelectedValue = langs.First(l => l.Code.Equals(settings.Language, StringComparison.OrdinalIgnoreCase)).Code;

@@ -37,8 +37,10 @@ public static class FfmpegArgs
                 break;
             case "ogg":
                 a.AddRange(new[] { "-c:a", "libvorbis" });
+                // libvorbis はビットレート指定だと、周波数やチャンネル数によって開けない組み合わせがある。その場合は品質指定に切り替える
                 if (q >= 0) a.AddRange(new[] { "-q:a", q.ToString() });
-                else a.AddRange(new[] { "-b:a", b });
+                else if (OggBitrateOk(rate, ch, o.BitrateKbps)) a.AddRange(new[] { "-b:a", b });
+                else a.AddRange(new[] { "-q:a", OggQualityFor(o.BitrateKbps).ToString() });
                 break;
             case "opus":
                 a.AddRange(new[] { "-c:a", "libopus", "-b:a", b });
@@ -53,6 +55,24 @@ public static class FfmpegArgs
         // 拡張子に頼らず形式を明示する（仮名の拡張子に左右されない）
         a.AddRange(new[] { "-f", f.Muxer, outputPath });
         return a;
+    }
+
+    /// <summary>libvorbis のビットレート指定で開ける組み合わせか（FFmpeg で実測。品質指定はどの周波数でも開ける）。</summary>
+    public static bool OggBitrateOk(int rate, int channels, int kbps)
+    {
+        if (rate > 48000 || rate < 12000) return false;
+        if (channels == 1 && kbps > 192) return false;
+        if (rate < 32000 && kbps > 160) return false;
+        return true;
+    }
+
+    /// <summary>ビットレートに近い Vorbis 品質（0〜10）。</summary>
+    public static int OggQualityFor(int kbps)
+    {
+        int[] table = { 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 500 };
+        int best = 0;
+        for (int i = 0; i < table.Length; i++) if (Math.Abs(table[i] - kbps) < Math.Abs(table[best] - kbps)) best = i;
+        return best;
     }
 
     /// <summary>タグ。入力ファイルのタグは引き継がない。日本語もそのまま渡す（mp3 は ID3v2.3＋UTF-16）。</summary>

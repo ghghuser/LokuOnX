@@ -24,6 +24,10 @@ static class LangListTests
             check(l.Select(x => x.Code).SequenceEqual(new[] { "ja", "en", "fr" }), "日本語が先頭、あとはコード順（.bak や不正な名前は出ない）", string.Join(",", l.Select(x => x.Code)));
             check(l[1].Name == "English" && l[2].Name == "fr", "表示名は lang.name、無ければコード");
 
+            bool Ex(string c) => c == "ja" || c == "en";
+            check(LangList.Resolve("auto", "en-US", Ex) == "en" && LangList.Resolve("auto", "ja-JP", Ex) == "ja" && LangList.Resolve("auto", "fr-FR", Ex) == "ja" && LangList.Resolve("auto", "", Ex) == "ja", "自動は OS の言語に合う Lang があればそれ、無ければ ja");
+            check(LangList.Resolve("en", "ja-JP", Ex) == "en" && LangList.Resolve("..\\x", "en", Ex) == "ja" && LangList.Resolve(null, "en", Ex) == "ja", "言語を指定していればその言語。不正な値は ja");
+
             File.WriteAllText(Path.Combine(dir, "ja.ini"), "lang.name=にほんご\n");
             check(LangList.Scan(dir, new[] { "ja" }, Emb)[0].Name == "にほんご", "ファイルの lang.name が埋め込みより優先される");
         }

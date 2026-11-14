@@ -87,8 +87,9 @@ public partial class App : Application
     {
         try
         {
-            var code = new IniFile(AppPaths.SettingsIni).Get("Recorder", "Language", "ja");
-            return LangList.IsValidCode(code) ? code : "ja";
+            var setting = new IniFile(AppPaths.SettingsIni).Get("Recorder", "Language", LangList.Auto);
+            return LangList.Resolve(setting, System.Globalization.CultureInfo.CurrentUICulture.Name,
+                c => c == "ja" || File.Exists(Path.Combine(AppPaths.Dir, "Lang", c + ".ini")));
         }
         catch (Exception) { return "ja"; }
     }

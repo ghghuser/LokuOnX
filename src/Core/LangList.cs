@@ -19,6 +19,27 @@ public static class LangList
     /// <summary>設定ファイルの値として使えるコードか。</summary>
     public static bool IsValidCode(string? code) => code != null && CodePattern.IsMatch(code);
 
+    /// <summary>「システムに合わせる」を表す設定値。</summary>
+    public const string Auto = "auto";
+
+    /// <summary>設定値として使えるか（Auto または言語コード）。</summary>
+    public static bool IsValidSetting(string? v) => v != null && (v.Equals(Auto, StringComparison.OrdinalIgnoreCase) || IsValidCode(v));
+
+    /// <summary>
+    /// 設定値から、実際に使う言語コードを決める。Auto のときは OS の表示言語（en-US → en の順）に合う Lang があればそれ、無ければ ja。
+    /// </summary>
+    public static string Resolve(string? setting, string uiCulture, Func<string, bool> exists)
+    {
+        if (setting == null || !IsValidSetting(setting)) return "ja";
+        if (!setting.Equals(Auto, StringComparison.OrdinalIgnoreCase)) return setting;
+        var full = uiCulture ?? "";
+        if (IsValidCode(full) && exists(full)) return full;
+        var dash = full.IndexOf('-');
+        var two = dash > 0 ? full.Substring(0, dash) : full;
+        if (IsValidCode(two) && exists(two)) return two;
+        return "ja";
+    }
+
     /// <param name="langDir">exe の隣の Lang フォルダ。</param>
     /// <param name="embeddedCodes">exe に埋め込んである言語のコード。</param>
     /// <param name="readEmbedded">コード → 埋め込みの内容（無ければ null）。</param>
