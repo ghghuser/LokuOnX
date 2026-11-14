@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- ダーク: 色（ブラシ）と、色が付く部品の簡単なスタイル。ボタン・コンボボックスは DarkControls.xaml -->
     <SolidColorBrush x:Key="WindowBg" Color="#1A1B1D"/>
+    <!-- スクロールバーのつまみ（通常／マウスを乗せた／つかんだ）。色はここで調整 -->
+    <SolidColorBrush x:Key="ScrollThumb" Color="#50FFFFFF"/>
+    <SolidColorBrush x:Key="ScrollThumbHover" Color="#80FFFFFF"/>
+    <SolidColorBrush x:Key="ScrollThumbDrag" Color="#B0F3DD8A"/>
     <SolidColorBrush x:Key="LogBg" Color="#26000000"/>   <!-- 一番下のログ欄の背景（背景より少し暗く） -->
     <SolidColorBrush x:Key="WindowFg" Color="#DDDAD5"/>
     <SolidColorBrush x:Key="CautionFg" Color="#E8C23A"/>   <!-- 注意の黄（ダーク系。原色に近いが目に痛くない黄） -->

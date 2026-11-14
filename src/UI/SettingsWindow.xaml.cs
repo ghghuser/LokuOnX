@@ -55,6 +55,14 @@ public partial class SettingsWindow : Window
         BuildHelp();
         LoadAboutIcon();
         ThemeBox.SelectedValue = settings.Theme;
+        BackdropBox.ItemsSource = new ThemeChoice[]
+        {
+            new("auto", Loc.Get("backdrop.auto")), new("none", Loc.Get("backdrop.none")),
+            new("mica", Loc.Get("backdrop.mica")), new("acrylic", Loc.Get("backdrop.acrylic")),
+        };
+        BackdropBox.SelectedValue = settings.BackdropEffect;
+        OpacitySlider.Value = settings.BackdropOpacity;
+        OpacityText.Text = settings.BackdropOpacity + " %";
         SleepCheck.IsChecked = settings.PreventSleep;
         TrayCheck.IsChecked = settings.ShowTray;
         MinTrayCheck.IsChecked = settings.MinimizeToTray;
@@ -122,6 +130,24 @@ public partial class SettingsWindow : Window
         if (_loading || LangBox.SelectedValue is not string code) return;
         _s.Language = code;
         LangNote.Visibility = Visibility.Visible;   // 反映は再起動後
+    }
+
+    private void Backdrop_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || BackdropBox.SelectedValue is not string key) return;
+        _s.BackdropEffect = key;
+        ThemeManager.Configure(_s.BackdropEffect, _s.BackdropOpacity);
+        ThemeManager.Refresh();
+    }
+
+    private void Opacity_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (OpacityText == null) return;
+        OpacityText.Text = (int)Math.Round(e.NewValue) + " %";
+        if (_loading) return;
+        _s.BackdropOpacity = (int)Math.Round(e.NewValue);
+        ThemeManager.Configure(_s.BackdropEffect, _s.BackdropOpacity);
+        ThemeManager.Refresh();
     }
 
     private void Theme_Changed(object sender, SelectionChangedEventArgs e)

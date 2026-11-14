@@ -61,6 +61,20 @@ public sealed partial class Settings
         set => Set("Language", LangList.IsValidSetting(value) ? value : LangList.Auto);
     }
 
+    /// <summary>背景効果: "auto"（既定＝ダークだけアクリル）/ "none" / "mica" / "acrylic"。Windows 11 22H2 以降のみ。</summary>
+    public string BackdropEffect
+    {
+        get { var e = Get("BackdropEffect", "auto"); return e is "none" or "mica" or "acrylic" ? e : "auto"; }
+        set => Set("BackdropEffect", value);
+    }
+
+    /// <summary>背景の濃さ（不透明度 30〜100 %。効果があるときだけ効く）。既定 69（旧アクリルの 0xB0）。</summary>
+    public int BackdropOpacity
+    {
+        get { return int.TryParse(Get("BackdropOpacity", "69"), out var v) ? Math.Clamp(v, 30, 100) : 69; }
+        set => Set("BackdropOpacity", Math.Clamp(value, 30, 100).ToString());
+    }
+
     public string Theme
     {
         get { var t = Get("Theme", "auto"); return t is "light" or "dark" or "soft" or "softdark" ? t : "auto"; }

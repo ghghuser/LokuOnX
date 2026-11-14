@@ -13,10 +13,29 @@ namespace Recorder.UI;
 public static class ThemeManager
 {
     private static readonly List<ResourceDictionary> Current = new();
+    private static string _mode = "auto";
+    private static string _effect = "auto";
+    private static int _opacity = 69;
+
+    /// <summary>背景効果と濃さ（Settings.BackdropEffect / BackdropOpacity）。変えたら Refresh で開いているウィンドウへ反映。</summary>
+    public static void Configure(string effect, int opacity)
+    {
+        _effect = effect;
+        _opacity = Math.Clamp(opacity, 30, 100);
+    }
+
+    /// <summary>開いているすべてのウィンドウへ、背景効果と濃さを反映する。</summary>
+    public static void Refresh()
+    {
+        var app = Application.Current;
+        if (app == null) return;
+        foreach (Window w in app.Windows) Style(w, IsDark(_mode), IsSoft(_mode));
+    }
 
     /// <summary>mode は "auto" / "light" / "dark" / "soft"（ニューモーフィズム風・ライト）/ "softdark"（同・ダーク）。</summary>
     public static void Apply(string mode)
     {
+        _mode = mode;
         var dark = IsDark(mode);
         var soft = IsSoft(mode);
         var app = Application.Current;
@@ -76,9 +95,18 @@ public static class ThemeManager
     [DllImport("dwmapi.dll")]
     private static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref Margins margins);
 
+    /// <summary>実際に使う背景効果の番号（DWMWA_SYSTEMBACKDROP_TYPE: 1＝なし、2＝Mica、3＝アクリル）。</summary>
+    internal static int BackdropType(string effect, bool dark, bool soft) => effect switch
+    {
+        "mica" => 2,
+        "acrylic" => 3,
+        "none" => 1,
+        _ => dark && !soft ? 3 : 1,   // auto: 従来どおりダークだけアクリル
+    };
+
     /// <summary>
-    /// タイトルバーの色と、ダークのときの半透明の背景（Windows 11 のアクリル）を合わせる。
-    /// アクリルが使えない環境（Windows 10 など）では、不透明のダークのまま。
+    /// タイトルバーの色と、背景効果（Windows 11 22H2 以降の Mica／アクリル）を合わせる。
+    /// 効果が使えない環境（Windows 10 など）では、不透明のまま。
     /// </summary>
     private static void Style(Window w, bool dark, bool soft)
     {
@@ -88,13 +116,13 @@ public static class ThemeManager
             if (handle == IntPtr.Zero) return;
             var on = dark ? 1 : 0;
             DwmSetWindowAttribute(handle, 20, ref on, sizeof(int));   // DWMWA_USE_IMMERSIVE_DARK_MODE
-            var translucent = dark && !soft;   // ソフト（ダーク）は影の見え方のため、半透明にしない
+            var type = BackdropType(_effect, dark, soft);
+            var translucent = type != 1;
             var ok = false;
             if (HwndSource.FromHwnd(handle) is { CompositionTarget: { } target })
             {
                 var m = new Margins { Left = translucent ? -1 : 0, Right = translucent ? -1 : 0, Top = translucent ? -1 : 0, Bottom = translucent ? -1 : 0 };
-                var backdrop = translucent ? 3 : 1;   // DWMWA_SYSTEMBACKDROP_TYPE: 3＝アクリル、1＝なし
-                var hr = DwmSetWindowAttribute(handle, 38, ref backdrop, sizeof(int));
+                var hr = DwmSetWindowAttribute(handle, 38, ref type, sizeof(int));
                 if (hr == 0)
                 {
                     target.BackgroundColor = translucent ? Colors.Transparent : SystemColors.WindowColor;
@@ -102,10 +130,14 @@ public static class ThemeManager
                     ok = translucent;
                 }
             }
-            // 半透明にできたウィンドウだけ、背景色を半透明にする（できなければ不透明のまま）
+            // 効果が付いたウィンドウだけ、テーマの背景色に濃さ（不透明度）をかける（付かなければ不透明のまま）
             var res = Application.Current.Resources;
-            if (ok) res["WindowBg"] = new SolidColorBrush(Color.FromArgb(0xB0, 0x1E, 0x1F, 0x22));
-            else res.Remove("WindowBg");
+            res.Remove("WindowBg");   // テーマ側の値に戻してから読む
+            if (ok && res["WindowBg"] is SolidColorBrush baseBg)
+            {
+                var c = baseBg.Color;
+                res["WindowBg"] = new SolidColorBrush(Color.FromArgb((byte)Math.Round(255 * _opacity / 100.0), c.R, c.G, c.B));
+            }
         }
         catch (Exception) { }
     }

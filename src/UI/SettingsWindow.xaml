@@ -21,18 +21,31 @@
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{ui:T settings.language}" Width="72" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{ui:T settings.language}" Width="88" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <ComboBox x:Name="LangBox" Width="220" DisplayMemberPath="Name" SelectedValuePath="Code"
                                               ToolTip="{ui:T settings.language.tip}"
                                               SelectionChanged="Lang_Changed"/>
                                 </StackPanel>
                                 <TextBlock x:Name="LangNote" Text="{ui:T settings.language.restart}" Visibility="Collapsed"
-                                           FontSize="12" Opacity="0.65" Margin="80,4,0,0" TextWrapping="Wrap"/>
+                                           FontSize="12" Opacity="0.65" Margin="96,4,0,0" TextWrapping="Wrap"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <TextBlock Text="{ui:T settings.theme}" Width="72" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{ui:T settings.theme}" Width="88" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <ComboBox x:Name="ThemeBox" Width="220" DisplayMemberPath="Label" SelectedValuePath="Key"
                                               ToolTip="{ui:T settings.theme.tip}"
                                               SelectionChanged="Theme_Changed"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="{ui:T settings.backdrop}" Width="88" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox x:Name="BackdropBox" Width="220" DisplayMemberPath="Label" SelectedValuePath="Key"
+                                              ToolTip="{ui:T settings.backdrop.tip}"
+                                              SelectionChanged="Backdrop_Changed"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="{ui:T settings.opacity}" Width="88" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <Slider x:Name="OpacitySlider" Width="180" Minimum="30" Maximum="100" SmallChange="1" LargeChange="10"
+                                            IsMoveToPointEnabled="True" VerticalAlignment="Center" ToolTip="{ui:T settings.opacity.tip}"
+                                            ValueChanged="Opacity_Changed"/>
+                                    <TextBlock x:Name="OpacityText" Width="44" Margin="8,0,0,0" VerticalAlignment="Center" TextAlignment="Right"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

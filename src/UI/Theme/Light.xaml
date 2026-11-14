@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- ライト: Windows 標準の見た目のまま。ウィンドウの色だけ、ダークと同じキーで用意する -->
     <SolidColorBrush x:Key="WindowBg" Color="#F7F8FA"/>
+    <!-- スクロールバーのつまみ（通常／マウスを乗せた／つかんだ）。色はここで調整 -->
+    <SolidColorBrush x:Key="ScrollThumb" Color="#40000000"/>
+    <SolidColorBrush x:Key="ScrollThumbHover" Color="#70000000"/>
+    <SolidColorBrush x:Key="ScrollThumbDrag" Color="#C0C9A93A"/>
     <SolidColorBrush x:Key="LogBg" Color="#10000000"/>   <!-- 一番下のログ欄の背景（ライト系はダークより明るめ） -->
     <SolidColorBrush x:Key="WindowFg" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="CautionFg" Color="#E8A400"/>   <!-- 注意の黄（ライト系2種。11-4確認後に原色寄りへ。白い背景で読める範囲の強い黄） -->
