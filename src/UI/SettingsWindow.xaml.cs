@@ -56,7 +56,7 @@ public partial class SettingsWindow : Window
         MinTrayCheck.IsEnabled = settings.ShowTray;
         WaitCheck.IsChecked = settings.WaitForDevice;
         SplitReturnCheck.IsChecked = settings.SplitOnReturn;
-        VersionText.Text = $"{AppInfo.Name} {AppInfo.Version}";
+        VersionText.Text = $"{AppInfo.Name} {AppInfo.DisplayVersion}";
         Hotkeys.Init(settings);
         Hotkeys.Changed += () =>
         {
@@ -84,7 +84,7 @@ public partial class SettingsWindow : Window
             for (var n = 1; Loc.Has($"help.g{g}.{n}"); n++)
             {
                 var row = new Grid { Margin = new Thickness(2, 0, 0, 7) };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(15) });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 var mark = new TextBlock { Text = "🙹", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 12, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 3, 0, 0) };
                 mark.SetResourceReference(TextBlock.ForegroundProperty, "ToggleOn");

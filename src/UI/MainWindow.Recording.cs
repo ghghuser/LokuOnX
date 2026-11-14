@@ -176,7 +176,7 @@ public partial class MainWindow
         var t = s.Elapsed;
         // 大きい表示 = いまのファイルを始めてから。分割したあとは、横に（連続 ○）で録音全体の時間も出す
         var f = s.TrackElapsed;
-        TimeText.Text = Clock(f);
+        TimeText.Text = Clock(f).Replace(':', '：');   // 大きい時計だけ全角のコロン
         TotalPanel.Visibility = s.SplitCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         TotalText.Text = Clock(t);
         StateText.Text = Loc.Get("rec.state.withTrack", Loc.Get(s.Paused ? "rec.state.paused" : "rec.state.recording"), s.CurrentTrackNumber);

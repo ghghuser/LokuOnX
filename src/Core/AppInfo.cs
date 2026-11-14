@@ -12,7 +12,10 @@ public static class AppInfo
         get
         {
             var v = Assembly.GetExecutingAssembly().GetName().Version;
-            return v == null ? "0.0.0" : $"{v.Major}.{v.Minor}.{v.Build}";
+            return v == null ? "0.0.0.0" : $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
         }
     }
+
+    /// <summary>画面に出す形（例: v2.0.1.25）。</summary>
+    public static string DisplayVersion => "v" + Version;
 }

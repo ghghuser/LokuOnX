@@ -46,7 +46,12 @@ jobs:
 
       - name: Publish (single file)
         shell: pwsh
-        run: dotnet publish src/LokuOnX.csproj -c Release -o publish
+        run: |
+          # バージョン = 2.0.(ビルド番号÷100).(ビルド番号÷100の余り)。例: #125 → 2.0.1.25、#1000 → 2.0.10.0、#1010 → 2.0.10.10
+          $n = [int]$env:GITHUB_RUN_NUMBER
+          $ver = "2.0.$([math]::Floor($n / 100)).$($n % 100)"
+          Write-Host "build #$n -> version $ver"
+          dotnet publish src/LokuOnX.csproj -c Release -o publish -p:Version=$ver -p:IncludeSourceRevisionInInformationalVersion=false
 
       - name: Download FFmpeg
         shell: pwsh

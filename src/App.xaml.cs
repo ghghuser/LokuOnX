@@ -48,6 +48,18 @@ public partial class App : Application
             }
         }
 
+        // 文言ファイルが手で書き換えられていたら .bak に控える（最初の起動だけ。軽い処理）
+        if (first)
+        {
+            LangBackup.Run(Path.Combine(AppPaths.Dir, "Lang"), name =>
+            {
+                using var res = typeof(App).Assembly.GetManifestResourceStream("Lang." + name);
+                if (res == null) return null;
+                using var reader = new StreamReader(res, System.Text.Encoding.UTF8);
+                return reader.ReadToEnd();
+            });
+        }
+
         var settings = new Settings(AppPaths.SettingsIni, readOnly: !first);
         UI.ThemeManager.Apply(settings.Theme);   // 画面の色（自動／ライト／ダーク）。ウィンドウを作る前に
         try
