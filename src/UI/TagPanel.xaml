@@ -30,11 +30,13 @@
             <TextBox x:Name="YearBox" Grid.Row="4" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
             <TextBlock Grid.Row="5" Text="{ui:T tagpanel.textblock6.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0"/>
             <TextBox x:Name="CommentBox" Grid.Row="5" Grid.Column="1" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
-            <CheckBox x:Name="TrackCheck" Grid.Row="6" Grid.Column="1" Margin="0,8,0,0"
-                  ToolTip="{ui:T tagpanel.trackcheck.tooltip}"
-                  Checked="Track_Changed" Unchecked="Track_Changed">
-                <TextBlock Text="{ui:T tagpanel.trackcheck.content}" TextWrapping="Wrap"/>
-            </CheckBox>
+            <!-- スイッチは見出しの列（右寄せ）、文は入力欄の頭に揃える。文のクリックでも切り替わる -->
+            <CheckBox x:Name="TrackCheck" Grid.Row="6" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,8,4,0"
+                      ToolTip="{ui:T tagpanel.trackcheck.tooltip}"
+                      Checked="Track_Changed" Unchecked="Track_Changed"/>
+            <TextBlock Grid.Row="6" Grid.Column="1" Margin="0,8,0,0" VerticalAlignment="Center" TextWrapping="Wrap" Cursor="Hand"
+                       Text="{ui:T tagpanel.trackcheck.content}" ToolTip="{ui:T tagpanel.trackcheck.tooltip}"
+                       MouseLeftButtonUp="TrackText_Click"/>
         </Grid>
 
     </StackPanel>

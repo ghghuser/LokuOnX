@@ -46,4 +46,7 @@ public partial class TagPanel : UserControl
     private void Tag_LostFocus(object sender, RoutedEventArgs e) => Commit();
 
     private void Track_Changed(object sender, RoutedEventArgs e) => Commit();
+
+    private void TrackText_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        => TrackCheck.IsChecked = TrackCheck.IsChecked != true;
 }
