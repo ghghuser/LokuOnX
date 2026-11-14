@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- ダーク: 色（ブラシ）と、色が付く部品の簡単なスタイル。ボタン・コンボボックスは DarkControls.xaml -->
     <SolidColorBrush x:Key="WindowBg" Color="#1A1B1D"/>
+    <SolidColorBrush x:Key="LogBg" Color="#26000000"/>   <!-- 一番下のログ欄の背景（背景より少し暗く） -->
     <SolidColorBrush x:Key="WindowFg" Color="#DDDAD5"/>
     <SolidColorBrush x:Key="CautionFg" Color="#E8C23A"/>   <!-- 注意の黄（ダーク系。原色に近いが目に痛くない黄） -->
     <SolidColorBrush x:Key="PanelBg" Color="#802D2F33"/>

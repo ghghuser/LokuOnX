@@ -5,11 +5,11 @@
     <StackPanel>
         <!-- 1段目: 形式・ビットレート・圧縮レベル／LAME品質／Vorbis品質 -->
         <WrapPanel Margin="0,0,0,4">
-            <ComboBox x:Name="FormatBox" Width="124" Margin="0,0,18,2" DisplayMemberPath="Label" SelectedValuePath="Key"
+            <ComboBox x:Name="FormatBox" Width="117" Margin="0,0,18,2" DisplayMemberPath="Label" SelectedValuePath="Key"
                       SelectionChanged="Format_Changed"/>
             <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
                 <TextBlock Text="{ui:T qualitybar.textblock1.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <ComboBox x:Name="BitrateBox" Width="100"
+                <ComboBox x:Name="BitrateBox" Width="93"
                           DisplayMemberPath="Label" SelectedValuePath="Value"
                           ToolTip="{ui:T qualitybar.bitratebox.tooltip}"
                           SelectionChanged="Bitrate_Changed"/>
@@ -17,7 +17,7 @@
             <!-- 圧縮率: 設定のある形式（flac・mp3・ogg・opus）だけ表示する -->
             <StackPanel x:Name="CompPanel" Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock x:Name="CompLabel" Text="{ui:T qualitybar.complabel.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <ComboBox x:Name="CompBox" Width="150"
+                <ComboBox x:Name="CompBox" Width="143"
                           DisplayMemberPath="Label" SelectedValuePath="Value"
                           SelectionChanged="Comp_Changed"/>
             </StackPanel>
@@ -26,13 +26,13 @@
         <WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,18,2">
                 <TextBlock Text="{ui:T qualitybar.textblock2.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <ComboBox x:Name="ChannelBox" Width="92"
+                <ComboBox x:Name="ChannelBox" Width="85"
                           DisplayMemberPath="Label" SelectedValuePath="Value"
                           SelectionChanged="Channel_Changed"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{ui:T qualitybar.textblock3.text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <ComboBox x:Name="RateBox" Width="124"
+                <ComboBox x:Name="RateBox" Width="117"
                           DisplayMemberPath="Label" SelectedValuePath="Value"
                           ToolTip="{ui:T qualitybar.ratebox.tooltip}"
                           SelectionChanged="Rate_Changed"/>

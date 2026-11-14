@@ -57,10 +57,10 @@
         </StackPanel>
         <!-- エラーは「デバイス再取得」の行のすぐ上に出す -->
         <StackPanel Grid.Row="3">
-            <TextBlock x:Name="ErrorText" Foreground="{DynamicResource WarnFg}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap" Visibility="Collapsed"
+            <TextBlock x:Name="ErrorText" Foreground="{DynamicResource WarnFg}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" Visibility="Collapsed"
                        Margin="0,6,0,0"/>
             <!-- 注意（黄）: いま選んでいる入力が、出力の出力先と同じデバイスで、その出力が音回り防止で止まるとき -->
-            <TextBlock x:Name="CautionText" Foreground="{DynamicResource CautionFg}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap" Visibility="Collapsed"
+            <TextBlock x:Name="CautionText" Foreground="{DynamicResource CautionFg}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" Visibility="Collapsed"
                        Margin="0,6,0,0"/>
         </StackPanel>
     </Grid>

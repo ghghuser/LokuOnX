@@ -4,8 +4,8 @@
         xmlns:ui="clr-namespace:Recorder.UI"
         Icon="pack://application:,,,/LokuOnX.ico"
         Title="LokuOnX"
-        Width="1280" Height="940"
-        MinWidth="1180" MinHeight="800"
+        Width="1280" Height="900"
+        MinWidth="1180" MinHeight="760"
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource WindowFg}"
         FontFamily="Yu Gothic UI, Meiryo UI"
         FontSize="14"
@@ -180,16 +180,18 @@
       </Grid>
 
       <!-- ウィンドウの一番下: ログ（保存しました など。常に2行分の高さ）。枠なし・少し暗い背景・ログ向けの等幅フォント。右側にホットキー（ONのとき） -->
-      <Border Grid.Row="1" Background="#26000000" Padding="16,6">
+      <Border Grid.Row="1" Background="{DynamicResource LogBg}" Padding="16,6">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
-          <TextBlock x:Name="StatusText" VerticalAlignment="Center"
-                     FontFamily="Consolas, BIZ UDGothic, Yu Gothic UI" FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" Height="32"
-                     TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Opacity="0.85" Text="{ui:T mainwindow.statustext.text}"
-                     ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+          <!-- 選んでコピーできるよう読み取り専用の TextBox（枠・背景なし。2行より長いときはマウスホイールで送る） -->
+          <TextBox x:Name="StatusText" Style="{x:Null}" IsReadOnly="True" IsReadOnlyCaretVisible="False" BorderThickness="0" Background="Transparent"
+                   Foreground="{DynamicResource WindowFg}" Padding="0" VerticalContentAlignment="Center" VerticalAlignment="Center"
+                   FontFamily="Consolas, BIZ UDGothic, Yu Gothic UI" FontSize="12" TextBlock.LineHeight="16" TextBlock.LineStackingStrategy="BlockLineHeight" Height="32"
+                   TextWrapping="Wrap" VerticalScrollBarVisibility="Hidden" Opacity="0.85" Text="{ui:T mainwindow.statustext.text}"
+                   ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
           <!-- ホットキーがONのとき、割り当てを薄い文字で（設定は歯車の設定ウィンドウ） -->
           <TextBlock x:Name="HotkeyInfo" Grid.Column="1" FontSize="12" Opacity="0.55" TextWrapping="Wrap" MaxWidth="560"
                      Margin="16,0,0,0" VerticalAlignment="Center" TextAlignment="Right" Visibility="Collapsed"/>

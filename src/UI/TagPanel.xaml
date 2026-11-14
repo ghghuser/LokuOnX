@@ -17,15 +17,15 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="{ui:T tagpanel.textblock1.text}" VerticalAlignment="Center" Margin="0,0,10,6"/>
+            <TextBlock Text="{ui:T tagpanel.textblock1.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
             <TextBox x:Name="TitleBox" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
-            <TextBlock Grid.Row="1" Text="{ui:T tagpanel.textblock2.text}" VerticalAlignment="Center" Margin="0,0,10,6"/>
+            <TextBlock Grid.Row="1" Text="{ui:T tagpanel.textblock2.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
             <TextBox x:Name="ArtistBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
-            <TextBlock Grid.Row="2" Text="{ui:T tagpanel.textblock3.text}" VerticalAlignment="Center" Margin="0,0,10,6"/>
+            <TextBlock Grid.Row="2" Text="{ui:T tagpanel.textblock3.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
             <TextBox x:Name="AlbumBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
-            <TextBlock Grid.Row="3" Text="{ui:T tagpanel.textblock4.text}" VerticalAlignment="Center" Margin="0,0,10,6"/>
+            <TextBlock Grid.Row="3" Text="{ui:T tagpanel.textblock4.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
             <TextBox x:Name="GenreBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
-            <TextBlock Grid.Row="4" Text="{ui:T tagpanel.textblock5.text}" VerticalAlignment="Center" Margin="0,0,10,6"/>
+            <TextBlock Grid.Row="4" Text="{ui:T tagpanel.textblock5.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
             <TextBox x:Name="YearBox" Grid.Row="4" Grid.Column="1" Margin="0,0,0,6" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>
             <TextBlock Grid.Row="5" Text="{ui:T tagpanel.textblock6.text}" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBox x:Name="CommentBox" Grid.Row="5" Grid.Column="1" VerticalContentAlignment="Center" LostFocus="Tag_LostFocus"/>

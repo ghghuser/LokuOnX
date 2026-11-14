@@ -2,10 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:Recorder.UI"
-        Title="{ui:T settings.title}" Width="620" Height="720" MinHeight="480"
+        Title="{ui:T settings.title}" Width="620" Height="720" MinWidth="520" MinHeight="420"
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource WindowFg}"
         FontFamily="Yu Gothic UI, Meiryo UI" FontSize="14"
-        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize">
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="CanResize">
     <Grid Margin="18,14,18,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -15,7 +15,7 @@
         <TabControl x:Name="Tabs">
             <!-- 詳細設定: めったに使わない設定。見出し（色付き）と中身（左に縦線）で見分ける -->
             <TabItem Header="{ui:T settings.tab.advanced}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" FontSize="13">
                     <StackPanel Margin="0,0,10,0">
                         <TextBlock Text="{ui:T settings.section.display}" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
                         <Border Style="{StaticResource SectionBody}">

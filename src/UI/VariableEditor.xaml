@@ -16,13 +16,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{ui:T variableeditor.textblock1.text}"/>
+        <TextBlock Text="{ui:T variableeditor.textblock1.text}" FontSize="12"/>
         <TextBox x:Name="Box" Grid.Row="1" Margin="0,6,0,6" VerticalContentAlignment="Center" Padding="4"
                  TextChanged="Box_TextChanged"/>
         <TextBlock x:Name="PreviewText" Grid.Row="2" Opacity="0.75" TextWrapping="Wrap" Margin="0,0,0,10"/>
-        <WrapPanel x:Name="Buttons" Grid.Row="3" Margin="0,0,0,10"/>
+        <WrapPanel x:Name="Buttons" Grid.Row="3" Margin="0,0,0,10" TextElement.FontSize="12"/>
         <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" BorderBrush="#40808080" BorderThickness="1">
-            <TextBlock x:Name="HelpText" Margin="10,8" TextWrapping="Wrap" LineHeight="22"/>
+            <TextBlock x:Name="HelpText" Margin="10,8" TextWrapping="Wrap" FontSize="12" LineHeight="20"/>
         </ScrollViewer>
 
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
