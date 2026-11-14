@@ -72,20 +72,26 @@
 
             <TabItem Header="{ui:T settings.tab.help}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <TextBlock x:Name="HelpText" TextWrapping="Wrap" LineHeight="24" Margin="2,2,10,0" Opacity="0.92"/>
+                    <StackPanel x:Name="HelpPanel" Margin="2,0,10,8"/>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="{ui:T settings.tab.about}">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock x:Name="VersionText" FontSize="20" FontWeight="SemiBold" TextAlignment="Center" Margin="0,0,0,10"/>
-                    <TextBlock TextAlignment="Center" Margin="0,0,0,14">
-                        <Hyperlink x:Name="GitHubLink" NavigateUri="https://github.com/ghghuser/LokuOnX" RequestNavigate="Link_Navigate"><Run Text="{ui:T about.github}"/></Hyperlink>
-                    </TextBlock>
-                    <TextBlock TextAlignment="Center" Margin="0,0,0,14">
-                        <Hyperlink x:Name="FolderLink" Click="OpenFolder_Click"><Run Text="{ui:T about.folder}"/></Hyperlink>
-                    </TextBlock>
-                </StackPanel>
+                <!-- 背景: アイコンを半透明で中央に大きく（256px のフレームをそのまま使い、ぼかさない） -->
+                <Grid>
+                    <Image x:Name="AboutIcon" Width="256" Height="256" Opacity="0.16" IsHitTestVisible="False"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           RenderOptions.BitmapScalingMode="HighQuality" UseLayoutRounding="True" SnapsToDevicePixels="True"/>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock x:Name="VersionText" FontSize="20" FontWeight="SemiBold" TextAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock TextAlignment="Center" Margin="0,0,0,14">
+                            <Hyperlink x:Name="GitHubLink" NavigateUri="https://github.com/ghghuser/LokuOnX" RequestNavigate="Link_Navigate"><Run Text="{ui:T about.github}"/></Hyperlink>
+                        </TextBlock>
+                        <TextBlock TextAlignment="Center" Margin="0,0,0,14">
+                            <Hyperlink x:Name="FolderLink" Click="OpenFolder_Click"><Run Text="{ui:T about.folder}"/></Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
             </TabItem>
         </TabControl>
 

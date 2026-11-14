@@ -263,14 +263,14 @@ public partial class MainWindow : IOutputHost
         {
             OutputButton.SetResourceReference(Control.ForegroundProperty, "LampOn");   // 入力デバイスのランプがオンのときと同じ緑
             var names = _outHub.Engines.Select((e, i) => (e, i)).Where(x => x.e.Running && x.i < _outCfgs.Count).Select(x => _outCfgs[x.i].Name);
-            OutputButton.ToolTip = Loc.Get("mainwindow.output.s06") + string.Join("、", names) + Loc.Get("mainwindow.output.s07");
+            OutputButton.ToolTip = (Loc.Get("mainwindow.output.s06") + " ") + string.Join("、", names) + Loc.Get("mainwindow.output.s07");
         }
         else
         {
             OutputButton.ClearValue(Control.ForegroundProperty);
             var err = _outHub.Engines.Select(e => e.Error).FirstOrDefault(m => m.Length > 0) ?? "";
             OutputButton.ToolTip = err.Length > 0
-                ? Loc.Get("mainwindow.output.s08") + err
+                ? (Loc.Get("mainwindow.output.s08") + " ") + err
                 : Loc.Get("mainwindow.output.s09");
         }
         int count = running ? _outHub.Engines.Count(e => e.Running) : 0;

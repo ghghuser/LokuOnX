@@ -71,7 +71,7 @@ public sealed class LibraryFile : INotifyPropertyChanged
     public static string Clock(TimeSpan t)
     {
         var s = (long)Math.Round(t.TotalSeconds);
-        return $"{s / 3600}：{s / 60 % 60:00}：{s % 60:00}";
+        return $"{s / 3600}:{s / 60 % 60:00}:{s % 60:00}";
     }
 
     public static string SizeFormat(long bytes) =>

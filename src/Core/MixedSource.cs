@@ -142,7 +142,7 @@ public sealed class MixedSource : IAudioSource
         _entries = acquired.ToArray();
         _started = true;
         foreach (var x in errors)
-            Notice?.Invoke(Loc.Get("mixedsource.s03") + x);
+            Notice?.Invoke((Loc.Get("mixedsource.s03") + " ") + x);
         _timer = new System.Threading.Timer(_ => Tick(), null, TickMs, TickMs);
     }
 
@@ -156,7 +156,7 @@ public sealed class MixedSource : IAudioSource
         }
         catch (Exception ex)
         {
-            Notice?.Invoke(Loc.Get("mixedsource.s04") + ex.Message);
+            Notice?.Invoke((Loc.Get("mixedsource.s04") + " ") + ex.Message);
         }
         finally
         {

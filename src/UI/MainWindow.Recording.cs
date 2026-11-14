@@ -230,7 +230,7 @@ public partial class MainWindow
             ShowError(Loc.Get("rec.disk.low", DiskSpace.Text(free)));
     }
 
-    private static string Clock(TimeSpan t) => $"{(int)t.TotalHours}：{t.Minutes:00}：{t.Seconds:00}";
+    private static string Clock(TimeSpan t) => $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}";
 
     /// <summary>エラーは音の鳴るポップアップではなく、画面内に赤文字で出す。</summary>
     private void ShowError(string message)

@@ -193,7 +193,7 @@ public partial class PlayerPanel : UserControl
     }
 
     private void UpdateName() =>
-        NameText.Text = _file == null ? Loc.Get("playerpanel.s02") : (Playing ? Loc.Get("playerpanel.s03") : "") + _file.Name;
+        NameText.Text = _file == null ? Loc.Get("playerpanel.s02") : (Playing ? (Loc.Get("playerpanel.s03") + " ") : "") + _file.Name;
 
     private void OnFileChanged(object? sender, PropertyChangedEventArgs e)
     {

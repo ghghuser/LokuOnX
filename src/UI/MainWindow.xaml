@@ -73,7 +73,7 @@
 
                 <StackPanel Grid.Column="2">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="TimeText" Text="0：00：00" FontSize="40"
+                        <TextBlock x:Name="TimeText" Text="0:00:00" FontSize="40"
                                    FontFamily="Bahnschrift, Consolas, Yu Gothic UI" Typography.NumeralAlignment="Tabular"/>
                         <StackPanel x:Name="TotalPanel" Margin="16,0,0,4" VerticalAlignment="Bottom" Visibility="Collapsed"
                                     ToolTip="{ui:T mainwindow.totalpanel.tooltip}">

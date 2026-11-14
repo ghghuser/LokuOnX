@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Recorder.Core;
 
@@ -45,7 +47,8 @@ public partial class SettingsWindow : Window
         _asioChanged = asioChanged;
         AsioCheck.IsChecked = settings.AsioEnabled;
         ThemeBox.ItemsSource = Themes();
-        HelpText.Text = Loc.Block("help.");
+        BuildHelp();
+        LoadAboutIcon();
         ThemeBox.SelectedValue = settings.Theme;
         SleepCheck.IsChecked = settings.PreventSleep;
         TrayCheck.IsChecked = settings.ShowTray;
@@ -68,6 +71,45 @@ public partial class SettingsWindow : Window
             var (text, error) = _applyHotkeys();   // 前に登録できなかったキーがあれば、ここにも出す
             Hotkeys.SetMessage(text, error);
         }
+    }
+
+    /// <summary>ヘルプ: グループごとに見出し（help.gN.title）と項目（help.gN.1, 2, …）を並べる。項目の頭の印は黄色（チェックなどと同じ色）。</summary>
+    private void BuildHelp()
+    {
+        for (var g = 1; Loc.Has($"help.g{g}.title"); g++)
+        {
+            var head = new TextBlock { Text = Loc.Get($"help.g{g}.title"), Margin = new Thickness(0, g == 1 ? 4 : 14, 0, 6) };
+            head.SetResourceReference(StyleProperty, "SectionTitle");
+            HelpPanel.Children.Add(head);
+            for (var n = 1; Loc.Has($"help.g{g}.{n}"); n++)
+            {
+                var row = new Grid { Margin = new Thickness(2, 0, 0, 7) };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                var mark = new TextBlock { Text = "🙹", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 12, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 3, 0, 0) };
+                mark.SetResourceReference(TextBlock.ForegroundProperty, "ToggleOn");
+                var text = new TextBlock
+                {
+                    Text = Loc.Get($"help.g{g}.{n}"), TextWrapping = TextWrapping.Wrap, FontWeight = FontWeights.Light,
+                    LineHeight = 22, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, Opacity = 0.95,
+                };
+                Grid.SetColumn(text, 1);
+                row.Children.Add(mark);
+                row.Children.Add(text);
+                HelpPanel.Children.Add(row);
+            }
+        }
+    }
+
+    /// <summary>バージョン情報の背景: アイコンの一番大きい絵（256px）を使う。読めなければ何も出さない。</summary>
+    private void LoadAboutIcon()
+    {
+        try
+        {
+            var decoder = new IconBitmapDecoder(new Uri("pack://application:,,,/LokuOnX.ico"), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+            AboutIcon.Source = decoder.Frames.OrderByDescending(f => f.PixelWidth).First();
+        }
+        catch (Exception) { }
     }
 
     private void Theme_Changed(object sender, SelectionChangedEventArgs e)

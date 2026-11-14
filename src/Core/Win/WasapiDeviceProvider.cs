@@ -104,7 +104,7 @@ public sealed class WasapiDeviceProvider : IAudioDeviceProvider
     {
         var loopback = key.StartsWith(RenderPrefix, StringComparison.Ordinal);
         if (!loopback && !key.StartsWith(CapturePrefix, StringComparison.Ordinal))
-            throw new ArgumentException(Loc.Get("wasapideviceprovider.s03") + key);
+            throw new ArgumentException((Loc.Get("wasapideviceprovider.s03") + " ") + key);
         var id = key.Substring(loopback ? RenderPrefix.Length : CapturePrefix.Length);
 
         using var enumerator = new MMDeviceEnumerator();

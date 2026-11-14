@@ -46,7 +46,7 @@ public partial class FileListPanel
                 if (File.Exists(f.Path))
                     Process.Start(new ProcessStartInfo("explorer.exe") { Arguments = $"/select,\"{f.Path}\"", UseShellExecute = true });
             }
-            catch (Exception ex) { ShowError(Loc.Get("filelistpanel.actions.s04") + ex.Message); return; }
+            catch (Exception ex) { ShowError((Loc.Get("filelistpanel.actions.s04") + " ") + ex.Message); return; }
         }
     }
 
@@ -89,7 +89,7 @@ public partial class FileListPanel
         var paths = files.Select(f => f.Path).ToList();
         Releasing?.Invoke(paths);
         var failed = await Task.Run(() => RecycleBin.Send(paths));
-        if (failed.Count > 0) ShowError(Loc.Get("filelistpanel.actions.s09") + string.Join(" / ", failed));
+        if (failed.Count > 0) ShowError((Loc.Get("filelistpanel.actions.s09") + " ") + string.Join(" / ", failed));
         _settings.RemoveFromHistory(paths.Where(p => !File.Exists(p)));
         Refresh();
     }
@@ -102,7 +102,7 @@ public partial class FileListPanel
         folder = folder.Trim();
         if (folder.Length == 0 || !Directory.Exists(folder))
         {
-            ShowError(Loc.Get("filelistpanel.actions.s10") + folder);
+            ShowError((Loc.Get("filelistpanel.actions.s10") + " ") + folder);
             return;
         }
         _settings.AddRecentFolder(folder);

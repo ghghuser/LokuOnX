@@ -93,7 +93,7 @@ public sealed class FfmpegEncoder : IDisposable
         }
         catch (Exception ex)
         {
-            Fail(Loc.Get("ffmpegencoder.s02") + ex.Message);
+            Fail((Loc.Get("ffmpegencoder.s02") + " ") + ex.Message);
         }
         finally
         {

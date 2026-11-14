@@ -128,14 +128,14 @@ public sealed class DeviceInput : IDisposable
                 CloseSource();
                 if (!_autoResume)
                 {
-                    Failed?.Invoke(Loc.Get("deviceinput.s02") + Label + why);
+                    Failed?.Invoke((Loc.Get("deviceinput.s02") + " ") + Label + why);
                     return;
                 }
                 if (!_reportedLost)
                 {
                     _reportedLost = true;
                     lost = true;
-                    Notice?.Invoke(Loc.Get("deviceinput.s03") + Label + why);
+                    Notice?.Invoke((Loc.Get("deviceinput.s03") + " ") + Label + why);
                 }
             }
             var wanted = SafeResolve();
@@ -144,7 +144,7 @@ public sealed class DeviceInput : IDisposable
                 if (AudioKeys.IsDefault(_key) && wanted != null && wanted != _srcKey)
                 {
                     CloseSource();
-                    if (Connect(wanted)) Notice?.Invoke(Loc.Get("deviceinput.s04") + Label);
+                    if (Connect(wanted)) Notice?.Invoke((Loc.Get("deviceinput.s04") + " ") + Label);
                     else _reportedLost = false;   // つながらなければ、次の周期でつなぎ直す
                 }
             }
@@ -152,7 +152,7 @@ public sealed class DeviceInput : IDisposable
             {
                 _reportedLost = false;
                 returned = true;
-                Notice?.Invoke(Loc.Get("deviceinput.s05") + Label);
+                Notice?.Invoke((Loc.Get("deviceinput.s05") + " ") + Label);
             }
         }
         catch (Exception ex)

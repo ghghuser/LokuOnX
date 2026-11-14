@@ -209,7 +209,7 @@ public sealed partial class EffectWindow : Window
 
         root.Children.Add(new TextBlock
         {
-            Text = (_host.HasRouting ? Loc.Get("effectwindow.s02") : Loc.Get("effectwindow.s03"))
+            Text = (_host.HasRouting ? (Loc.Get("effectwindow.s02") + " ") : (Loc.Get("effectwindow.s03") + " "))
                 + Loc.Get("effectwindow.s04"),
             FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
         });

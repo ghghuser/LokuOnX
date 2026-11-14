@@ -27,7 +27,7 @@
                         Minimum="0" Maximum="1" IsMoveToPointEnabled="True" IsEnabled="False"
                         ValueChanged="Pos_ValueChanged"
                         ToolTip="{ui:T playerpanel.posslider.tooltip}"/>
-                <TextBlock x:Name="TimeText" Grid.Column="2" Text="0：00：00 / 0：00：00" VerticalAlignment="Center"
+                <TextBlock x:Name="TimeText" Grid.Column="2" Text="0:00:00 / 0:00:00" VerticalAlignment="Center"
                            MinWidth="130" TextAlignment="Right"/>
 
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal" Margin="0,6,0,0">
