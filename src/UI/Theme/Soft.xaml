@@ -3,7 +3,7 @@
     <!-- ソフト（ニューモーフィズム風の試作。M9）: ライトをもとに、背景と同じ色のやわらかい面＋左上の白い光・右下の影で立体感を出す。
          文字は濃い色のままで、コントラストは落とさない。色はここを書き換えて調整できます -->
     <SolidColorBrush x:Key="WindowBg" Color="#E4E8EE"/>
-    <SolidColorBrush x:Key="AreaBg" Color="#40FFFFFF"/>   <!-- 形式・音質／下のタブの中身／プレーヤーの面（入力デバイスのカード CardBg より透け強め） -->
+    <SolidColorBrush x:Key="AreaBg" Color="#50FFFFFF"/>   <!-- 形式・音質／下のタブの中身／プレーヤーの面（入力デバイスのカード CardBg より透け強め） -->
     <!-- スクロールバーのつまみ（通常／マウスを乗せた／つかんだ）。色はここで調整 -->
     <SolidColorBrush x:Key="ScrollThumb" Color="#40000000"/>
     <SolidColorBrush x:Key="ScrollThumbHover" Color="#70000000"/>

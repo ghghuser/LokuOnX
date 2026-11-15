@@ -3,7 +3,7 @@
     <!-- ソフト（ダーク）: ダークの色を、半透明をやめた不透明のやわらかい面に差し替える（ニューモーフィズム風。文字は明るいまま）。
          影の色だけは SoftControlsDark.xaml の DropShadowEffect に直接書いてある -->
     <SolidColorBrush x:Key="WindowBg" Color="#282B31"/>
-    <SolidColorBrush x:Key="AreaBg" Color="#14FFFFFF"/>   <!-- 形式・音質／下のタブの中身／プレーヤーの面（入力デバイスのカード CardBg より透け強め） -->
+    <SolidColorBrush x:Key="AreaBg" Color="#55282B31"/>   <!-- 形式・音質／下のタブの中身／プレーヤーの面（入力デバイスのカード CardBg より透け強め） -->
     <!-- スクロールバーのつまみ（通常／マウスを乗せた／つかんだ）。色はここで調整 -->
     <SolidColorBrush x:Key="ScrollThumb" Color="#50FFFFFF"/>
     <SolidColorBrush x:Key="ScrollThumbHover" Color="#80FFFFFF"/>

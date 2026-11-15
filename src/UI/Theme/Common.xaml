@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="clr-namespace:Recorder.UI">
     <!-- ★ 色の調整はここ（ライト・ダーク共通。#RRGGBB を書き換えるだけで変わります） -->
     <SolidColorBrush x:Key="IconMicFg" Color="#2AA7D8"/>        <!-- 🎤 マイク（水色） -->
     <SolidColorBrush x:Key="IconSpeakerFg" Color="#F08A4B"/>    <!-- 🔊 スピーカー（橙） -->
@@ -84,18 +85,27 @@
     </Style>
 
     <!-- 左下の設定グループ: 枠の上辺の中央に小さめの黄色い見出しを埋め込む（ーーー 形式・音質 ーーー）。色は Dark.xaml / Light.xaml の GroupFg・CardBorder・WindowBg -->
+    <ui:GroupGapClipConverter x:Key="GroupGapClip"/>
     <Style x:Key="GroupFrame" TargetType="GroupBox">
         <Setter Property="Margin" Value="0,0,0,10"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GroupBox">
                     <Grid>
-                        <Border Margin="0,9,0,0" BorderThickness="1" BorderBrush="{DynamicResource CardBorder}" Background="{DynamicResource AreaBg}"
+                        <!-- 枠は、見出しの文字の部分だけ切り抜いて描く（見出しに背景を被せるのではない）。切り抜きは GroupGapClipConverter -->
+                        <Border x:Name="Frame" Margin="0,9,0,0" BorderThickness="1" BorderBrush="{DynamicResource CardBorder}" Background="{DynamicResource AreaBg}"
                                 CornerRadius="8" Padding="12,14,12,8">
+                            <Border.Clip>
+                                <MultiBinding Converter="{StaticResource GroupGapClip}">
+                                    <Binding ElementName="Frame" Path="ActualWidth"/>
+                                    <Binding ElementName="Frame" Path="ActualHeight"/>
+                                    <Binding ElementName="Label" Path="ActualWidth"/>
+                                    <Binding ElementName="Label" Path="ActualHeight"/>
+                                </MultiBinding>
+                            </Border.Clip>
                             <ContentPresenter/>
                         </Border>
-                        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,0,0,0" Padding="8,0"
-                                Background="{DynamicResource WindowBg}">
+                        <Border x:Name="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,0,0,0" Padding="8,0">
                             <TextBlock Text="{TemplateBinding Header}" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{DynamicResource GroupFg}"/>
                         </Border>
