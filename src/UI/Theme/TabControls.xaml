@@ -17,7 +17,8 @@
                             <TabPanel IsItemsHost="True"/>
                         </Border>
                         <!-- 中身の面。Background を指定したタブ（下段のタブ）だけ色が付く -->
-                        <Border Grid.Row="1" Padding="{TemplateBinding Padding}" CornerRadius="0,0,8,8" Background="{TemplateBinding Background}">
+                        <Border Grid.Row="1" Padding="{TemplateBinding Padding}" CornerRadius="0,0,8,8" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                             <ContentPresenter ContentSource="SelectedContent"/>
                         </Border>
                     </Grid>
