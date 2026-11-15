@@ -71,10 +71,10 @@ public static class ThemeManager
     /// <summary>読み込む色・部品の定義（後ろのものが前のものを上書きする）。コンボボックスとタブは全テーマ共通。</summary>
     private static string[] Files(string mode) => mode switch
     {
-        "soft" => new[] { "Light", "Soft", "ComboControls", "TabControls", "SoftControls", "LightList" },
+        "soft" => new[] { "Light", "Soft", "ComboControls", "TabControls", "SoftControls", "LightList", "LightSlider" },
         "softdark" => new[] { "Dark", "SoftDark", "ComboControls", "TabControls", "DarkControls", "DarkList", "SoftControlsDark" },
         _ when IsDark(mode) => new[] { "Dark", "ComboControls", "TabControls", "DarkControls", "DarkList" },
-        _ => new[] { "Light", "ComboControls", "TabControls", "LightControls", "LightList" },
+        _ => new[] { "Light", "ComboControls", "TabControls", "LightControls", "LightList", "LightSlider" },
     };
 
     private static bool SystemUsesDark()

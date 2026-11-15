@@ -3,6 +3,10 @@
     <!-- ライト: Windows 標準の見た目のまま。ウィンドウの色だけ、ダークと同じキーで用意する -->
     <SolidColorBrush x:Key="WindowBg" Color="#F7F8FA"/>
     <!-- スクロールバーのつまみ（通常／マウスを乗せた／つかんだ）。色はここで調整 -->
+    <!-- スライダー・ラジオボタン（LightSlider.xaml）: 溝／つまみの輪／つまみの縁 -->
+    <SolidColorBrush x:Key="TrackBg" Color="#C5CBD6"/>
+    <SolidColorBrush x:Key="ThumbRing" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="ThumbStroke" Color="#8A9BB5"/>
     <SolidColorBrush x:Key="ScrollThumb" Color="#40000000"/>
     <SolidColorBrush x:Key="ScrollThumbHover" Color="#70000000"/>
     <SolidColorBrush x:Key="ScrollThumbDrag" Color="#C02F80ED"/>
