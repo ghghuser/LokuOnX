@@ -86,6 +86,7 @@
 
     <!-- 左下の設定グループ: 枠の上辺の中央に小さめの黄色い見出しを埋め込む（ーーー 形式・音質 ーーー）。色は Dark.xaml / Light.xaml の GroupFg・CardBorder・WindowBg -->
     <ui:GroupGapClipConverter x:Key="GroupGapClip"/>
+    <ui:RoundClipConverter x:Key="RoundClip"/>
     <Style x:Key="GroupFrame" TargetType="GroupBox">
         <Setter Property="Margin" Value="0,0,0,10"/>
         <Setter Property="Template">

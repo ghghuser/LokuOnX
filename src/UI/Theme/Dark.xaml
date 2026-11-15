@@ -14,7 +14,7 @@
     <SolidColorBrush x:Key="PopupBg" Color="#2D2F33"/>
     <SolidColorBrush x:Key="PanelHover" Color="#B03C4043"/>
     <SolidColorBrush x:Key="PanelBorder" Color="#46494E"/>
-    <SolidColorBrush x:Key="TabSelBg" Color="#30FFFFFF"/>
+    <SolidColorBrush x:Key="TabSelBg" Color="#1EFFFFFF"/>
     <SolidColorBrush x:Key="LampOnRing" Color="#34D96B"/>
     <SolidColorBrush x:Key="Accent" Color="#4C8DFF"/>
     <SolidColorBrush x:Key="DisabledFg" Color="#7A7D82"/>
@@ -30,7 +30,7 @@
     <SolidColorBrush x:Key="ThumbRing" Color="#121316"/>
     <!-- 録音コンソール（上段のカード）と波形の枠 -->
     <SolidColorBrush x:Key="CardBg" Color="#552A2C30"/>
-    <SolidColorBrush x:Key="CardBorder" Color="#3A3D42"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#603A3D42"/>
     <SolidColorBrush x:Key="InputBg" Color="#802D2F33"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プロファイル欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#40000000"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#34373C"/>

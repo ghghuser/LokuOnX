@@ -79,54 +79,63 @@
             </WrapPanel>
         </StackPanel>
 
-        <ListView x:Name="List" Grid.Row="1" MinHeight="110" SelectionMode="Extended" FontSize="12" Background="{DynamicResource InputBg}"
-                  SelectionChanged="List_SelectionChanged" MouseDoubleClick="List_DoubleClick"
-                  PreviewKeyDown="List_KeyDown"
-                  GridViewColumnHeader.Click="Header_Click">
-            <ListView.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="{ui:T filelistpanel.menuitem1.header}" Click="Play_Click"/>
-                    <MenuItem Header="{ui:T filelistpanel.menuitem2.header}" Click="Explorer_Click"/>
-                    <MenuItem Header="{ui:T filelistpanel.menuitem3.header}" InputGestureText="F2" Click="Rename_Click"/>
-                    <MenuItem Header="{ui:T filelistpanel.menuitem4.header}" InputGestureText="Delete" Click="Delete_Click"/>
-                    <Separator/>
-                    <MenuItem Header="{ui:T filelistpanel.menuitem5.header}" Click="Refresh_Click"/>
-                </ContextMenu>
-            </ListView.ContextMenu>
-            <ListView.View>
-                <GridView AllowsColumnReorder="False">
-                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn1.header}" Width="260">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid Margin="-7,0,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="10"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding Mark}" Style="{StaticResource MarkText}" TextAlignment="Left"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" Style="{StaticResource RowText}" TextTrimming="CharacterEllipsis"/>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn2.header}" Width="80">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate><TextBlock Text="{Binding LengthText}" Style="{StaticResource RowText}"/></DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn3.header}" Width="76">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate><TextBlock Text="{Binding SizeText}" Style="{StaticResource RowText}"/></DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn4.header}" Width="130">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate><TextBlock Text="{Binding CreatedText}" Style="{StaticResource RowText}"/></DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <!-- ファイル一覧の枠: 角丸（中身も丸く切り抜く）。枠線の色は CardBorder -->
+        <Border x:Name="ListFrame" Grid.Row="1" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8">
+            <Border.Clip>
+                <MultiBinding Converter="{StaticResource RoundClip}" ConverterParameter="8">
+                    <Binding ElementName="ListFrame" Path="ActualWidth"/>
+                    <Binding ElementName="ListFrame" Path="ActualHeight"/>
+                </MultiBinding>
+            </Border.Clip>
+            <ListView x:Name="List" BorderThickness="0" MinHeight="110" SelectionMode="Extended" FontSize="12" Background="{DynamicResource InputBg}"
+                      SelectionChanged="List_SelectionChanged" MouseDoubleClick="List_DoubleClick"
+                      PreviewKeyDown="List_KeyDown"
+                      GridViewColumnHeader.Click="Header_Click">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="{ui:T filelistpanel.menuitem1.header}" Click="Play_Click"/>
+                        <MenuItem Header="{ui:T filelistpanel.menuitem2.header}" Click="Explorer_Click"/>
+                        <MenuItem Header="{ui:T filelistpanel.menuitem3.header}" InputGestureText="F2" Click="Rename_Click"/>
+                        <MenuItem Header="{ui:T filelistpanel.menuitem4.header}" InputGestureText="Delete" Click="Delete_Click"/>
+                        <Separator/>
+                        <MenuItem Header="{ui:T filelistpanel.menuitem5.header}" Click="Refresh_Click"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+                <ListView.View>
+                    <GridView AllowsColumnReorder="False">
+                        <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn1.header}" Width="260">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="-7,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Mark}" Style="{StaticResource MarkText}" TextAlignment="Left"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" Style="{StaticResource RowText}" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn2.header}" Width="80">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding LengthText}" Style="{StaticResource RowText}"/></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn3.header}" Width="76">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding SizeText}" Style="{StaticResource RowText}"/></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="{ui:T filelistpanel.gridviewcolumn4.header}" Width="130">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding CreatedText}" Style="{StaticResource RowText}"/></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Border>
 
         <TextBlock x:Name="ErrorText" Grid.Row="2" Foreground="#D33" FontWeight="SemiBold" TextWrapping="Wrap"
                    Visibility="Collapsed" Margin="0,4,0,0"/>

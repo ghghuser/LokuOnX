@@ -18,7 +18,7 @@ public sealed class GroupGapClipConverter : IMultiValueConverter
         if (w <= 0 || h <= 0) return Geometry.Empty;
         return new CombinedGeometry(GeometryCombineMode.Exclude,
             new RectangleGeometry(new Rect(0, 0, w, h)),
-            new RectangleGeometry(new Rect(12, -9, lw, lh)));
+            new RectangleGeometry(new Rect(12, -9, lw, lh), 5, 5));   // 切り抜きの角を丸く
     }
 
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotSupportedException();

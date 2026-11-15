@@ -13,7 +13,7 @@ namespace Recorder.UI;
 public static class ThemeManager
 {
     private static readonly List<ResourceDictionary> Current = new();
-    private static readonly string[] SurfaceKeys = { "WindowBg", "PanelBg", "PanelHover", "InputBg", "LaneBg", "WaveBg", "WaveBgOff", "CardBg", "MeterBg" };
+    private static readonly string[] SurfaceKeys = { "WindowBg", "PanelBg", "PanelHover", "InputBg", "LaneBg", "WaveBg", "WaveBgOff", "CardBg", "MeterBg", "LightBtnFace", "LightBtnHover", "LightBtnPressed", "SoftFace", "SoftFaceHover", "SoftFacePressed" };
     private static string _mode = "auto";
     private static string _effect = "none";
     private static int _opacity = 90;
