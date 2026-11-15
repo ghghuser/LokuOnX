@@ -90,7 +90,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="GroupBox">
                     <Grid>
-                        <Border Margin="0,9,0,0" BorderThickness="1" BorderBrush="{DynamicResource CardBorder}"
+                        <Border Margin="0,9,0,0" BorderThickness="1" BorderBrush="{DynamicResource CardBorder}" Background="{DynamicResource AreaBg}"
                                 CornerRadius="8" Padding="12,14,12,8">
                             <ContentPresenter/>
                         </Border>

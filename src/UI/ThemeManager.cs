@@ -149,8 +149,8 @@ public static class ThemeManager
             DwmSetWindowAttribute(handle, 20, ref on, sizeof(int));   // DWMWA_USE_IMMERSIVE_DARK_MODE
             var type = BackdropType(_effect, dark, soft);
             var translucent = type != 1;
-            // ライト系のアクリルは、Windows 標準のアクリル（灰色っぽい色が付く）ではなく、色の付かないぼかし＋テーマ色の不透明度で出す
-            var blurOnly = type == 3 && !dark;
+            // アクリルは、Windows 標準のアクリル（色が付く。ウィンドウが非アクティブだと単色になる）ではなく、色の付かないぼかし＋テーマ色の不透明度で出す（全テーマ共通）
+            var blurOnly = type == 3;
             var winType = blurOnly ? 1 : type;
             var ok = false;
             var hr = -1;

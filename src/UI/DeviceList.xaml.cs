@@ -141,6 +141,8 @@ public partial class DeviceList : UserControl
         RowsPanel.Children.Clear();
         _rows.Clear();
         var inputs = _s.Inputs.ToList();
+        // 初期の入力1は、実際のデバイスではなく「既定の入力デバイス（変更に追従）」にする
+        if (_devices.Any(d => d.Key == AudioKeys.CaptureDefault)) defaultKey = AudioKeys.CaptureDefault;
         if (inputs.Count == 0)
         {
             var key = defaultKey != null && _devices.Any(d => d.Key == defaultKey)

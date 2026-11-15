@@ -133,7 +133,7 @@
                     <ui:QualityBar x:Name="Quality"/>
                 </GroupBox>
 
-                <TabControl x:Name="LowerTabs" FontSize="13">
+                <TabControl x:Name="LowerTabs" FontSize="13" Background="{DynamicResource AreaBg}" Padding="8,0">
                     <TabItem Header="{ui:T mainwindow.tabitem1.header}">
                         <!-- 項目名の列（FormLabel）は、保存先と下の DetailPanel でそろえる -->
                         <StackPanel Margin="2,8,0,6" Grid.IsSharedSizeScope="True">

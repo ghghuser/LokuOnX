@@ -7,6 +7,7 @@
     <SolidColorBrush x:Key="ScrollThumbHover" Color="#70000000"/>
     <SolidColorBrush x:Key="ScrollThumbDrag" Color="#C02F80ED"/>
     <SolidColorBrush x:Key="LogBg" Color="#10000000"/>   <!-- 一番下のログ欄の背景（ライト系はダークより明るめ） -->
+    <SolidColorBrush x:Key="AreaBg" Color="#55FFFFFF"/>   <!-- 形式・音質／下のタブの中身／プレーヤーの面（入力デバイスのカード CardBg より透け強め） -->
     <SolidColorBrush x:Key="WindowFg" Color="{x:Static SystemColors.ControlTextColor}"/>
     <SolidColorBrush x:Key="CautionFg" Color="#E8A400"/>   <!-- 注意の黄（ライト系2種。11-4確認後に原色寄りへ。白い背景で読める範囲の強い黄） -->
     <SolidColorBrush x:Key="WarnFg" Color="#E60000"/>      <!-- エラー・注意の赤（ライト系2種。11-4確認後に原色寄りへ。ダーク系は Common.xaml の色のまま） -->
