@@ -15,8 +15,8 @@ public static class ThemeManager
     private static readonly List<ResourceDictionary> Current = new();
     private static readonly string[] SurfaceKeys = { "WindowBg", "PanelBg", "PanelHover", "InputBg", "LaneBg", "WaveBg", "WaveBgOff", "CardBg", "MeterBg" };
     private static string _mode = "auto";
-    private static string _effect = "auto";
-    private static int _opacity = 69;
+    private static string _effect = "none";
+    private static int _opacity = 90;
 
     /// <summary>背景効果と濃さ（Settings.BackdropEffect / BackdropOpacity）。変えたら Refresh で開いているウィンドウへ反映。</summary>
     public static void Configure(string effect, int opacity)
@@ -132,7 +132,7 @@ public static class ThemeManager
         "mica" => 2,
         "acrylic" => 3,
         "none" => 1,
-        _ => dark && !soft ? 3 : 1,   // auto: 従来どおりダークだけアクリル
+        _ => 1,
     };
 
     /// <summary>
@@ -159,15 +159,15 @@ public static class ThemeManager
             {
                 var glass = translucent && !blurOnly ? -1 : 0;
                 var m = new Margins { Left = glass, Right = glass, Top = glass, Bottom = glass };
+                // ぼかし（アクリルの切り替え）を先に。後で外すと、直前に付けた DWM の効果まで消えてしまう（テーマ切替で背景が黒くなった原因）
+                blur = SetBlur(handle, translucent && blurOnly);
                 hr = DwmSetWindowAttribute(handle, 38, ref winType, sizeof(int));
                 if (hr == 0)
                 {
                     target.BackgroundColor = translucent ? Colors.Transparent : SystemColors.WindowColor;
                     DwmExtendFrameIntoClientArea(handle, ref m);
-                    ok = translucent;
+                    ok = translucent && (!blurOnly || blur);
                 }
-                blur = SetBlur(handle, ok && blurOnly);
-                if (blurOnly && !blur) ok = false;
                 if (!ok) target.BackgroundColor = SystemColors.WindowColor;
             }
             LastInfo = $"type={type} dwm=0x{hr:X} blur={(blurOnly ? (blur ? "ok" : "ng") : "-")} on={ok}";

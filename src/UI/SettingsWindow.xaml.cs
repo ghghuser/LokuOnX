@@ -57,7 +57,7 @@ public partial class SettingsWindow : Window
         ThemeBox.SelectedValue = settings.Theme;
         BackdropBox.ItemsSource = new ThemeChoice[]
         {
-            new("auto", Loc.Get("backdrop.auto")), new("none", Loc.Get("backdrop.none")),
+            new("none", Loc.Get("backdrop.none")),
             new("mica", Loc.Get("backdrop.mica")), new("acrylic", Loc.Get("backdrop.acrylic")),
         };
         BackdropBox.SelectedValue = settings.BackdropEffect;
