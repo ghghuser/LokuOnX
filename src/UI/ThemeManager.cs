@@ -13,7 +13,7 @@ namespace Recorder.UI;
 public static class ThemeManager
 {
     private static readonly List<ResourceDictionary> Current = new();
-    private static readonly string[] SurfaceKeys = { "WindowBg", "PanelBg", "PanelHover", "InputBg", "LaneBg", "WaveBg", "WaveBgOff" };
+    private static readonly string[] SurfaceKeys = { "WindowBg", "PanelBg", "PanelHover", "InputBg", "LaneBg", "WaveBg", "WaveBgOff", "CardBg", "MeterBg" };
     private static string _mode = "auto";
     private static string _effect = "auto";
     private static int _opacity = 69;
@@ -90,6 +90,36 @@ public static class ThemeManager
     [StructLayout(LayoutKind.Sequential)]
     private struct Margins { public int Left, Right, Top, Bottom; }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct AccentPolicy { public int AccentState, AccentFlags, GradientColor, AnimationId; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WinCompAttrData { public int Attribute; public IntPtr Data; public int SizeOfData; }
+
+    [DllImport("user32.dll")]
+    private static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WinCompAttrData data);
+
+    /// <summary>ほぼ無色のぼかし（アクリル）を付ける／外す。色は付けない（色は WindowBg の不透明度で出す）。成功なら true。</summary>
+    private static bool SetBlur(IntPtr handle, bool on)
+    {
+        var size = Marshal.SizeOf<AccentPolicy>();
+        var ptr = Marshal.AllocHGlobal(size);
+        try
+        {
+            // ACCENT_ENABLE_ACRYLICBLURBEHIND(4)。GradientColor は AABBGGRR。alpha 1 の白＝ほぼ無色（0 だとぼかしが付かない版がある）
+            Marshal.StructureToPtr(new AccentPolicy { AccentState = on ? 4 : 0, GradientColor = on ? 0x01FFFFFF : 0 }, ptr, false);
+            var data = new WinCompAttrData { Attribute = 19, Data = ptr, SizeOfData = size };   // WCA_ACCENT_POLICY
+            return SetWindowCompositionAttribute(handle, ref data) != 0;
+        }
+        finally { Marshal.FreeHGlobal(ptr); }
+    }
+
+    /// <summary>最後に効果を付けたときの結果（設定画面の「適用結果」表示用）。</summary>
+    public static string LastInfo { get; private set; } = "";
+
+    /// <summary>いまのテーマと効果の組み合わせで、背景に効果が付くか（付かないなら濃さスライダーは効かない）。</summary>
+    public static bool BackdropOn(string mode, string effect) => BackdropType(effect, IsDark(mode), IsSoft(mode)) != 1;
+
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
 
@@ -119,18 +149,28 @@ public static class ThemeManager
             DwmSetWindowAttribute(handle, 20, ref on, sizeof(int));   // DWMWA_USE_IMMERSIVE_DARK_MODE
             var type = BackdropType(_effect, dark, soft);
             var translucent = type != 1;
+            // ライト系のアクリルは、Windows 標準のアクリル（灰色っぽい色が付く）ではなく、色の付かないぼかし＋テーマ色の不透明度で出す
+            var blurOnly = type == 3 && !dark;
+            var winType = blurOnly ? 1 : type;
             var ok = false;
+            var hr = -1;
+            var blur = false;
             if (HwndSource.FromHwnd(handle) is { CompositionTarget: { } target })
             {
-                var m = new Margins { Left = translucent ? -1 : 0, Right = translucent ? -1 : 0, Top = translucent ? -1 : 0, Bottom = translucent ? -1 : 0 };
-                var hr = DwmSetWindowAttribute(handle, 38, ref type, sizeof(int));
+                var glass = translucent && !blurOnly ? -1 : 0;
+                var m = new Margins { Left = glass, Right = glass, Top = glass, Bottom = glass };
+                hr = DwmSetWindowAttribute(handle, 38, ref winType, sizeof(int));
                 if (hr == 0)
                 {
                     target.BackgroundColor = translucent ? Colors.Transparent : SystemColors.WindowColor;
                     DwmExtendFrameIntoClientArea(handle, ref m);
                     ok = translucent;
                 }
+                blur = SetBlur(handle, ok && blurOnly);
+                if (blurOnly && !blur) ok = false;
+                if (!ok) target.BackgroundColor = SystemColors.WindowColor;
             }
+            LastInfo = $"type={type} dwm=0x{hr:X} blur={(blurOnly ? (blur ? "ok" : "ng") : "-")} on={ok}";
             // 効果が付いたウィンドウだけ、テーマの背景色に濃さ（不透明度）をかける（付かなければ不透明のまま）
             var res = Application.Current.Resources;
             // 背景だけでなく、不透明の面（パネル・入力欄・波形欄など）にも同じ濃さをかけ、透け方をそろえる。

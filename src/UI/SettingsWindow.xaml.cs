@@ -63,6 +63,7 @@ public partial class SettingsWindow : Window
         BackdropBox.SelectedValue = settings.BackdropEffect;
         OpacitySlider.Value = settings.BackdropOpacity;
         OpacityText.Text = settings.BackdropOpacity + " %";
+        UpdateBackdropUi();
         SleepCheck.IsChecked = settings.PreventSleep;
         TrayCheck.IsChecked = settings.ShowTray;
         MinTrayCheck.IsChecked = settings.MinimizeToTray;
@@ -132,12 +133,22 @@ public partial class SettingsWindow : Window
         LangNote.Visibility = Visibility.Visible;   // 反映は再起動後
     }
 
+    /// <summary>効果が付かない組み合わせ（なし、または既定でライト系など）では、不透明度スライダーを灰色にする。結果も表示する。</summary>
+    private void UpdateBackdropUi()
+    {
+        var on = ThemeManager.BackdropOn(_s.Theme, _s.BackdropEffect);
+        OpacitySlider.IsEnabled = on;
+        OpacityText.Opacity = on ? 1 : 0.4;
+        BackdropInfo.Text = Loc.Get("settings.backdrop.info", ThemeManager.LastInfo);
+    }
+
     private void Backdrop_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (_loading || BackdropBox.SelectedValue is not string key) return;
         _s.BackdropEffect = key;
         ThemeManager.Configure(_s.BackdropEffect, _s.BackdropOpacity);
         ThemeManager.Refresh();
+        UpdateBackdropUi();
     }
 
     private void Opacity_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -155,6 +166,7 @@ public partial class SettingsWindow : Window
         if (_loading || ThemeBox.SelectedValue is not string key) return;
         _s.Theme = key;
         ThemeManager.Apply(key);
+        UpdateBackdropUi();
     }
 
     private void Sleep_Changed(object sender, RoutedEventArgs e)
