@@ -10,6 +10,7 @@ public sealed class RecordingGroup : IDisposable
 {
     private readonly List<RecordingSession> _sessions;
     private readonly List<MixedSource> _sources;
+    private readonly List<OutputRecording> _outs;   // メインの録音と一緒に録る出力（M13）。メーター・波形・失敗の判定には含めない
     private readonly bool _separate;
     private readonly bool _waitForDevice;     // M7: すべてのデバイスが外れたら、戻るまで一時停止する
     private readonly bool _splitOnReturn;     // M7: デバイスが戻ったら別ファイルに分割する
@@ -25,11 +26,15 @@ public sealed class RecordingGroup : IDisposable
     /// <summary>ファイルが保存された（別スレッドから）。録音履歴へ入れるために使う。</summary>
     public event Action<string>? Saved;
 
-    private RecordingGroup(List<RecordingSession> sessions, List<MixedSource> sources, bool separate,
+    /// <summary>一緒に録る指定だったが、出力が動いていなくて録れなかった出力の名前（画面で知らせる）。</summary>
+    public IReadOnlyList<string> SkippedOutputs { get; private set; } = Array.Empty<string>();
+
+    private RecordingGroup(List<RecordingSession> sessions, List<MixedSource> sources, List<OutputRecording> outs, bool separate,
         bool waitForDevice, bool splitOnReturn)
     {
         _sessions = sessions;
         _sources = sources;
+        _outs = outs;
         _separate = separate;
         _waitForDevice = waitForDevice;
         _splitOnReturn = splitOnReturn;
@@ -38,6 +43,13 @@ public sealed class RecordingGroup : IDisposable
             x.Error += m => Error?.Invoke(m);
             x.Notice += m => Notice?.Invoke(m);
             x.Saved += p => Saved?.Invoke(p);
+        }
+        foreach (var o in outs)
+        {
+            // 出力の録音の失敗は、入力の録音を止めずに知らせるだけにする
+            o.Error += m => Notice?.Invoke(Loc.Get("outputrec.failed", o.Name, m));
+            o.Notice += m => Notice?.Invoke(Loc.Get("outputrec.notice", o.Name, m));
+            o.Saved += p => Saved?.Invoke(p);
         }
         foreach (var x in sources)
         {
@@ -87,7 +99,8 @@ public sealed class RecordingGroup : IDisposable
 
     /// <summary>画面で選ばれているデバイス（inputs）と設定から録音を組み立てる（まだ開始しない）。保存先フォルダも作る。</summary>
     public static RecordingGroup Create(InputHub hub, IAudioDeviceProvider provider, Settings s, IReadOnlyList<InputSetting> inputs,
-        IReadOnlyList<AudioDeviceInfo> devices, string ffmpegPath, DateTime now)
+        IReadOnlyList<AudioDeviceInfo> devices, string ffmpegPath, DateTime now,
+        IReadOnlyList<(OutputEngine Engine, string Name, int Index)>? outputs = null)
     {
         if (inputs.Count == 0) throw new InvalidOperationException(Loc.Get("recordinggroup.s03"));
         // 「既定のデバイス」は、いま実際に使われるデバイスで重複を判定する（既定＋実際の同じデバイスだと音が二重になるため）
@@ -112,6 +125,8 @@ public sealed class RecordingGroup : IDisposable
 
         var sessions = new List<RecordingSession>();
         var sources = new List<MixedSource>();
+        var outs = new List<OutputRecording>();
+        var skipped = new List<string>();
         try
         {
             for (int idx = 0; idx < lanes.Count; idx++)
@@ -126,14 +141,22 @@ public sealed class RecordingGroup : IDisposable
                 if (idx == 0) Directory.CreateDirectory(plan.Folder);
                 sessions.Add(new RecordingSession(src, ffmpegPath, plan, split));
             }
+            // 一緒に録る出力（動いていない出力は録れないので飛ばして知らせる）
+            foreach (var (engine, name, index) in outputs ?? Array.Empty<(OutputEngine, string, int)>())
+            {
+                var rec = OutputRecording.Create(engine, name, index, s, ffmpegPath, now);
+                if (rec == null) skipped.Add(name);
+                else outs.Add(rec);
+            }
         }
         catch
         {
             foreach (var x in sessions) x.Dispose();
             foreach (var x in sources) x.Dispose();
+            foreach (var x in outs) x.Dispose();
             throw;
         }
-        return new RecordingGroup(sessions, sources, separate, s.WaitForDevice, s.SplitOnReturn);
+        return new RecordingGroup(sessions, sources, outs, separate, s.WaitForDevice, s.SplitOnReturn) { SkippedOutputs = skipped };
     }
 
     private RecordingSession First => _sessions[0];
@@ -218,45 +241,70 @@ public sealed class RecordingGroup : IDisposable
             }
             throw;
         }
+        // 出力の録音は、始められなくても入力の録音は続ける
+        foreach (var o in _outs.ToList())
+        {
+            try { o.Start(); }
+            catch (Exception ex)
+            {
+                _outs.Remove(o);
+                try { o.Dispose(); } catch (Exception) { }
+                Notice?.Invoke(Loc.Get("outputrec.failed", o.Name, ex.Message));
+            }
+        }
     }
+
+    /// <summary>メインの録音と一緒に録っている出力の数。</summary>
+    public int OutputCount => _outs.Count;
+
+    /// <summary>メインの録音と一緒に録っている出力の番号（0始まり。出力カードの順）。</summary>
+    public IReadOnlyList<int> OutputIndexes => _outs.Select(o => o.Index).ToList();
 
     public void Pause()
     {
         foreach (var x in _sessions) x.Pause();
+        foreach (var o in _outs) o.Session.Pause();
     }
 
     public void Resume()
     {
         foreach (var x in _sessions) x.Resume();
+        foreach (var o in _outs) o.Session.Resume();
     }
 
     /// <summary>全ファイルを同時に分割する。どれかが分割できれば true。Task.Run 経由で呼ぶこと。</summary>
     public bool Split()
     {
-        if (_sessions.Count == 1) return _sessions[0].Split();
-        var ok = new bool[_sessions.Count];
-        Parallel.For(0, _sessions.Count, i => ok[i] = _sessions[i].Split());
+        var all = _sessions.Concat(_outs.Select(o => o.Session)).ToList();
+        if (all.Count == 1) return all[0].Split();
+        var ok = new bool[all.Count];
+        Parallel.For(0, all.Count, i => ok[i] = all[i].Split());
         return ok.Any(b => b);
     }
 
     /// <summary>止めて、すべてのファイルの名前を確定する。Task.Run 経由で呼ぶこと。</summary>
     public void Stop()
     {
-        if (_sessions.Count == 1)
+        // 出力の録音の失敗は例外にしない（入力の録音の結果を優先して返す）
+        var outTasks = _outs.Select(o => Task.Run(() => { try { o.Stop(); } catch (Exception ex) { Notice?.Invoke(Loc.Get("outputrec.failed", o.Name, ex.Message)); } })).ToArray();
+        try
         {
-            _sessions[0].Stop();
-            return;
+            if (_sessions.Count == 1) _sessions[0].Stop();
+            else
+            {
+                var tasks = _sessions.Select(x => Task.Run(x.Stop)).ToArray();
+                try { Task.WaitAll(tasks); }
+                catch (AggregateException ex) { throw ex.InnerException ?? ex; }
+            }
         }
-        var tasks = _sessions.Select(x => Task.Run(x.Stop)).ToArray();
-        try { Task.WaitAll(tasks); }
-        catch (AggregateException ex) { throw ex.InnerException ?? ex; }
+        finally { Task.WaitAll(outTasks); }
     }
 
     /// <summary>名前を確定できたファイル（デバイス順、各デバイスの中はトラック順）。</summary>
-    public IReadOnlyList<FinalizeResult> Results => _sessions.SelectMany(x => x.Results).ToList();
+    public IReadOnlyList<FinalizeResult> Results => _sessions.SelectMany(x => x.Results).Concat(_outs.SelectMany(o => o.Session.Results)).ToList();
 
     /// <summary>Results と同じ順の、実際に書いた音声の長さ（秒）。</summary>
-    public IReadOnlyList<double> Seconds => _sessions.SelectMany(x => x.Seconds).ToList();
+    public IReadOnlyList<double> Seconds => _sessions.SelectMany(x => x.Seconds).Concat(_outs.SelectMany(o => o.Session.Seconds)).ToList();
 
     /// <summary>エンコード側の失敗理由（正常なら null）。</summary>
     public string? Failure => _sessions.Select(x => x.Failure).FirstOrDefault(f => f != null);
@@ -264,5 +312,6 @@ public sealed class RecordingGroup : IDisposable
     public void Dispose()
     {
         foreach (var x in _sessions) x.Dispose();
+        foreach (var o in _outs) o.Dispose();
     }
 }

@@ -89,7 +89,7 @@ public partial class MainWindow
                 return false;
             }
             var no = _settings.NextNo;
-            group = RecordingGroup.Create(_hub, _provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now);
+            group = RecordingGroup.Create(_hub, _provider, _settings, inputs, _devices, AppPaths.Ffmpeg, DateTime.Now, OutputRecTargets());
             group.Error += msg => Dispatcher.BeginInvoke(new Action(async () => await StopAsync(msg)));
             group.Notice += OnNotice;
             group.Saved += path => Dispatcher.BeginInvoke(new Action(() =>
@@ -109,7 +109,7 @@ public partial class MainWindow
         }
         Devices.StartWave();
         OverallWave.Clear();
-        _notice = "";
+        _notice = group.SkippedOutputs.Count > 0 ? Loc.Get("outputrec.skipped", string.Join("、", group.SkippedOutputs)) : "";
         _nextDiskCheck = DateTime.MinValue;   // 開始直後に1回、あとは30秒ごとに空き容量を調べる
         _scheduledStopAt = null;
         _silence = _settings.SilenceSplit ? new SilenceDetector(_settings.SilenceDb, _settings.SilenceSeconds) : null;

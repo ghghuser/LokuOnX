@@ -28,6 +28,7 @@ public sealed class OutputEngine : IDisposable
     private volatile string _state = Loc.Get("outputengine.s01");
     private volatile string _error = "";
     private volatile OutputRenderer? _renderer;
+    private volatile Action<float[], int, int, int>? _sink;   // 出力の録音（M13）の受け取り先。出力を開き直しても付け直す
     private bool _disposed;
 
     // 運転中のもの（_work の中だけで触る）
@@ -118,6 +119,17 @@ public sealed class OutputEngine : IDisposable
     public string Error => _error;
 
     public bool Running => _renderer != null;
+
+    /// <summary>いま出力デバイスが動いている形式（周波数・チャンネル数）。動いていなければ null。</summary>
+    public (int Rate, int Channels)? Format => _renderer is { } r ? (r.DeviceRate, r.DeviceChannels) : null;
+
+    /// <summary>出力の最終ミックスの受け取り先を付ける／外す（出力の録音。M13）。出力を開き直しても、付けたままになる。</summary>
+    public void AttachRecorder(Action<float[], int, int, int>? sink)
+    {
+        _sink = sink;
+        var r = _renderer;
+        if (r != null) r.Sink = sink;
+    }
 
     /// <summary>前回の読み出し以降の出力のピーク（L・R）とクリップ（メーター用）。</summary>
     public (float L, float R, bool Clipped) ReadPeaks() => _renderer?.ReadPeaks() ?? (0f, 0f, false);
@@ -219,6 +231,7 @@ public sealed class OutputEngine : IDisposable
             var r = new OutputRenderer(taps, rate, ch);
             r.Bus.MasterGain = GainMath.DbToLinear(_volumeDb);
             r.SetMasterFx(_fx);
+            r.Sink = _sink;
             return r;
         });
         if (err != null) return err;

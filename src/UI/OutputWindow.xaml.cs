@@ -32,6 +32,7 @@ public partial class OutputWindow : Window
         {
             bool slow = ++_tick % 5 == 0;   // 0.25秒ごと
             foreach (var c in _cards) c.Tick(slow);
+            if (slow) UpdateRecButtons();
         };
         _timer.Start();
         Loaded += async (_, _) => await LoadDevicesAsync();
@@ -56,6 +57,31 @@ public partial class OutputWindow : Window
             Cards.Children.Add(card);
         }
         AddButton.Visibility = _host.Configs.Count < OutputConfig.MaxOutputs ? Visibility.Visible : Visibility.Collapsed;
+        UpdateRecButtons();
+    }
+
+    // ---- 出力の録音の一括操作（M13） ----
+    private void UpdateRecButtons()
+    {
+        int n = _host.Configs.Count;
+        bool anyOff = Enumerable.Range(0, n).Any(i => !_host.OutputRec(i));
+        bool anyIdle = Enumerable.Range(0, n).Any(i => _host.OutputRecMode(i) == 0);
+        RecWithButton.Content = Loc.Get(anyOff ? "outputwindow.recwith.on" : "outputwindow.recwith.off");
+        RecAllButton.Content = Loc.Get(anyIdle ? "outputwindow.recall.start" : "outputwindow.recall.stop");
+    }
+
+    private void RecWith_Click(object sender, RoutedEventArgs e)
+    {
+        bool anyOff = Enumerable.Range(0, _host.Configs.Count).Any(i => !_host.OutputRec(i));
+        _host.SetAllOutputRec(anyOff);
+        UpdateRecButtons();
+    }
+
+    private void RecAll_Click(object sender, RoutedEventArgs e)
+    {
+        bool anyIdle = Enumerable.Range(0, _host.Configs.Count).Any(i => _host.OutputRecMode(i) == 0);
+        _host.SetAllOutputRecording(anyIdle);
+        UpdateRecButtons();
     }
 
     /// <summary>メイン画面の入力（行・名前）が変わったとき。</summary>

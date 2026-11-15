@@ -266,9 +266,11 @@ public partial class MainWindow
             e.Cancel = true;
             if (answer != MessageBoxResult.Yes) return;
             _closeAfterStop = true;
+            StopAllOutputRecsSync();
             _ = StopAsync(null);
             return;
         }
+        StopAllOutputRecsSync();
         base.OnClosing(e);
     }
 }

@@ -40,6 +40,9 @@ public sealed class OutputRenderer
 
     private volatile OutputFxChain? _masterFx;
 
+    /// <summary>この出力の最終ミックス（全体音量・エフェクトを掛けたあと）を受け取る先（出力の録音。M13）。引数は（データ, フレーム数, チャンネル数, 周波数）。デバイスのコールバックから呼ばれるので、止めてはいけない。</summary>
+    public volatile Action<float[], int, int, int>? Sink;
+
     /// <summary>この出力の最終ミックスのエフェクトを渡す（動作中でも変えられる。何も掛けない設定のときは音に触れない）。</summary>
     public void SetMasterFx(OutputFxSetting s)
     {
@@ -123,6 +126,7 @@ public sealed class OutputRenderer
         var fx = _masterFx;
         var st = Bus.Process(inputs, frames, devCh, mix, null, fx != null && fx.IsActive ? fx.Process : null);
         Array.Copy(mix, 0, dest, destOffset, n);
+        Sink?.Invoke(mix, frames, devCh, devRate);
         if (st.PeakL > peakL) peakL = st.PeakL;
         if (st.PeakR > peakR) peakR = st.PeakR;
         if (st.Clipped) clipped = true;

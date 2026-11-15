@@ -128,6 +128,12 @@ public partial class MainWindow : IOutputHost
     void IOutputHost.RemoveOutput(int index)
     {
         if (index < 0 || index >= _outCfgs.Count || _outCfgs.Count <= 1) return;   // 最後の1枚は残す
+        if (_outRecs.TryGetValue(_outHub[index], out var recording))
+        {
+            _outRecs.Remove(_outHub[index]);
+            try { Task.Run(() => { recording.Stop(); foreach (var r in recording.Session.Results) _settings.AddHistory(r.Path); recording.Dispose(); }).Wait(15000); } catch (Exception) { }
+        }
+        _settings.ShiftOutputRecAfterRemove(index);
         _outCfgs.RemoveAt(index);
         _outHub.RemoveAt(index);
         _settings.Outputs = _outCfgs;

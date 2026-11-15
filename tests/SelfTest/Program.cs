@@ -25,6 +25,7 @@ HubTests.Run(new CheckFn(Check), Section);
 EngineTests.Run(new CheckFn(Check), Section);
 OutputHubTests.Run(new CheckFn(Check), Section);
 OutputFxWiringTests.Run(new CheckFn(Check), Section);
+OutputRecTests.Run(new CheckFn(Check), Section);
 LocTests.Run(new CheckFn(Check), Section);
 LangBackupTests.Run(new CheckFn(Check), Section);
 LangListTests.Run(new CheckFn(Check), Section);

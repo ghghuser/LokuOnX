@@ -110,6 +110,28 @@ public sealed partial class Settings
         Save();
     }
 
+    /// <summary>出力の録音（M13）で、メインの録音と一緒にこの出力も録るか（出力ごとに記憶。プロファイルには含めない）。</summary>
+    public bool OutputRec(int index) => _ini.Get(OutSection, $"Rec{index + 1}", "0") == "1";
+
+    public void SetOutputRec(int index, bool on)
+    {
+        if (on) _ini.Set(OutSection, $"Rec{index + 1}", "1");
+        else _ini.Remove(OutSection, $"Rec{index + 1}");
+        Save();
+    }
+
+    /// <summary>出力カードを index 番目から取り除いたとき、後ろの出力の「一緒に録る」を1つ前へ詰める。</summary>
+    public void ShiftOutputRecAfterRemove(int index)
+    {
+        for (int i = index + 1; i <= OutputConfig.MaxOutputs; i++)
+        {
+            if (_ini.Get(OutSection, $"Rec{i + 1}", "0") == "1") _ini.Set(OutSection, $"Rec{i}", "1");
+            else _ini.Remove(OutSection, $"Rec{i}");
+        }
+        _ini.Remove(OutSection, $"Rec{OutputConfig.MaxOutputs}");
+        Save();
+    }
+
     /// <summary>出力ウィンドウの位置と大きさ（"左,上,幅,高さ"。空＝未保存）。</summary>
     public string OutputWindowRect
     {

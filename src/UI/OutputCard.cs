@@ -32,6 +32,25 @@ public interface IOutputHost
     /// <summary>index 番目の出力のエフェクトのウィンドウを開く（すでに開いていればそれを前に出す。M11-5）。</summary>
     void OpenOutputFx(int index, Window owner);
 
+    /// <summary>メインの録音と一緒にこの出力も録るか（M13。出力ごとに記憶）。</summary>
+    bool OutputRec(int index);
+
+    void SetOutputRec(int index, bool on);
+
+    /// <summary>この出力の録音の状態。0＝録っていない、1＝この出力だけ単独で録っている、2＝メインの録音と一緒に録っている。</summary>
+    int OutputRecMode(int index);
+
+    /// <summary>録音中の経過時間（録っていなければ 0）。</summary>
+    TimeSpan OutputRecElapsed(int index);
+
+    /// <summary>この出力だけ単独で録音を始める／止める（メインの録音と一緒に録っているときは何もしない）。</summary>
+    void ToggleOutputRecording(int index);
+
+    /// <summary>「録音に含める」を全出力でそろえる／単独録音を全出力で始める・止める（出力ウィンドウの一括操作）。</summary>
+    void SetAllOutputRec(bool on);
+
+    void SetAllOutputRecording(bool start);
+
     bool AddOutput();
 
     void RemoveOutput(int index);
@@ -54,6 +73,8 @@ public sealed class OutputCard : Border
     private readonly Action<int> _removeRequested;
     private readonly TextBox _name = new();
     private readonly CheckBox _on = new();
+    private readonly CheckBox _recWith = new();
+    private readonly Button _rec = new();
     private readonly Button _fx = new();
     private readonly ComboBox _device = new();
     private readonly TextBlock _state = new();
@@ -144,6 +165,25 @@ public sealed class OutputCard : Border
         _device.DropDownOpened += (_, _) => UpdateLoopWarnings();
         dev.Children.Add(_device);
         root.Children.Add(dev);
+
+        // 録音（M13）: 「録音に含める」（メインの録音と一緒に録る）と、この出力だけの単独録音ボタン
+        var recRow = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };
+        _rec.Content = Loc.Get("outputcard.recStart");
+        _rec.FontSize = 12;
+        _rec.Padding = new Thickness(10, 2, 10, 2);
+        _rec.ToolTip = Loc.Get("outputcard.recTip");
+        _rec.Click += (_, _) => { _host.ToggleOutputRecording(_index); ShowState(); };
+        DockPanel.SetDock(_rec, Dock.Right);
+        recRow.Children.Add(_rec);
+        _recWith.Content = Loc.Get("outputcard.recWith");
+        _recWith.FontSize = 12;
+        _recWith.VerticalAlignment = VerticalAlignment.Center;
+        _recWith.ToolTip = Loc.Get("outputcard.recWithTip");
+        _recWith.IsChecked = _host.OutputRec(_index);
+        _recWith.Checked += (_, _) => { if (!_loading) _host.SetOutputRec(_index, true); };
+        _recWith.Unchecked += (_, _) => { if (!_loading) _host.SetOutputRec(_index, false); };
+        recRow.Children.Add(_recWith);
+        root.Children.Add(recRow);
 
         _state.FontSize = 12;
         _state.Opacity = 0.85;
@@ -461,5 +501,22 @@ public sealed class OutputCard : Border
         bool shared = _sharedWarn && !_loopWarn;
         _caution.Visibility = shared ? Visibility.Visible : Visibility.Collapsed;
         _info.Text = e.Running ? e.Describe() : "";
+
+        // 録音（M13）
+        int mode = _host.OutputRecMode(_index);
+        if (mode != 0)
+        {
+            var t = _host.OutputRecElapsed(_index);
+            _state.Text += "　" + Loc.Get("outputcard.recording", $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}");
+        }
+        _rec.Content = Loc.Get(mode == 1 ? "outputcard.recStop" : "outputcard.recStart");
+        _rec.IsEnabled = mode == 1 || (mode == 0 && e.Running);
+        if (_recWith.IsChecked != _host.OutputRec(_index))
+        {
+            var was = _loading;
+            _loading = true;
+            _recWith.IsChecked = _host.OutputRec(_index);
+            _loading = was;
+        }
     }
 }

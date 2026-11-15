@@ -22,6 +22,11 @@
             <TextBlock Text="{ui:T outputwindow.textblock1.text}" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
             <TextBlock FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,12,10"
                        Text="{ui:T outputwindow.textblock2.text}"/>
+            <!-- 出力の録音（M13）の一括操作 -->
+            <WrapPanel Margin="0,0,0,12">
+                <Button x:Name="RecWithButton" Padding="12,4" Margin="0,0,8,0" Click="RecWith_Click" ToolTip="{ui:T outputwindow.recwith.tip}"/>
+                <Button x:Name="RecAllButton" Padding="12,4" Click="RecAll_Click" ToolTip="{ui:T outputwindow.recall.tip}"/>
+            </WrapPanel>
             <WrapPanel x:Name="Cards"/>
             <Button x:Name="AddButton" Content="{ui:T outputwindow.addbutton.content}" HorizontalAlignment="Left" Padding="14,4" Margin="0,0,0,12"
                     ToolTip="{ui:T outputwindow.addbutton.tooltip}" Click="Add_Click"/>
