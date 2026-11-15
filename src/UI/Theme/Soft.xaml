@@ -6,7 +6,7 @@
     <!-- スクロールバーのつまみ（通常／マウスを乗せた／つかんだ）。色はここで調整 -->
     <SolidColorBrush x:Key="ScrollThumb" Color="#40000000"/>
     <SolidColorBrush x:Key="ScrollThumbHover" Color="#70000000"/>
-    <SolidColorBrush x:Key="ScrollThumbDrag" Color="#C0C9A93A"/>
+    <SolidColorBrush x:Key="ScrollThumbDrag" Color="#C02F80ED"/>
     <SolidColorBrush x:Key="WindowFg" Color="#1F2430"/>
     <SolidColorBrush x:Key="NewFileFg" Color="#0D4FA8"/>
     <SolidColorBrush x:Key="OldFileFg" Color="#3A404C"/>

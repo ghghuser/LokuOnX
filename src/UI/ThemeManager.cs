@@ -13,6 +13,7 @@ namespace Recorder.UI;
 public static class ThemeManager
 {
     private static readonly List<ResourceDictionary> Current = new();
+    private static readonly string[] SurfaceKeys = { "WindowBg", "PanelBg", "PanelHover", "InputBg", "LaneBg", "WaveBg", "WaveBgOff" };
     private static string _mode = "auto";
     private static string _effect = "auto";
     private static int _opacity = 69;
@@ -132,11 +133,17 @@ public static class ThemeManager
             }
             // 効果が付いたウィンドウだけ、テーマの背景色に濃さ（不透明度）をかける（付かなければ不透明のまま）
             var res = Application.Current.Resources;
-            res.Remove("WindowBg");   // テーマ側の値に戻してから読む
-            if (ok && res["WindowBg"] is SolidColorBrush baseBg)
+            // 背景だけでなく、不透明の面（パネル・入力欄・波形欄など）にも同じ濃さをかけ、透け方をそろえる。
+            // もともと半透明の面（ダークの多く）はそのまま。ポップアップ（PopupBg）は読みやすさのため不透明のまま
+            foreach (var key in SurfaceKeys)
             {
-                var c = baseBg.Color;
-                res["WindowBg"] = new SolidColorBrush(Color.FromArgb((byte)Math.Round(255 * _opacity / 100.0), c.R, c.G, c.B));
+                res.Remove(key);   // テーマ側の値に戻してから読む
+                if (ok && res[key] is SolidColorBrush b && (key == "WindowBg" || b.Color.A == 0xFF))
+                {
+                    var c = b.Color;
+                    var a = key == "WindowBg" ? c.A : (byte)255;
+                    res[key] = new SolidColorBrush(Color.FromArgb((byte)Math.Round(a * _opacity / 100.0), c.R, c.G, c.B));
+                }
             }
         }
         catch (Exception) { }
