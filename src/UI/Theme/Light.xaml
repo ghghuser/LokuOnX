@@ -29,9 +29,9 @@
     <SolidColorBrush x:Key="InputBg" Color="#FFFFFF"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プロファイル欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#0A000000"/>
     <SolidColorBrush x:Key="MeterBg" Color="#12000000"/>
-    <SolidColorBrush x:Key="WaveBg" Color="#F4F7FB"/>
-    <SolidColorBrush x:Key="WaveBgOff" Color="#E6EAF0"/>
-    <SolidColorBrush x:Key="WaveBorder" Color="#C8D0DC"/>
+    <SolidColorBrush x:Key="WaveBg" Color="#151A24"/>   <!-- 波形欄は暗い背景（波形の水色が読める。ソフトと同じ） -->
+    <SolidColorBrush x:Key="WaveBgOff" Color="#10141C"/>
+    <SolidColorBrush x:Key="WaveBorder" Color="#2B3344"/>
     <SolidColorBrush x:Key="LaneBorder" Color="#CFCFCF"/>
     <SolidColorBrush x:Key="StartFg" Color="#1E5A36"/>
     <SolidColorBrush x:Key="StopFg" Color="#1D4580"/>
@@ -47,6 +47,13 @@
     <SolidColorBrush x:Key="ToggleKnobOff" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="ToggleKnobOn" Color="#FFFFFF"/>
     <!-- 無効（グレーアウト）のラジオボタンは、文字も丸印もかなり薄くする（ダークは DarkControls.xaml） -->
+    <!-- ツールチップ: ダークと同じく、透けない面（PopupBg）で読みやすく -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource PopupBg}"/>
+        <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}"/>
+    </Style>
+
     <Style TargetType="RadioButton">
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">

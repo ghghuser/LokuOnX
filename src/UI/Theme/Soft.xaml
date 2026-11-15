@@ -13,6 +13,11 @@
     <SolidColorBrush x:Key="OldFileFg" Color="#3A404C"/>
     <SolidColorBrush x:Key="MarkFg" Color="#5A6070"/>
     <SolidColorBrush x:Key="CardBg" Color="#EDF0F5"/>
+    <!-- パネル系（一覧の見出し行・ポップアップ・ホバー・枠）もソフトの面の色に（SoftDark と同じ構成） -->
+    <SolidColorBrush x:Key="PanelBg" Color="#EDF0F5"/>
+    <SolidColorBrush x:Key="PopupBg" Color="#F2F5F9"/>
+    <SolidColorBrush x:Key="PanelHover" Color="#E4E8EE"/>
+    <SolidColorBrush x:Key="PanelBorder" Color="#C5CBD6"/>
     <SolidColorBrush x:Key="CardBorder" Color="#90FFFFFF"/>
     <SolidColorBrush x:Key="InputBg" Color="#DDE2EA"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プロファイル欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#DDE2EA"/>
