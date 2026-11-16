@@ -28,7 +28,7 @@ public partial class FileListPanel : UserControl
     private Settings _settings = null!;
     private MediaInfo _info = null!;
     private ObservableCollection<LibraryFile> _items = new();
-    private LibraryFile? _recording;
+    private readonly List<LibraryFile> _recordings = new();
     private CancellationTokenSource? _cts;
     private int _scanId;
     private bool _restoring;
@@ -128,7 +128,7 @@ public partial class FileListPanel : UserControl
 
         _restoring = true;
         _items = new ObservableCollection<LibraryFile>(files);
-        if (_recording != null && RecordingShown()) _items.Insert(0, _recording);
+        if (RecordingShown()) for (int k = 0; k < _recordings.Count; k++) _items.Insert(k, _recordings[k]);
         List.ItemsSource = _items;
         ApplySort();
         ApplyFilter();   // 絞り込み中なら、読み直したあとも同じ条件で（件数の表示もここで更新）
@@ -143,23 +143,24 @@ public partial class FileListPanel : UserControl
     private bool RecordingShown() =>
         IsHistory || string.Equals(SourceKey.TrimEnd('\\', '/'), _settings.Folder.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>録音中は、一覧の一番上に「録音中…」の行を出す（ファイルではない仮の行）。null で消す。</summary>
-    public void SetRecording(string? text)
+    /// <summary>録音中は、一覧の一番上に「録音中…」の行を、録音中のファイルの数だけ出す（ファイルではない仮の行）。空で消す。</summary>
+    public void SetRecordings(IReadOnlyList<string> texts)
     {
-        if (text == null)
+        while (_recordings.Count > texts.Count)
         {
-            if (_recording != null) _items.Remove(_recording);
-            _recording = null;
-            return;
+            _items.Remove(_recordings[^1]);
+            _recordings.RemoveAt(_recordings.Count - 1);
         }
-        if (_recording == null)
+        for (int k = 0; k < texts.Count; k++)
         {
-            _recording = LibraryFile.Recording(text);
-            if (RecordingShown()) _items.Insert(0, _recording);
-            return;
+            if (k < _recordings.Count) { _recordings[k].SetName(texts[k]); continue; }
+            var row = LibraryFile.Recording(texts[k]);
+            _recordings.Add(row);
+            if (RecordingShown()) _items.Insert(Math.Min(k, _items.Count), row);
         }
-        _recording.SetName(text);
-        if (!_items.Contains(_recording) && RecordingShown()) _items.Insert(0, _recording);
+        if (RecordingShown())
+            foreach (var r in _recordings)
+                if (!_items.Contains(r)) _items.Insert(0, r);
     }
 
     /// <summary>長さを2本並行で調べる（FFmpegを1ファイルずつ起動するため、新しい順に一定数まで）。</summary>

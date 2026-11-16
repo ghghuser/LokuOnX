@@ -32,6 +32,18 @@ public partial class MainWindow
         }
     }
 
+    /// <summary>ファイル一覧の先頭の「● Recording…」行を、録音中のファイルの数だけ出す（入力の別ファイル録音・出力の録音・単独録音を含む）。</summary>
+    private void UpdateRecordingRows()
+    {
+        var rows = new List<string>();
+        if (_session != null)
+            foreach (var (paused, track) in _session.States)
+                rows.Add(Loc.Get(paused ? "files.recordingPaused" : "files.recording", track));
+        foreach (var rec in _outRecs.Values)
+            rows.Add(Loc.Get(rec.Session.Paused ? "files.recordingPaused" : "files.recording", rec.Session.CurrentTrackNumber));
+        Files.SetRecordings(rows);
+    }
+
     bool IOutputHost.OutputRec(int index) => _settings.OutputRec(index);
 
     void IOutputHost.SetOutputRec(int index, bool on) => _settings.SetOutputRec(index, on);

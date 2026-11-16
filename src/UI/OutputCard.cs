@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Recorder.Core;
 
 namespace Recorder.UI;
@@ -78,6 +79,7 @@ public sealed class OutputCard : Border
     private readonly Button _fx = new();
     private readonly ComboBox _device = new();
     private readonly TextBlock _state = new();
+    private readonly TextBlock _recState = new();
     private readonly TextBlock _error = new();
     private readonly TextBlock _caution = new();
     private readonly TextBlock _info = new();
@@ -188,7 +190,13 @@ public sealed class OutputCard : Border
         _state.FontSize = 12;
         _state.Opacity = 0.85;
         _state.Text = Loc.Get("outputcard.s09");
-        root.Children.Add(_state);
+        var stateRow = new WrapPanel();
+        stateRow.Children.Add(_state);
+        _recState.FontSize = 12;
+        _recState.FontWeight = FontWeights.SemiBold;
+        _recState.Foreground = new SolidColorBrush(Color.FromRgb(0xC9, 0x4A, 0x86));   // ファイル一覧の「● Recording」と同じ色
+        stateRow.Children.Add(_recState);
+        root.Children.Add(stateRow);
         _error.SetResourceReference(TextBlock.ForegroundProperty, "WarnFg");
         _error.FontWeight = FontWeights.SemiBold;
         _error.FontSize = 12;
@@ -507,8 +515,9 @@ public sealed class OutputCard : Border
         if (mode != 0)
         {
             var t = _host.OutputRecElapsed(_index);
-            _state.Text += "　" + Loc.Get("outputcard.recording", $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}");
+            _recState.Text = "　" + Loc.Get("outputcard.recording", $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}");
         }
+        else _recState.Text = "";
         _rec.Content = Loc.Get(mode == 1 ? "outputcard.recStop" : "outputcard.recStart");
         _rec.IsEnabled = mode == 1 || (mode == 0 && e.Running);
         if (_recWith.IsChecked != _host.OutputRec(_index))

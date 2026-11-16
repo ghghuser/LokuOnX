@@ -262,6 +262,10 @@ public sealed class RecordingGroup : IDisposable
         _outs.Add(rec);
     }
 
+    /// <summary>録音中のファイルごと（入力の別ファイル・一緒に録る出力を含む）の、一時停止中かどうかと現在のトラック番号。</summary>
+    public IReadOnlyList<(bool Paused, int Track)> States =>
+        _sessions.Concat(_outs.Select(o => o.Session)).Select(x => (x.Paused, x.CurrentTrackNumber)).ToList();
+
     /// <summary>メインの録音と一緒に録っている出力の数。</summary>
     public int OutputCount => _outs.Count;
 
