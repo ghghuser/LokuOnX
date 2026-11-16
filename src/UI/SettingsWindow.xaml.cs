@@ -133,13 +133,12 @@ public partial class SettingsWindow : Window
         LangNote.Visibility = Visibility.Visible;   // 反映は再起動後
     }
 
-    /// <summary>効果が付かない組み合わせ（なし、または既定でライト系など）では、不透明度スライダーを灰色にする。結果も表示する。</summary>
+    /// <summary>効果が付かない組み合わせ（なし、または既定でライト系など）では、不透明度スライダーを灰色にする。</summary>
     private void UpdateBackdropUi()
     {
         var on = ThemeManager.BackdropOn(_s.Theme, _s.BackdropEffect);
         OpacitySlider.IsEnabled = on;
         OpacityText.Opacity = on ? 1 : 0.4;
-        BackdropInfo.Text = Loc.Get("settings.backdrop.info", ThemeManager.LastInfo);
     }
 
     private void Backdrop_Changed(object sender, SelectionChangedEventArgs e)

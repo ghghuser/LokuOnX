@@ -98,6 +98,7 @@ public partial class MainWindow
                 Files.Refresh();
             }));
             group.Start();
+            AdoptStandaloneOutputRecs(group);
             _session = group;
             if (!_settings.ReadOnly) _settings.NextNo = no + 1;
         }

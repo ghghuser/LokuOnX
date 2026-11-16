@@ -254,6 +254,14 @@ public sealed class RecordingGroup : IDisposable
         }
     }
 
+    /// <summary>すでに単独で録音中の出力を、このグループへ引き継ぐ（以後、一時停止・分割・停止はメインに従う）。保存の記録は呼び出し側が持つ。</summary>
+    public void Adopt(OutputRecording rec)
+    {
+        rec.Error += m => Notice?.Invoke(Loc.Get("outputrec.failed", rec.Name, m));
+        rec.Notice += m => Notice?.Invoke(Loc.Get("outputrec.notice", rec.Name, m));
+        _outs.Add(rec);
+    }
+
     /// <summary>メインの録音と一緒に録っている出力の数。</summary>
     public int OutputCount => _outs.Count;
 

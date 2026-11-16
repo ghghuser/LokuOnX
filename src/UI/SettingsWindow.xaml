@@ -47,7 +47,6 @@
                                             ValueChanged="Opacity_Changed"/>
                                     <TextBlock x:Name="OpacityText" Width="44" Margin="8,0,0,0" VerticalAlignment="Center" TextAlignment="Right"/>
                                 </StackPanel>
-                                <TextBlock x:Name="BackdropInfo" FontSize="12" Opacity="0.55" Margin="116,4,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
 

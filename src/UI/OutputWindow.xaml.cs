@@ -65,9 +65,9 @@ public partial class OutputWindow : Window
     {
         int n = _host.Configs.Count;
         bool anyOff = Enumerable.Range(0, n).Any(i => !_host.OutputRec(i));
-        bool anyIdle = Enumerable.Range(0, n).Any(i => _host.OutputRecMode(i) == 0);
+        bool anySolo = Enumerable.Range(0, n).Any(i => _host.OutputRecMode(i) == 1);
         RecWithButton.Content = Loc.Get(anyOff ? "outputwindow.recwith.on" : "outputwindow.recwith.off");
-        RecAllButton.Content = Loc.Get(anyIdle ? "outputwindow.recall.start" : "outputwindow.recall.stop");
+        RecAllButton.Content = Loc.Get(anySolo ? "outputwindow.recall.stop" : "outputwindow.recall.start");
     }
 
     private void RecWith_Click(object sender, RoutedEventArgs e)
@@ -79,8 +79,8 @@ public partial class OutputWindow : Window
 
     private void RecAll_Click(object sender, RoutedEventArgs e)
     {
-        bool anyIdle = Enumerable.Range(0, _host.Configs.Count).Any(i => _host.OutputRecMode(i) == 0);
-        _host.SetAllOutputRecording(anyIdle);
+        bool anySolo = Enumerable.Range(0, _host.Configs.Count).Any(i => _host.OutputRecMode(i) == 1);
+        _host.SetAllOutputRecording(!anySolo);
         UpdateRecButtons();
     }
 

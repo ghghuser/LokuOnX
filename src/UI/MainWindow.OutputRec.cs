@@ -20,6 +20,18 @@ public partial class MainWindow
         return list;
     }
 
+    /// <summary>単独録音中の出力のうち「録音に含める」がオンのものを、メインの録音へ引き継ぐ（メインの停止などで一緒に止まるようにする）。</summary>
+    private void AdoptStandaloneOutputRecs(RecordingGroup group)
+    {
+        for (int i = 0; i < _outCfgs.Count && i < _outHub.Count; i++)
+        {
+            var engine = _outHub[i];
+            if (!_settings.OutputRec(i) || !_outRecs.TryGetValue(engine, out var rec)) continue;
+            _outRecs.Remove(engine);
+            group.Adopt(rec);
+        }
+    }
+
     bool IOutputHost.OutputRec(int index) => _settings.OutputRec(index);
 
     void IOutputHost.SetOutputRec(int index, bool on) => _settings.SetOutputRec(index, on);
