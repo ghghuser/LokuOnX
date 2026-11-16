@@ -10,6 +10,10 @@
     <SolidColorBrush x:Key="LampOn" Color="#34D96B"/>           <!-- 入力デバイスの「使う」ランプ（緑） -->
     <SolidColorBrush x:Key="LampErr" Color="#F04545"/>          <!-- ランプがONなのに使えていないとき（赤ランプ） -->
     <SolidColorBrush x:Key="LampErrRing" Color="#C42626"/>      <!-- 赤ランプの輪 -->
+    <SolidColorBrush x:Key="LampWarn" Color="#F0C93C"/>         <!-- 注意の黄ランプ（ONだが注意がある。黄文字の注意と同じ意味） -->
+    <SolidColorBrush x:Key="LampWarnRing" Color="#B8921A"/>     <!-- 黄ランプの輪 -->
+    <SolidColorBrush x:Key="LampRec" Color="#3DA5FF"/>          <!-- 録音中の青ランプ。出力の「録音に含める」の連動線（連動中）も同じ青 -->
+    <SolidColorBrush x:Key="LampRecRing" Color="#1E78D0"/>      <!-- 青ランプの輪 -->
 
 
     <!-- スクロールバー: 細い角丸のつまみだけ（矢印ボタンなし）。色は各テーマの ScrollThumb / ScrollThumbHover / ScrollThumbDrag -->
@@ -180,6 +184,61 @@
                             <Setter TargetName="Lamp" Property="Opacity" Value="0.5"/>
                             <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
                         </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Warn"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampWarn}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampWarnRing}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#F0C93C" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampWarnRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#F0C93C" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Warn"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampWarnRing}"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Rec"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampRec}"/>
+                            <Setter TargetName="Lamp" Property="Opacity" Value="1"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#3DA5FF" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#3DA5FF" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Rec"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                        </MultiTrigger>
                         <!-- 赤ランプ（Tag="Error"）: ONなのに正しく使えていない（出力＝出力できない／入力＝同じデバイスの重複など）。ONのときだけ赤く点灯 -->
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
@@ -187,6 +246,145 @@
                                 <Condition Property="IsChecked" Value="True"/>
                             </MultiTrigger.Conditions>
                             <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampErr}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#E53935" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#E53935" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiTrigger>
+                        <!-- 赤ランプ（Tag="Error"）がOFFのとき、マウスを乗せた輪は赤（緑ランプがOFFのときは従来どおり緑） -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Error"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- メイン画面の出力ランプ（中に番号）。入力のランプと同じ作り（緑＝出力中、赤＝エラー、黄＝注意、青＝録音中） -->
+    <Style x:Key="OutLamp" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent" Width="26" Height="26" SnapsToDevicePixels="True">
+                        <Ellipse x:Name="Lamp" Width="20" Height="20" StrokeThickness="1.5"
+                                 Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
+                        <Ellipse x:Name="Ring" Width="20" Height="20" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
+                                 Fill="Transparent" Visibility="Collapsed">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#34D96B" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <ContentPresenter x:Name="Num" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          TextElement.FontSize="11" TextElement.FontWeight="SemiBold"
+                                          TextElement.Foreground="{DynamicResource WindowFg}"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampOn}"/>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#10301A"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampOnRing}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#34D96B" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampOn}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                        <!-- 録音中などで変更できないとき: 全体は薄くなるが、ON のランプは縁だけ緑に光らせて「使っている」と分かるようにする -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEnabled" Value="False"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Opacity" Value="1"/>
+                            <Setter TargetName="Lamp" Property="Opacity" Value="0.5"/>
+                            <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Warn"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampWarn}"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampWarnRing}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#F0C93C" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampWarnRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#F0C93C" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#1B1B1B"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Warn"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampWarnRing}"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Rec"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampRec}"/>
+                            <Setter TargetName="Lamp" Property="Opacity" Value="1"/>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                            <Setter TargetName="Lamp" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#3DA5FF" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#3DA5FF" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#FFFFFF"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Rec"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                        </MultiTrigger>
+                        <!-- 赤ランプ（Tag="Error"）: ONなのに正しく使えていない（出力＝出力できない／入力＝同じデバイスの重複など）。ONのときだけ赤く点灯 -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Error"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampErr}"/>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#FFFFFF"/>
                             <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
                             <Setter TargetName="Lamp" Property="Effect">
                                 <Setter.Value>

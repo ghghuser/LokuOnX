@@ -444,7 +444,10 @@ public partial class DeviceList : UserControl
             var warn = WarnFor(r);
             r.Combo.Tag = new WarnSet(warn, loopKeys);
             // ランプがオンで、同じデバイスを重ねて使っている（プルダウンで赤文字になる状態）なら、ランプを赤にする
-            r.Use.Tag = r.Key.Length > 0 && warn.Contains(r.Key) ? "Error" : null;
+            // ランプの色: 録音中＝青、重複＝赤、音が回る注意＝黄（オフのときも、マウスを乗せた輪はオンにしたときの色）
+            r.Use.Tag = _recording && r.Use.IsChecked == true && r.Key.Length > 0 ? "Rec"
+                : r.Key.Length > 0 && warn.Contains(r.Key) ? "Error"
+                : r.Key.Length > 0 && loopKeys.Contains(r.Key) ? "Warn" : null;
         }
     }
 
@@ -580,6 +583,7 @@ public partial class DeviceList : UserControl
             r.Use.IsEnabled = !recording;
             if (!recording) r.Gain.Reset();
         }
+        UpdateWarnings();   // ランプの色（録音中は青）を付け直す
         UpdateLayout2();
     }
 

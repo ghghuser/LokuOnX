@@ -242,21 +242,21 @@ public partial class MainWindow : IOutputHost
         menu.IsOpen = true;
     }
 
-    private void OpenOutputWindow()
+    private void OpenOutputWindow(int? card = null)
     {
         if (_outWindow != null)
         {
             if (_outWindow.WindowState == WindowState.Minimized) _outWindow.WindowState = WindowState.Normal;
             _outWindow.Activate();
+            if (card is { } c) _outWindow.ShowCard(c);
             return;
         }
         var w = new OutputWindow(this, _settings, _outProvider) { Owner = this };
         w.Closed += (_, _) => _outWindow = null;
         _outWindow = w;
         w.Show();
+        if (card is { } c2) w.Loaded += (_, _) => w.ShowCard(c2);
     }
-
-    private int _outShown;   // 出力中の枚数（0＝出力中なし。表示が変わったときだけ文字を書き換える）
 
     /// <summary>トレイのツールチップの末尾に付ける出力の表示（出力中のときだけ）。</summary>
     private string OutputTip() => _outHub != null && _outHub.AnyRunning ? ("　" + Loc.Get("mainwindow.output.s05")) : "";
@@ -279,15 +279,9 @@ public partial class MainWindow : IOutputHost
                 ? (Loc.Get("mainwindow.output.s08") + " ") + err
                 : Loc.Get("mainwindow.output.s09");
         }
-        int count = running ? _outHub.Engines.Count(e => e.Running) : 0;
-        int total = _outHub.Count;
-        int shown = count * 10 + total;   // 枚数かカード数が変わったときだけ文字を書き換える
-        if (shown != _outShown)
-        {
-            _outShown = shown;
-            // 出力中の枚数 / カードの枚数。カードが1枚のときは数字を出さない
-            OutputButton.Content = count == 0 ? "⇶" : total <= 1 ? Loc.Get("mainwindow.output.s10") : Loc.Get("mainwindow.output.s11", count, total);
-        }
+        OutputButton.Content = "⇶";
+        OutLamps.Open = i => OpenOutputWindow(i);
+        OutLamps.Refresh(this, _session != null);
     }
 
     /// <summary>終了時。出力を止め、開いている入力をすべて閉じる（デバイスを閉じるので別スレッドで）。</summary>

@@ -44,6 +44,17 @@ public partial class MainWindow
         Files.SetRecordings(rows);
     }
 
+    bool IOutputHost.OutputCaution(int index)
+    {
+        if (index < 0 || index >= _outCfgs.Count) return false;
+        var id = _outCfgs[index].DeviceId;
+        if (id.Length == 0 || ((IOutputHost)this).IsLoopOutput(id)) return false;
+        var real = ((IOutputHost)this).RealOutputId(id);
+        for (int i = 0; i < _outCfgs.Count; i++)
+            if (i != index && _outCfgs[i].DeviceId.Length > 0 && ((IOutputHost)this).RealOutputId(_outCfgs[i].DeviceId) == real) return true;
+        return false;
+    }
+
     bool IOutputHost.OutputRec(int index) => _settings.OutputRec(index);
 
     void IOutputHost.SetOutputRec(int index, bool on) => _settings.SetOutputRec(index, on);
@@ -130,6 +141,7 @@ public partial class MainWindow
             _outRecs[engine] = rec;
             if (!_settings.ReadOnly) _settings.NextNo = no + 1;
             Detail.Reload();   // {No} が進んだので画面へ反映
+            OutLamps.Refresh(this, _session != null);
         }
         catch (Exception ex)
         {
@@ -141,6 +153,7 @@ public partial class MainWindow
     private async Task StopOutputRecAsync(OutputEngine engine, OutputRecording rec, string? error)
     {
         if (!_outRecs.Remove(engine)) return;
+        OutLamps.Refresh(this, _session != null);
         string? failure = error;
         await Task.Run(() =>
         {

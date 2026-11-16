@@ -84,6 +84,12 @@ public partial class OutputWindow : Window
         UpdateRecButtons();
     }
 
+    /// <summary>index 番目の出力カードが見える位置までスクロールする（メイン画面の出力ランプの「詳細設定」から）。</summary>
+    public void ShowCard(int index)
+    {
+        if (index >= 0 && index < _cards.Count) _cards[index].BringIntoView();
+    }
+
     /// <summary>メイン画面の入力（行・名前）が変わったとき。</summary>
     public void RefreshInputs()
     {

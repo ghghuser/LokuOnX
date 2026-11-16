@@ -33,6 +33,9 @@ public interface IOutputHost
     /// <summary>index 番目の出力のエフェクトのウィンドウを開く（すでに開いていればそれを前に出す。M11-5）。</summary>
     void OpenOutputFx(int index, Window owner);
 
+    /// <summary>この出力の出力先を、ほかの出力カードも使っている（黄色の注意）。音が回る赤の注意があるときは false。</summary>
+    bool OutputCaution(int index);
+
     /// <summary>メインの録音と一緒にこの出力も録るか（M13。出力ごとに記憶）。</summary>
     bool OutputRec(int index);
 

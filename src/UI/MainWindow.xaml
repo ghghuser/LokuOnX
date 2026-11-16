@@ -55,10 +55,18 @@
                 <TextBlock x:Name="ScheduleBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ScheduleOnFg}"/>
             </Border>
             <!-- 出力（M11-2）: 出力ウィンドウを開く。出力中は色が変わる -->
-            <Button x:Name="OutputButton" Grid.Column="3" Content="⇶" FontFamily="Segoe UI Symbol"
-                    FontSize="16" MinWidth="34" Height="28" Padding="6,0" Margin="0,0,6,0" VerticalAlignment="Center"
-                    ToolTip="{ui:T mainwindow.outputbutton.tooltip}" Click="Output_Click"
-                    PreviewMouseRightButtonUp="Output_RightClick"/>
+            <Grid Grid.Column="3" Margin="0,0,6,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <!-- 出力ランプ（出力カードの数だけ。録音に含める出力は、ここから録音パネルへ線を下ろす） -->
+                <ui:OutputLamps x:Name="OutLamps" Margin="0,0,8,0" VerticalAlignment="Stretch"/>
+                <Button x:Name="OutputButton" Grid.Column="1" Content="⇶" FontFamily="Segoe UI Symbol"
+                        FontSize="16" MinWidth="34" Height="28" Padding="6,0" VerticalAlignment="Center"
+                        ToolTip="{ui:T mainwindow.outputbutton.tooltip}" Click="Output_Click"
+                        PreviewMouseRightButtonUp="Output_RightClick"/>
+            </Grid>
             <Button x:Name="SettingsButton" Grid.Column="4" Content="⚙" FontFamily="Segoe UI Symbol"
                     FontSize="17" Width="34" Height="28" Padding="0" VerticalAlignment="Center"
                     ToolTip="{ui:T mainwindow.settingsbutton.tooltip}" Click="Settings_Click"/>
