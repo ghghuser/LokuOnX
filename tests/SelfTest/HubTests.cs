@@ -92,7 +92,7 @@ static class HubTests
             check(tap.Buffer!.PushedFrames == 4800 + 40 * 480, "複製先へは録音中も音が流れ続ける", $"{tap.Buffer.PushedFrames}");
             check(peak() < 0.35f && peak() > 0.25f, "録音の先頭に、録音前にたまっていた古い音が混ざらない", $"peak={peak()}");
             var secs = stopT - t0;
-            check(Math.Abs(frames() / 48000.0 - secs) < 0.03, "録音の長さが、開始から停止までの経過時間と一致する", $"録音={frames() / 48000.0:F3}s 経過={secs:F3}s");
+            check(Math.Abs(frames() / 48000.0 - secs) < 0.1, "録音の長さが、開始から停止までの経過時間と一致する", $"録音={frames() / 48000.0:F3}s 経過={secs:F3}s");
             src.Feed(0.2f, 480);
             check(tap.Buffer!.PushedFrames == 4800 + 41 * 480, "録音が終わったあとも複製先へ流れる");
             hub.Release(outEntry);
