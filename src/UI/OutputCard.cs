@@ -509,7 +509,8 @@ public sealed class OutputCard : Border
         // 「出力する」がオンなのに出力できていない（理由が赤文字で出ている）ときは、ランプを赤にする
         // オフのときも、オンにしたときの色をマウスオーバーの輪で見せる（エラー＝赤、出力先を別カードと共有＝黄）。メイン画面の出力ランプと同じ判定
         bool sharedLamp = _sharedWarn && !_loopWarn;
-        _on.Tag = !e.Running && (error.Length > 0 || (_on.IsChecked != true && Cfg.DeviceId.Length == 0)) ? "Error"
+        _on.Tag = _on.IsChecked == true && _host.OutputRecMode(_index) != 0 ? "Rec"   // 録音中は青（メイン画面の出力ランプと同じ）
+            : !e.Running && (error.Length > 0 || (_on.IsChecked != true && Cfg.DeviceId.Length == 0)) ? "Error"
             : sharedLamp ? "Warn" : null;
         _error.Visibility = error.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         bool shared = _sharedWarn && !_loopWarn;
