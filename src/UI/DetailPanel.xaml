@@ -19,7 +19,7 @@
         <!-- 保存フォルダ名（保存先の下の行） -->
         <TextBlock Text="{ui:T detailpanel.textblock1.text}" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,6"/>
         <WrapPanel Grid.Column="1" Margin="0,0,0,6">
-            <CheckBox x:Name="DateFolderCheck" Content="{ui:T detailpanel.datefoldercheck.content}" VerticalAlignment="Center"
+            <CheckBox x:Name="DateFolderCheck" ToolTip="{ui:T detailpanel.datefoldercheck.tooltip}" VerticalAlignment="Center"
                       Margin="0,0,10,0" Checked="DateFolder_Changed" Unchecked="DateFolder_Changed"/>
             <TextBox x:Name="DateFormatBox" Width="180" VerticalContentAlignment="Center"
                      ToolTip="{ui:T detailpanel.dateformatbox.tooltip}"

@@ -143,6 +143,7 @@
     </ControlTemplate>
 
     <Style TargetType="RadioButton">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Foreground" Value="{DynamicResource WindowFg}"/>
         <Setter Property="Template" Value="{StaticResource PastelRadioTemplate}"/>
         <Style.Triggers>

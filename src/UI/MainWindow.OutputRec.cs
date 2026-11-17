@@ -32,6 +32,27 @@ public partial class MainWindow
         }
     }
 
+    private bool _mainRecording;
+
+    /// <summary>録音中（メインの録音・出力の単独録音のどちらか）は、録音パネルの枠を細く青く光らせる（録音の切り忘れに気づけるように。M14）。</summary>
+    private void UpdateConsoleGlow()
+    {
+        bool on = _mainRecording || _outRecs.Count > 0;
+        if (on)
+        {
+            ConsoleCard.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "LampRec");
+            ConsoleCard.Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = System.Windows.Media.Color.FromRgb(0x3D, 0xA5, 0xFF), BlurRadius = 8, ShadowDepth = 0, Opacity = 0.7,
+            };
+        }
+        else
+        {
+            ConsoleCard.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorder");
+            ConsoleCard.Effect = null;
+        }
+    }
+
     /// <summary>ファイル一覧の先頭の「● Recording…」行を、録音中のファイルの数だけ出す（入力の別ファイル録音・出力の録音・単独録音を含む）。</summary>
     private void UpdateRecordingRows()
     {
@@ -42,6 +63,7 @@ public partial class MainWindow
         foreach (var rec in _outRecs.Values)
             rows.Add(Loc.Get(rec.Session.Paused ? "files.recordingPaused" : "files.recording", rec.Session.CurrentTrackNumber));
         Files.SetRecordings(rows);
+        UpdateConsoleGlow();
     }
 
     bool IOutputHost.OutputCaution(int index)

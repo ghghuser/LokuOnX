@@ -73,7 +73,7 @@
         </Grid>
 
         <!-- 録音コンソール: 左＝時間・メーター・録音ボタン、右＝入力デバイスのストリップ（選択・波形・ゲイン・レベル） -->
-        <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,0,0,12" Padding="18,14" CornerRadius="10" BorderThickness="1"
+        <Border x:Name="ConsoleCard" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,0,0,12" Padding="18,14" CornerRadius="10" BorderThickness="1"
                 Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}">
             <Grid>
                 <Grid.ColumnDefinitions>

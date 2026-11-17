@@ -45,6 +45,7 @@
     <SolidColorBrush x:Key="SoftFacePressed" Color="#D8DDE6"/>
     <SolidColorBrush x:Key="SoftDisabledFg" Color="#8A909C"/>
     <Style TargetType="RadioButton">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Opacity" Value="0.35"/>

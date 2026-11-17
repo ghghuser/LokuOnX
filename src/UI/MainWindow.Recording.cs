@@ -136,6 +136,8 @@ public partial class MainWindow
         SetPauseButton(false);
         FolderBox.IsEnabled = SplitBox.IsEnabled = !recording;
         Devices.SetRecording(recording);
+        _mainRecording = recording;
+        UpdateConsoleGlow();
         OutLamps.Refresh(this, recording);
         Quality.IsEnabled = Detail.IsEnabled = TagsTab.IsEnabled = Profiles.IsEnabled = !recording;
         SleepGuard.Prevent(recording && _settings.PreventSleep);

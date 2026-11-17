@@ -143,7 +143,7 @@ public sealed class OutputLamps : Grid
         var box = _boxes[i];
         if (box.IsChecked != on) box.IsChecked = on;
         var deviceId = host.Configs[i].DeviceId;
-        object? tag = on && mode != 0 ? "Rec"
+        object? tag = mode != 0 ? (on ? "Rec" : "RecOff")   // 出力をオフにしても録音は続く。オフのときは青いリングだけ光らせる（M14）
             : !engine.Running && ((on && error.Length > 0) || (!on && (deviceId.Length == 0 || host.IsLoopOutput(deviceId)))) ? "Error"   // オフでも、オンにするとエラーになるものは、マウスオーバーの輪が赤
             : host.OutputCaution(i) ? "Warn"   // 出力先を別カードと共有（オフのときも、オンにしたときの黄を輪で見せる）
             : null;

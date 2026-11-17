@@ -157,7 +157,15 @@ public sealed class OutputCard : Border
         _name.ToolTip = Loc.Get("outputcard.s06");
         _name.KeyDown += (_, e) => { if (e.Key == Key.Enter) { Keyboard.ClearFocus(); e.Handled = true; } };
         _name.LostFocus += (_, _) => CommitName();
-        head.Children.Add(_name);
+        // 「停止中／出力中」などの状態は、名前の右側に置く（M14）
+        _state.FontSize = 12;
+        _state.Opacity = 0.85;
+        _state.Margin = new Thickness(10, 0, 0, 0);
+        _state.VerticalAlignment = VerticalAlignment.Center;
+        var nameRow = new StackPanel { Orientation = Orientation.Horizontal };
+        nameRow.Children.Add(_name);
+        nameRow.Children.Add(_state);
+        head.Children.Add(nameRow);
         root.Children.Add(head);
 
         // 出力先
@@ -190,11 +198,8 @@ public sealed class OutputCard : Border
         recRow.Children.Add(_recWith);
         root.Children.Add(recRow);
 
-        _state.FontSize = 12;
-        _state.Opacity = 0.85;
         _state.Text = Loc.Get("outputcard.s09");
         var stateRow = new WrapPanel();
-        stateRow.Children.Add(_state);
         _recState.FontSize = 12;
         _recState.FontWeight = FontWeights.SemiBold;
         _recState.Foreground = new SolidColorBrush(Color.FromRgb(0xC9, 0x4A, 0x86));   // ファイル一覧の「● Recording」と同じ色
@@ -509,7 +514,8 @@ public sealed class OutputCard : Border
         // 「出力する」がオンなのに出力できていない（理由が赤文字で出ている）ときは、ランプを赤にする
         // オフのときも、オンにしたときの色をマウスオーバーの輪で見せる（エラー＝赤、出力先を別カードと共有＝黄）。メイン画面の出力ランプと同じ判定
         bool sharedLamp = _sharedWarn && !_loopWarn;
-        _on.Tag = _on.IsChecked == true && _host.OutputRecMode(_index) != 0 ? "Rec"   // 録音中は青（メイン画面の出力ランプと同じ）
+        int recMode = _host.OutputRecMode(_index);
+        _on.Tag = recMode != 0 ? (_on.IsChecked == true ? "Rec" : "RecOff")   // 録音中は青（メイン画面の出力ランプと同じ）。出力をオフにしても録音は続くので、オフのときは青いリングだけ光らせる
             : !e.Running && (error.Length > 0 || (_on.IsChecked != true && Cfg.DeviceId.Length == 0)) ? "Error"
             : sharedLamp ? "Warn" : null;
         _error.Visibility = error.Length > 0 ? Visibility.Visible : Visibility.Collapsed;

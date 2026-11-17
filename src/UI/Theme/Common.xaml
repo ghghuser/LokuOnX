@@ -240,6 +240,20 @@
                             </MultiTrigger.Conditions>
                             <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
                         </MultiTrigger>
+                        <!-- 録音中だが、ランプはOFF（出力を止めても単独録音は続いている）: 青いリングだけ光らせて「録音が動いている」と分かるようにする（M14） -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="RecOff"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#3DA5FF" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiTrigger>
                         <!-- 赤ランプ（Tag="Error"）: ONなのに正しく使えていない（出力＝出力できない／入力＝同じデバイスの重複など）。ONのときだけ赤く点灯 -->
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
@@ -381,6 +395,22 @@
                                 <Condition Property="IsMouseOver" Value="True"/>
                             </MultiTrigger.Conditions>
                             <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                        </MultiTrigger>
+                        <!-- 録音中だが、ランプはOFF（出力を止めても単独録音は続いている）: 青いリングだけ光らせて「録音が動いている」と分かるようにする（M14） -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="RecOff"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource LampRecRing}"/>
+                            <Setter TargetName="Ring" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#3DA5FF" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#8CCBFF"/>
+                            <Setter TargetName="Num" Property="Opacity" Value="1"/>
                         </MultiTrigger>
                         <!-- 赤ランプ（Tag="Error"）: ONなのに正しく使えていない（出力＝出力できない／入力＝同じデバイスの重複など）。ONのときだけ赤く点灯 -->
                         <MultiTrigger>
