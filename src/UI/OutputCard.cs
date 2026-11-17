@@ -507,7 +507,10 @@ public sealed class OutputCard : Border
         if (error.Length == 0 && _loopWarn) error = OutputGuard.LoopMessage;   // 「出力する」がオフでも、選んだ時点で理由を出す
         _error.Text = error;
         // 「出力する」がオンなのに出力できていない（理由が赤文字で出ている）ときは、ランプを赤にする
-        _on.Tag = _on.IsChecked == true && !e.Running && error.Length > 0 ? "Error" : null;
+        // オフのときも、オンにしたときの色をマウスオーバーの輪で見せる（エラー＝赤、出力先を別カードと共有＝黄）。メイン画面の出力ランプと同じ判定
+        bool sharedLamp = _sharedWarn && !_loopWarn;
+        _on.Tag = !e.Running && (error.Length > 0 || (_on.IsChecked != true && Cfg.DeviceId.Length == 0)) ? "Error"
+            : sharedLamp ? "Warn" : null;
         _error.Visibility = error.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         bool shared = _sharedWarn && !_loopWarn;
         _caution.Visibility = shared ? Visibility.Visible : Visibility.Collapsed;

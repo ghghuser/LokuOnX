@@ -102,7 +102,7 @@
             <TabItem Header="{ui:T settings.tab.about}">
                 <!-- 背景: アイコン（assets/icon/icon.svg から余白つきで書き出した画像）を半透明で中央に大きく -->
                 <Grid>
-                    <Image x:Name="AboutIcon" Width="360" Height="360" Opacity="0.16" IsHitTestVisible="False"
+                    <Image x:Name="AboutIcon" MaxWidth="512" MaxHeight="512" Stretch="Uniform" Opacity="0.16" IsHitTestVisible="False"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            RenderOptions.BitmapScalingMode="HighQuality" UseLayoutRounding="True" SnapsToDevicePixels="True"/>
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">

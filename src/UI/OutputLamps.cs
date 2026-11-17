@@ -17,6 +17,7 @@ public sealed class OutputLamps : Grid
 {
     private const double LampSize = 20;
     private const double Cell = LampSize + 4;
+    private const double Gap = 3;   // ランプどうしの間隔
 
     private readonly StackPanel _lamps = new() { Orientation = Orientation.Horizontal };
     private readonly StackPanel _lines = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Stretch };
@@ -104,7 +105,7 @@ public sealed class OutputLamps : Grid
         for (int i = 0; i < n; i++)
         {
             int index = i;
-            var box = new CheckBox { Content = OutputConfig.Letter(i), Style = (Style)FindResource("OutLamp"), Width = Cell, Height = Cell };
+            var box = new CheckBox { Content = OutputConfig.Letter(i), Style = (Style)FindResource("OutLamp"), Width = Cell, Height = Cell, Margin = new Thickness(0, 0, i < n - 1 ? Gap : 0, 0) };
             box.Click += (_, _) =>
             {
                 if (_updating || _host == null) return;
@@ -117,7 +118,7 @@ public sealed class OutputLamps : Grid
             _lamps.Children.Add(box);
 
             var bar = new Rectangle { Width = 2, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Stretch };
-            var hit = new Border { Width = Cell, Background = Brushes.Transparent, Cursor = Cursors.Hand, Child = bar };
+            var hit = new Border { Width = Cell, Margin = new Thickness(0, 0, i < n - 1 ? Gap : 0, 0), Background = Brushes.Transparent, Cursor = Cursors.Hand, Child = bar };
             hit.MouseLeftButtonUp += (_, _) =>
             {
                 if (_host == null) return;
@@ -143,9 +144,8 @@ public sealed class OutputLamps : Grid
         if (box.IsChecked != on) box.IsChecked = on;
         var deviceId = host.Configs[i].DeviceId;
         object? tag = on && mode != 0 ? "Rec"
-            : on && !engine.Running && error.Length > 0 ? "Error"
-            : on && engine.Running && host.OutputCaution(i) ? "Warn"
-            : !on && (deviceId.Length == 0 || host.IsLoopOutput(deviceId)) ? "Error"   // オフでも、オンにするとエラーになる（出力先が未設定・音が回る）ときは赤い縁
+            : !engine.Running && ((on && error.Length > 0) || (!on && (deviceId.Length == 0 || host.IsLoopOutput(deviceId)))) ? "Error"   // オフでも、オンにするとエラーになるものは、マウスオーバーの輪が赤
+            : host.OutputCaution(i) ? "Warn"   // 出力先を別カードと共有（オフのときも、オンにしたときの黄を輪で見せる）
             : null;
         if (on)
         {
