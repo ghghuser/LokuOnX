@@ -92,6 +92,26 @@ jobs:
           }
           & $env:FFMPEG_EXE -version | Select-Object -First 1
 
+      # 一覧にあるだけでなく、実際にその形式で書き出せるかを確認する（LokuOn の「検査2」と同じ考え方）。
+      # アプリと同じく、生のPCM（float32・48kHz・ステレオ・0.2秒の無音）を標準入力形式で読んで書き出す
+      - name: Check FFmpeg can actually encode each format
+        shell: pwsh
+        run: |
+          $raw = Join-Path (Get-Location) 'ffmpeg_dl/silence.raw'
+          [IO.File]::WriteAllBytes($raw, (New-Object byte[] (48000 * 8 / 5)))
+          $codecs = @(
+            @('libmp3lame', 'mp3'), @('aac', 'm4a'), @('flac', 'flac'), @('libvorbis', 'ogg'), @('libopus', 'opus'), @('pcm_s16le', 'wav')
+          )
+          foreach ($c in $codecs) {
+            $out = Join-Path (Get-Location) "ffmpeg_dl/check.$($c[1])"
+            Remove-Item $out -ErrorAction SilentlyContinue
+            & $env:FFMPEG_EXE -hide_banner -loglevel error -y -f f32le -ar 48000 -ac 2 -i $raw -c:a $c[0] $out
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path $out) -or (Get-Item $out).Length -le 0) {
+              throw "error: FFmpeg cannot encode $($c[0]) (.$($c[1]))"
+            }
+          }
+          Write-Host 'All encoders produced output.'
+
       - name: Stage distribution folder
         shell: pwsh
         run: |

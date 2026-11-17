@@ -525,7 +525,7 @@ public sealed class OutputCard : Border
             _recState.Text = "　" + Loc.Get("outputcard.recording", $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}");
         }
         else _recState.Text = "";
-        _rec.Content = Loc.Get(mode == 1 ? "outputcard.recStop" : "outputcard.recStart");
+        _rec.Content = Loc.Get(mode != 0 ? "outputcard.recStop" : "outputcard.recStart");   // メインの録音に含まれている間も「停止」表示で、押せない（含めるをオフにすると押せる）
         _rec.IsEnabled = mode == 1 || (mode == 0 && e.Running);
         if (_recWith.IsChecked != _host.OutputRec(_index))
         {

@@ -47,9 +47,10 @@ public sealed class RecordingGroup : IDisposable
         foreach (var o in outs)
         {
             // 出力の録音の失敗は、入力の録音を止めずに知らせるだけにする
-            o.Error += m => Notice?.Invoke(Loc.Get("outputrec.failed", o.Name, m));
-            o.Notice += m => Notice?.Invoke(Loc.Get("outputrec.notice", o.Name, m));
-            o.Saved += p => Saved?.Invoke(p);
+            // （Release で切り離したあとは、この録音の通知を受けない＝_outs に居るときだけ通す）
+            o.Error += m => { if (_outs.Contains(o)) Notice?.Invoke(Loc.Get("outputrec.failed", o.Name, m)); };
+            o.Notice += m => { if (_outs.Contains(o)) Notice?.Invoke(Loc.Get("outputrec.notice", o.Name, m)); };
+            o.Saved += p => { if (_outs.Contains(o)) Saved?.Invoke(p); };
         }
         foreach (var x in sources)
         {
@@ -257,9 +258,18 @@ public sealed class RecordingGroup : IDisposable
     /// <summary>すでに単独で録音中の出力を、このグループへ引き継ぐ（以後、一時停止・分割・停止はメインに従う）。保存の記録は呼び出し側が持つ。</summary>
     public void Adopt(OutputRecording rec)
     {
-        rec.Error += m => Notice?.Invoke(Loc.Get("outputrec.failed", rec.Name, m));
-        rec.Notice += m => Notice?.Invoke(Loc.Get("outputrec.notice", rec.Name, m));
+        rec.Error += m => { if (_outs.Contains(rec)) Notice?.Invoke(Loc.Get("outputrec.failed", rec.Name, m)); };
+        rec.Notice += m => { if (_outs.Contains(rec)) Notice?.Invoke(Loc.Get("outputrec.notice", rec.Name, m)); };
         _outs.Add(rec);
+    }
+
+    /// <summary>このグループで録っている出力（出力カードの番号 index）を切り離して返す（なければ null）。以後、その録音は単独録音として続き、
+    /// メインの一時停止・分割・停止には従わない（ファイルはそのまま続く）。「録音に含める」をオフにしたときに使う（M14）。</summary>
+    public OutputRecording? Release(int index)
+    {
+        var rec = _outs.FirstOrDefault(o => o.Index == index);
+        if (rec != null) _outs.Remove(rec);
+        return rec;
     }
 
     /// <summary>録音中のファイルごと（入力の別ファイル・一緒に録る出力を含む）の、一時停止中かどうかと現在のトラック番号。</summary>

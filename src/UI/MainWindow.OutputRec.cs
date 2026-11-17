@@ -57,7 +57,11 @@ public partial class MainWindow
 
     bool IOutputHost.OutputRec(int index) => _settings.OutputRec(index);
 
-    void IOutputHost.SetOutputRec(int index, bool on) => _settings.SetOutputRec(index, on);
+    void IOutputHost.SetOutputRec(int index, bool on)
+    {
+        _settings.SetOutputRec(index, on);
+        if (!on) DetachOutputRec(index);   // メインの録音中にオフにしたら切り離す。以後は個別に止められる
+    }
 
     int IOutputHost.OutputRecMode(int index)
     {
@@ -88,7 +92,7 @@ public partial class MainWindow
 
     void IOutputHost.SetAllOutputRec(bool on)
     {
-        for (int i = 0; i < _outCfgs.Count; i++) _settings.SetOutputRec(i, on);
+        for (int i = 0; i < _outCfgs.Count; i++) ((IOutputHost)this).SetOutputRec(i, on);
     }
 
     void IOutputHost.SetAllOutputRecording(bool start)
@@ -131,12 +135,7 @@ public partial class MainWindow
                 ShowError(Loc.Get("outputrec.err.notRunning", name));
                 return;
             }
-            rec.Error += msg => Dispatcher.BeginInvoke(new Action(() => _ = StopOutputRecAsync(engine, rec!, msg)));
-            rec.Saved += path => Dispatcher.BeginInvoke(new Action(() =>
-            {
-                _settings.AddHistory(path);
-                Files.Refresh();
-            }));
+            WireStandalone(engine, rec);
             rec.Start();
             _outRecs[engine] = rec;
             if (!_settings.ReadOnly) _settings.NextNo = no + 1;
@@ -148,6 +147,34 @@ public partial class MainWindow
             rec?.Dispose();
             ShowError(Loc.Get("outputrec.err.cannotStart", name, ex.Message));
         }
+    }
+
+    private readonly HashSet<OutputRecording> _wiredRecs = new();
+
+    /// <summary>単独録音として扱う録音に、失敗時の停止・保存時の履歴追加をつなぐ（1つの録音につき1回だけ）。</summary>
+    private void WireStandalone(OutputEngine engine, OutputRecording rec)
+    {
+        if (!_wiredRecs.Add(rec)) return;
+        rec.Error += msg => Dispatcher.BeginInvoke(new Action(() => _ = StopOutputRecAsync(engine, rec, msg)));
+        rec.Saved += path => Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (_session != null && _session.OutputIndexes.Contains(rec.Index)) return;   // メインの録音に含まれている間は、グループ側が記録する
+            _settings.AddHistory(path);
+            Files.Refresh();
+        }));
+    }
+
+    /// <summary>メインの録音中に「録音に含める」をオフにしたとき、その出力の録音をメインから切り離して単独録音にする（M14）。</summary>
+    private void DetachOutputRec(int index)
+    {
+        if (_session == null || index < 0 || index >= _outHub.Count) return;
+        var rec = _session.Release(index);
+        if (rec == null) return;
+        var engine = _outHub[index];
+        WireStandalone(engine, rec);
+        _outRecs[engine] = rec;
+        UpdateRecordingRows();
+        OutLamps.Refresh(this, _session != null);
     }
 
     private async Task StopOutputRecAsync(OutputEngine engine, OutputRecording rec, string? error)
