@@ -9,6 +9,8 @@
     <SolidColorBrush x:Key="LogBg" Color="#26000000"/>   <!-- 一番下のログ欄の背景（背景より少し暗く） -->
     <SolidColorBrush x:Key="AreaBg" Color="#3A2A2C30"/>   <!-- 形式・音質／下のタブの中身／プレーヤーの面（入力デバイスのカード CardBg より透け強め） -->
     <SolidColorBrush x:Key="WindowFg" Color="#DDDAD5"/>
+    <SolidColorBrush x:Key="LinkOff" Color="#30FFFFFF"/>      <!-- 「録音に含める」の線: 含めないとき（薄い線） -->
+    <SolidColorBrush x:Key="LinkStop" Color="#ECECEC"/>       <!-- 「録音に含める」がオンなのに出力が止まっているとき（ダーク系は白っぽく。黄の注意と区別） -->
     <SolidColorBrush x:Key="CautionFg" Color="#E8C23A"/>   <!-- 注意の黄（ダーク系。原色に近いが目に痛くない黄） -->
     <SolidColorBrush x:Key="PanelBg" Color="#802D2F33"/>
     <SolidColorBrush x:Key="PopupBg" Color="#2D2F33"/>

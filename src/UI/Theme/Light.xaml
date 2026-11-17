@@ -13,6 +13,8 @@
     <SolidColorBrush x:Key="LogBg" Color="#10000000"/>   <!-- 一番下のログ欄の背景（ライト系はダークより明るめ） -->
     <SolidColorBrush x:Key="AreaBg" Color="#5EFFFFFF"/>   <!-- 形式・音質／下のタブの中身／プレーヤーの面（入力デバイスのカード CardBg より透け強め） -->
     <SolidColorBrush x:Key="WindowFg" Color="{x:Static SystemColors.ControlTextColor}"/>
+    <SolidColorBrush x:Key="LinkOff" Color="#16000000"/>      <!-- 「録音に含める」の線: 含めないとき（薄い線。白に近く） -->
+    <SolidColorBrush x:Key="LinkStop" Color="#2B2B2B"/>       <!-- 「録音に含める」がオンなのに出力が止まっているとき（ライト系は黒っぽく。黄の注意と区別） -->
     <SolidColorBrush x:Key="CautionFg" Color="#E8A400"/>   <!-- 注意の黄（ライト系2種。11-4確認後に原色寄りへ。白い背景で読める範囲の強い黄） -->
     <SolidColorBrush x:Key="WarnFg" Color="#E60000"/>      <!-- エラー・注意の赤（ライト系2種。11-4確認後に原色寄りへ。ダーク系は Common.xaml の色のまま） -->
     <!-- プルダウン・タブ用（ウィンドウの標準色になじむ、ごくわずかに明るい面と、やわらかい青みの強調） -->

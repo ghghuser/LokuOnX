@@ -11,7 +11,7 @@ namespace Recorder.UI;
 /// メイン画面の出力ランプ（M13）。出力カードの数だけ丸いランプ（中に番号）を並べる。
 /// 左クリック＝出力のオン／オフ、右クリック＝メニュー（単独録音・録音に含める・詳細設定）。
 /// 緑＝出力中、黄＝注意、赤＝エラー、青＝録音中。「録音に含める」の出力は、ランプの下から録音パネルの枠まで線を下ろす
-/// （青＝メインの録音と連動、黄＝連動できない（出力が止まっている）、赤＝録音中なのに連動していない、薄い線＝含めない。線のクリックで切り替え）。
+/// （青＝メインの録音と連動、白っぽい（ライト系は黒っぽい）＝出力が止まっていて録れない、赤＝録音中なのに連動していない、薄い線＝含めない。線のクリックで切り替え）。
 /// </summary>
 public sealed class OutputLamps : Grid
 {
@@ -86,8 +86,8 @@ public sealed class OutputLamps : Grid
         r.Tag = key;
         if (key.Length == 0)
         {
-            r.SetResourceReference(Shape.FillProperty, "WindowFg");
-            r.Opacity = 0.18;
+            r.SetResourceReference(Shape.FillProperty, "LinkOff");
+            r.Opacity = 1;
         }
         else
         {
@@ -163,14 +163,14 @@ public sealed class OutputLamps : Grid
         if (!Equals(box.ToolTip, tip)) box.ToolTip = tip;
 
         // 連動の線: 「録音に含める」がオンのときはランプの色と同じ（青＝録音中、緑＝出力中、黄＝注意、赤＝エラー）。
-        // 例外: メインの録音中なのに連動していなければ赤（ランプが青でも、メインとは別の単独録音のとき）、出力が止まっていて録れないときは黄
+        // 例外: メインの録音中なのに連動していなければ赤（ランプが青でも、メインとは別の単独録音のとき）、出力が止まっていて録れないときは白っぽい色（ライト系は黒っぽい色）
         var bar = _bars[i];
         string key, linkTip;
         if (!flag) { key = ""; linkTip = Loc.Get("outputlamp.link.off"); }
         else if (_mainRecording && mode != 2) { key = "LampErr"; linkTip = Loc.Get("outputlamp.link.notLinked"); }
         else if (mode != 0) { key = "LampRec"; linkTip = Loc.Get("outputlamp.link.linked"); }
         else if (on && !engine.Running && error.Length > 0) { key = "LampErr"; linkTip = Loc.Get("outputlamp.link.error"); }
-        else if (!engine.Running) { key = "LampWarn"; linkTip = Loc.Get("outputlamp.link.stopped"); }
+        else if (!engine.Running) { key = "LinkStop"; linkTip = Loc.Get("outputlamp.link.stopped"); }
         else if (Equals(tag, "Warn")) { key = "LampWarn"; linkTip = Loc.Get("outputlamp.link.ready"); }
         else { key = "LampOn"; linkTip = Loc.Get("outputlamp.link.ready"); }
         Paint(bar, key);
