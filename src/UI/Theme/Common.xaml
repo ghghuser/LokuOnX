@@ -148,10 +148,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Grid Background="Transparent" Width="22" Height="22" SnapsToDevicePixels="True">
-                        <Ellipse x:Name="Lamp" Width="16" Height="16" StrokeThickness="1.5"
+                    <Grid Background="Transparent" Width="23" Height="23" SnapsToDevicePixels="True">
+                        <Ellipse x:Name="Lamp" Width="21" Height="21" StrokeThickness="1.5"
                                  Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
-                        <Ellipse x:Name="Ring" Width="16" Height="16" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
+                        <Ellipse x:Name="Ring" Width="21" Height="21" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
                                  Fill="Transparent" Visibility="Collapsed">
                             <Ellipse.Effect>
                                 <DropShadowEffect Color="#34D96B" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
@@ -280,10 +280,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Grid Background="Transparent" Width="26" Height="26" SnapsToDevicePixels="True">
-                        <Ellipse x:Name="Lamp" Width="20" Height="20" StrokeThickness="1.5"
+                    <Grid Background="Transparent" Width="25" Height="25" SnapsToDevicePixels="True">
+                        <Ellipse x:Name="Lamp" Width="21" Height="21" StrokeThickness="1.5"
                                  Stroke="{DynamicResource ToggleOff}" Fill="Transparent"/>
-                        <Ellipse x:Name="Ring" Width="20" Height="20" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
+                        <Ellipse x:Name="Ring" Width="21" Height="21" StrokeThickness="1.5" Stroke="{DynamicResource LampOnRing}"
                                  Fill="Transparent" Visibility="Collapsed">
                             <Ellipse.Effect>
                                 <DropShadowEffect Color="#34D96B" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
@@ -291,12 +291,13 @@
                         </Ellipse>
                         <ContentPresenter x:Name="Num" HorizontalAlignment="Center" VerticalAlignment="Center"
                                           TextElement.FontSize="11" TextElement.FontWeight="SemiBold"
-                                          TextElement.Foreground="{DynamicResource WindowFg}"/>
+                                          TextElement.Foreground="{DynamicResource WindowFg}" Opacity="0.4"/>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampOn}"/>
-                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#10301A"/>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#0E6A2E"/>
+                            <Setter TargetName="Num" Property="Opacity" Value="1"/>
                             <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampOnRing}"/>
                             <Setter TargetName="Lamp" Property="Effect">
                                 <Setter.Value>
@@ -338,7 +339,8 @@
                                     <DropShadowEffect Color="#F0C93C" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
                                 </Setter.Value>
                             </Setter>
-                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#1B1B1B"/>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#7A5800"/>
+                            <Setter TargetName="Num" Property="Opacity" Value="1"/>
                         </MultiTrigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
@@ -367,7 +369,8 @@
                                     <DropShadowEffect Color="#3DA5FF" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
                                 </Setter.Value>
                             </Setter>
-                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#FFFFFF"/>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#E3F2FF"/>
+                            <Setter TargetName="Num" Property="Opacity" Value="1"/>
                         </MultiTrigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
@@ -384,7 +387,8 @@
                                 <Condition Property="IsChecked" Value="True"/>
                             </MultiTrigger.Conditions>
                             <Setter TargetName="Lamp" Property="Fill" Value="{DynamicResource LampErr}"/>
-                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#FFFFFF"/>
+                            <Setter TargetName="Num" Property="TextElement.Foreground" Value="#FFE0E0"/>
+                            <Setter TargetName="Num" Property="Opacity" Value="1"/>
                             <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
                             <Setter TargetName="Lamp" Property="Effect">
                                 <Setter.Value>
@@ -397,14 +401,6 @@
                                     <DropShadowEffect Color="#E53935" BlurRadius="7" ShadowDepth="0" Opacity="0.9"/>
                                 </Setter.Value>
                             </Setter>
-                        </MultiTrigger>
-                        <!-- 出力ランプ: Tag="Error" でOFFのとき（出力先が未設定・音が回る）、オンにするとエラーになるので、円の縁を最初から赤にする -->
-                        <MultiTrigger>
-                            <MultiTrigger.Conditions>
-                                <Condition Property="Tag" Value="Error"/>
-                                <Condition Property="IsChecked" Value="False"/>
-                            </MultiTrigger.Conditions>
-                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
                         </MultiTrigger>
                         <!-- 赤ランプ（Tag="Error"）がOFFのとき、マウスを乗せた輪は赤（緑ランプがOFFのときは従来どおり緑） -->
                         <MultiTrigger>

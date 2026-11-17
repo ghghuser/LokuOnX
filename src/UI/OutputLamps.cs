@@ -15,8 +15,8 @@ namespace Recorder.UI;
 /// </summary>
 public sealed class OutputLamps : Grid
 {
-    private const double LampSize = 20;
-    private const double Cell = LampSize + 6;
+    private const double LampSize = 21;
+    private const double Cell = LampSize + 4;
 
     private readonly StackPanel _lamps = new() { Orientation = Orientation.Horizontal };
     private readonly StackPanel _lines = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Stretch };
@@ -50,7 +50,7 @@ public sealed class OutputLamps : Grid
         Children.Add(frame);
         // 線は、ランプの枠の下から、このコントロールの下端（上段の余白を越えて録音パネルの枠）まで
         // 上は、ランプの円の下端（枠の線・余白ぶん）まで食い込ませて、円と線の隙間をなくす
-        _lines.Margin = new Thickness(4, -6, 0, -11);
+        _lines.Margin = new Thickness(4, -5, 0, -11);
         // ランプの枠とI/Oルーティングボタンをつなぐ線（全出力のまとめの色）
         SetRow(_link, 1);
         SetColumn(_link, 1);
