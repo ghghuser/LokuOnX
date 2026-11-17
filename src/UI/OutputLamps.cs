@@ -15,7 +15,7 @@ namespace Recorder.UI;
 /// </summary>
 public sealed class OutputLamps : Grid
 {
-    private const double LampSize = 21;
+    private const double LampSize = 20;
     private const double Cell = LampSize + 4;
 
     private readonly StackPanel _lamps = new() { Orientation = Orientation.Horizontal };

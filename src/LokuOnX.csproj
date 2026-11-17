@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <Resource Include="..\assets\icon\LokuOnX.ico" Link="LokuOnX.ico" />
+    <Resource Include="..\assets\icon\about-icon.png" Link="about-icon.png" />
   </ItemGroup>
 
   <!-- 画面の文言（既定の日本語）。exe に埋め込む。配布では Lang/ja.ini も exe の隣に置き、編集で上書きできる（PROJECT.md §3-10） -->

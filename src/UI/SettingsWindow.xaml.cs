@@ -115,13 +115,18 @@ public partial class SettingsWindow : Window
         }
     }
 
-    /// <summary>バージョン情報の背景: アイコンの一番大きい絵（256px）を使う。読めなければ何も出さない。</summary>
+    /// <summary>バージョン情報の背景: icon.svg から余白つきで書き出した大きな画像（assets/icon/about-icon.png）。読めなければ何も出さない。</summary>
     private void LoadAboutIcon()
     {
         try
         {
-            var decoder = new IconBitmapDecoder(new Uri("pack://application:,,,/LokuOnX.ico"), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-            AboutIcon.Source = decoder.Frames.OrderByDescending(f => f.PixelWidth).First();
+            var img = new BitmapImage();
+            img.BeginInit();
+            img.UriSource = new Uri("pack://application:,,,/about-icon.png");
+            img.CacheOption = BitmapCacheOption.OnLoad;
+            img.EndInit();
+            img.Freeze();
+            AboutIcon.Source = img;
         }
         catch (Exception) { }
     }
