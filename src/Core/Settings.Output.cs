@@ -12,7 +12,7 @@ public sealed partial class Settings
 {
     private const string OutSection = "Outputs";
 
-    /// <summary>出力カード（1〜4枚。最初は「ミックス1」の1枚）。</summary>
+    /// <summary>出力カード（1〜4枚。最初は「ミックスA」の1枚）。</summary>
     public IReadOnlyList<OutputConfig> Outputs
     {
         get

@@ -14,7 +14,10 @@ public sealed record OutputConfig(string Name, string DeviceId, double VolumeDb,
     public const int InputSlots = 4;
     public const int MaxNameLength = 12;
 
-    public static string DefaultName(int index) => $"ミックス{index + 1}";
+    public static string DefaultName(int index) => $"ミックス{(char)('A' + index)}";
+
+    /// <summary>出力ランプ・カードの記号（A〜D）。</summary>
+    public static string Letter(int index) => ((char)('A' + index)).ToString();
 
     public static string DefaultInputName(int slot) => $"入力{slot + 1}";
 
@@ -61,7 +64,9 @@ public sealed record OutputConfig(string Name, string DeviceId, double VolumeDb,
             fx.Normalize();
             if (fx.IsDefault) fx = null;   // 何も設定していなければ持たない（保存・比較が簡単になる）
         }
-        return new OutputConfig(CleanName(Name, DefaultName(index)), DeviceId ?? "",
+        var name = CleanName(Name, DefaultName(index));
+        if (name == $"ミックス{index + 1}") name = DefaultName(index);   // 旧い既定名（ミックス1〜4）は新しい既定名（ミックスA〜D）へ
+        return new OutputConfig(name, DeviceId ?? "",
             Math.Clamp(double.IsNaN(VolumeDb) ? 0 : VolumeDb, Settings.MinGainDb, Settings.MaxGainDb), sends, fx);
     }
 }

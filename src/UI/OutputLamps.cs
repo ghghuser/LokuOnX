@@ -20,6 +20,7 @@ public sealed class OutputLamps : Grid
 
     private readonly StackPanel _lamps = new() { Orientation = Orientation.Horizontal };
     private readonly StackPanel _lines = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Stretch };
+    private readonly Rectangle _link = new() { Width = 8, Height = 2, VerticalAlignment = VerticalAlignment.Center };
     private readonly List<CheckBox> _boxes = new();
     private readonly List<Rectangle> _bars = new();
     private IOutputHost? _host;
@@ -34,6 +35,8 @@ public sealed class OutputLamps : Grid
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var frame = new Border
         {
             BorderThickness = new Thickness(1),
@@ -46,7 +49,12 @@ public sealed class OutputLamps : Grid
         SetRow(frame, 1);
         Children.Add(frame);
         // 線は、ランプの枠の下から、このコントロールの下端（上段の余白を越えて録音パネルの枠）まで
-        _lines.Margin = new Thickness(4, 0, 0, -11);
+        // 上は、ランプの円の下端（枠の線・余白ぶん）まで食い込ませて、円と線の隙間をなくす
+        _lines.Margin = new Thickness(4, -6, 0, -11);
+        // ランプの枠とI/Oルーティングボタンをつなぐ線（全出力のまとめの色）
+        SetRow(_link, 1);
+        SetColumn(_link, 1);
+        Children.Add(_link);
         SetRow(_lines, 2);
         Children.Add(_lines);
         Visibility = Visibility.Collapsed;
@@ -61,8 +69,30 @@ public sealed class OutputLamps : Grid
         if (n != _boxes.Count) Rebuild(n);
         Visibility = n == 0 ? Visibility.Collapsed : Visibility.Visible;
         _updating = true;
+        _counts = new int[4];
         for (int i = 0; i < n; i++) UpdateOne(i);
         _updating = false;
+        // まとめの線: 青＞緑＞黄＞赤。どれも無ければ薄い線
+        string key = _counts[0] > 0 ? "LampRec" : _counts[1] > 0 ? "LampOn" : _counts[2] > 0 ? "LampWarn" : _counts[3] > 0 ? "LampErr" : "";
+        Paint(_link, key);
+    }
+
+    private int[] _counts = new int[4];   // 青・緑・黄・赤のランプの数
+
+    private static void Paint(Rectangle r, string key)
+    {
+        if (Equals(r.Tag, key)) return;
+        r.Tag = key;
+        if (key.Length == 0)
+        {
+            r.SetResourceReference(Shape.FillProperty, "WindowFg");
+            r.Opacity = 0.18;
+        }
+        else
+        {
+            r.SetResourceReference(Shape.FillProperty, key);
+            r.Opacity = 1;
+        }
     }
 
     private void Rebuild(int n)
@@ -74,7 +104,7 @@ public sealed class OutputLamps : Grid
         for (int i = 0; i < n; i++)
         {
             int index = i;
-            var box = new CheckBox { Content = (i + 1).ToString(), Style = (Style)FindResource("OutLamp"), Width = Cell, Height = Cell };
+            var box = new CheckBox { Content = OutputConfig.Letter(i), Style = (Style)FindResource("OutLamp"), Width = Cell, Height = Cell };
             box.Click += (_, _) =>
             {
                 if (_updating || _host == null) return;
@@ -111,10 +141,19 @@ public sealed class OutputLamps : Grid
 
         var box = _boxes[i];
         if (box.IsChecked != on) box.IsChecked = on;
+        var deviceId = host.Configs[i].DeviceId;
         object? tag = on && mode != 0 ? "Rec"
             : on && !engine.Running && error.Length > 0 ? "Error"
             : on && engine.Running && host.OutputCaution(i) ? "Warn"
+            : !on && (deviceId.Length == 0 || host.IsLoopOutput(deviceId)) ? "Error"   // オフでも、オンにするとエラーになる（出力先が未設定・音が回る）ときは赤い縁
             : null;
+        if (on)
+        {
+            if (Equals(tag, "Rec")) _counts[0]++;
+            else if (Equals(tag, "Error")) _counts[3]++;
+            else if (Equals(tag, "Warn")) _counts[2]++;
+            else if (engine.Running) _counts[1]++;
+        }
         if (!Equals(box.Tag, tag)) box.Tag = tag;
         string state = mode != 0 ? Loc.Get("outputlamp.state.rec")
             : on && !engine.Running && error.Length > 0 ? error
@@ -123,31 +162,18 @@ public sealed class OutputLamps : Grid
         var tip = Loc.Get("outputlamp.tip", i + 1, name, state);
         if (!Equals(box.ToolTip, tip)) box.ToolTip = tip;
 
-        // 連動の線
+        // 連動の線: 「録音に含める」がオンのときはランプの色と同じ（青＝録音中、緑＝出力中、黄＝注意、赤＝エラー）。
+        // 例外: メインの録音中なのに連動していなければ赤（ランプが青でも、メインとは別の単独録音のとき）、出力が止まっていて録れないときは黄
         var bar = _bars[i];
         string key, linkTip;
         if (!flag) { key = ""; linkTip = Loc.Get("outputlamp.link.off"); }
-        else if (_mainRecording)
-        {
-            if (mode == 2) { key = "LampRec"; linkTip = Loc.Get("outputlamp.link.linked"); }
-            else { key = "LampErr"; linkTip = Loc.Get("outputlamp.link.notLinked"); }
-        }
-        else if (engine.Running) { key = "LampRec"; linkTip = Loc.Get("outputlamp.link.ready"); }
-        else { key = "LampWarn"; linkTip = Loc.Get("outputlamp.link.stopped"); }
-        if (!Equals(bar.Tag, key))
-        {
-            bar.Tag = key;
-            if (key.Length == 0)
-            {
-                bar.SetResourceReference(Shape.FillProperty, "WindowFg");
-                bar.Opacity = 0.18;
-            }
-            else
-            {
-                bar.SetResourceReference(Shape.FillProperty, key);
-                bar.Opacity = 1;
-            }
-        }
+        else if (_mainRecording && mode != 2) { key = "LampErr"; linkTip = Loc.Get("outputlamp.link.notLinked"); }
+        else if (mode != 0) { key = "LampRec"; linkTip = Loc.Get("outputlamp.link.linked"); }
+        else if (on && !engine.Running && error.Length > 0) { key = "LampErr"; linkTip = Loc.Get("outputlamp.link.error"); }
+        else if (!engine.Running) { key = "LampWarn"; linkTip = Loc.Get("outputlamp.link.stopped"); }
+        else if (Equals(tag, "Warn")) { key = "LampWarn"; linkTip = Loc.Get("outputlamp.link.ready"); }
+        else { key = "LampOn"; linkTip = Loc.Get("outputlamp.link.ready"); }
+        Paint(bar, key);
         if (bar.Parent is FrameworkElement hit && !Equals(hit.ToolTip, linkTip)) hit.ToolTip = linkTip;
     }
 

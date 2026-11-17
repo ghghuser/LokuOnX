@@ -24,10 +24,11 @@ static class OutputHubTests
         section("出力の設定（OutputConfig）");
         {
             check(OutputConfig.CleanName("  abcdefghijklmnop ", "x") == "abcdefghijkl", "名前は前後の空白を除き12文字まで");
-            check(OutputConfig.CleanName("   ", "ミックス1") == "ミックス1", "空の名前は既定に戻る");
+            check(OutputConfig.CleanName("   ", "ミックスA") == "ミックスA", "空の名前は既定に戻る");
+            check(OutputConfig.DefaultName(3) == "ミックスD" && new OutputConfig("ミックス2", "", 0, new[] { new OutSend() }).Normalize(1).Name == "ミックスB", "既定の名前は ミックスA〜D（旧い ミックス1〜4 は置き換える）");
             check(OutputConfig.InputLabel(new[] { "", "マイク" }, 0) == "入力1" && OutputConfig.InputLabel(new[] { "", "マイク" }, 1) == "マイク", "入力の名前は未設定なら「入力N」");
             var c = new OutputConfig("", "SPK", 99, new[] { new OutSend(true, -99) }).Normalize(2);
-            check(c.Name == "ミックス3" && c.VolumeDb == Settings.MaxGainDb && c.Sends.Count == OutputConfig.InputSlots && c.SendAt(0).Db == Settings.MinGainDb && c.SendAt(3).On, "範囲外の値と足りない送りを直す");
+            check(c.Name == "ミックスC" && c.VolumeDb == Settings.MaxGainDb && c.Sends.Count == OutputConfig.InputSlots && c.SendAt(0).Db == Settings.MinGainDb && c.SendAt(3).On, "範囲外の値と足りない送りを直す");
             var w = OutputConfig.Default(0).WithSend(2, new OutSend(false, 3));
             check(!w.SendAt(2).On && w.SendAt(2).Db == 3 && w.SendAt(0).On, "送りの1つだけ変えた設定を作れる");
         }

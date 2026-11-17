@@ -398,6 +398,14 @@
                                 </Setter.Value>
                             </Setter>
                         </MultiTrigger>
+                        <!-- 出力ランプ: Tag="Error" でOFFのとき（出力先が未設定・音が回る）、オンにするとエラーになるので、円の縁を最初から赤にする -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="Error"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Lamp" Property="Stroke" Value="{DynamicResource LampErrRing}"/>
+                        </MultiTrigger>
                         <!-- 赤ランプ（Tag="Error"）がOFFのとき、マウスを乗せた輪は赤（緑ランプがOFFのときは従来どおり緑） -->
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
