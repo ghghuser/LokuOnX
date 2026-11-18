@@ -16,6 +16,13 @@
     <SolidColorBrush x:Key="PopupBg" Color="#2D2F33"/>
     <SolidColorBrush x:Key="PanelHover" Color="#B03C4043"/>
     <SolidColorBrush x:Key="PanelBorder" Color="#46494E"/>
+    <!-- 右クリックメニュー（M14）。Common.xaml の ContextMenu／MenuItem がこの色を使う -->
+    <SolidColorBrush x:Key="MenuBg" Color="#25272B"/>   <!-- メニューの背景 -->
+    <SolidColorBrush x:Key="MenuBorder" Color="#4A4D53"/>   <!-- 枠 -->
+    <SolidColorBrush x:Key="MenuFg" Color="#DDDAD5"/>   <!-- 文字 -->
+    <SolidColorBrush x:Key="MenuDisabledFg" Color="#80838A"/>   <!-- 無効の文字 -->
+    <SolidColorBrush x:Key="MenuHover" Color="#3A404B"/>   <!-- 選択中の行 -->
+    <SolidColorBrush x:Key="MenuSep" Color="#3A3D42"/>   <!-- 区切り線 -->
     <SolidColorBrush x:Key="TabSelBg" Color="#1EFFFFFF"/>
     <SolidColorBrush x:Key="LampOnRing" Color="#34D96B"/>
     <SolidColorBrush x:Key="Accent" Color="#4C8DFF"/>

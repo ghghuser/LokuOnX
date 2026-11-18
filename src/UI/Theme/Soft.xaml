@@ -18,6 +18,10 @@
     <SolidColorBrush x:Key="PopupBg" Color="#F2F5F9"/>
     <SolidColorBrush x:Key="PanelHover" Color="#E4E8EE"/>
     <SolidColorBrush x:Key="PanelBorder" Color="#C5CBD6"/>
+    <!-- 右クリックメニュー（M14）。Common.xaml の ContextMenu／MenuItem がこの色を使う -->
+    <SolidColorBrush x:Key="MenuBg" Color="#EDF0F5"/>   <!-- メニューの背景 -->
+    <SolidColorBrush x:Key="MenuBorder" Color="#C5CBD6"/>   <!-- 枠 -->
+    <SolidColorBrush x:Key="MenuHover" Color="#D9E3F5"/>   <!-- 選択中の行 -->
     <SolidColorBrush x:Key="CardBorder" Color="#90FFFFFF"/>
     <SolidColorBrush x:Key="InputBg" Color="#DDE2EA"/>   <!-- 入力欄（TextBox）と同じ背景。ファイル一覧・プロファイル欄が使う -->
     <SolidColorBrush x:Key="LaneBg" Color="#DDE2EA"/>

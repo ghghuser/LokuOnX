@@ -488,4 +488,76 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <!-- 右クリックメニューの既定色（テーマの読み込みに失敗したときの保険。各テーマのファイルが同じ名前で上書きする） -->
+    <SolidColorBrush x:Key="MenuBg" Color="#FCFDFE"/>
+    <SolidColorBrush x:Key="MenuBorder" Color="#C4CAD4"/>
+    <SolidColorBrush x:Key="MenuFg" Color="#1F2430"/>
+    <SolidColorBrush x:Key="MenuDisabledFg" Color="#9AA1AD"/>
+    <SolidColorBrush x:Key="MenuHover" Color="#E3EDFC"/>
+    <SolidColorBrush x:Key="MenuSep" Color="#D9DDE4"/>
+
+    <!-- 右クリックメニュー（M14）。色は各テーマの MenuBg / MenuBorder / MenuFg / MenuDisabledFg / MenuHover / MenuSep（Dark.xaml・Light.xaml・Soft.xaml・SoftDark.xaml）。サブメニューは使っていないので未対応 -->
+    <Style TargetType="ContextMenu">
+        <Setter Property="Foreground" Value="{DynamicResource MenuFg}"/>
+        <Setter Property="Background" Value="{DynamicResource MenuBg}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource MenuBorder}"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                            CornerRadius="6" Padding="3" SnapsToDevicePixels="True">
+                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource MenuFg}"/>
+        <Setter Property="Padding" Value="4,5,12,5"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Path x:Name="Check" Data="M1,5 L4.5,8.5 L11,1.5" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.8"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            <ContentPresenter ContentSource="Icon" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}" Margin="28,0,0,0" Opacity="0.6" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource MenuHover}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource MenuDisabledFg}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+        <Setter Property="Margin" Value="6,3"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Background="{DynamicResource MenuSep}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>
