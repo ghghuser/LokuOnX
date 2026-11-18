@@ -4,6 +4,7 @@ namespace Recorder.Core;
 public sealed partial class Settings
 {
     private const string TemplatesSection = "Templates";
+    private const int MaxTemplates = 1000;   // 登録できるテンプレートの上限（ini の Count をこの範囲に丸める）
 
     /// <summary>テンプレート一覧が ini に無ければ（初回起動・旧版からの更新）、初期テンプレートを登録する。</summary>
     private void EnsureTemplates()
@@ -18,6 +19,7 @@ public sealed partial class Settings
         get
         {
             int.TryParse(_ini.Get(TemplatesSection, "Count", "0"), out var count);
+            count = Math.Clamp(count, 0, MaxTemplates);   // iniを手で書き換えられても、巨大な繰り返しにならないようにする
             var list = new List<NameTemplate>();
             for (int i = 0; i < count; i++)
             {
@@ -32,6 +34,7 @@ public sealed partial class Settings
     private void WriteTemplates(IReadOnlyList<NameTemplate> list)
     {
         int.TryParse(_ini.Get(TemplatesSection, "Count", "0"), out var old);
+        old = Math.Clamp(old, 0, MaxTemplates);
         for (int i = 0; i < list.Count; i++)
         {
             _ini.Set(TemplatesSection, $"Name{i}", list[i].Name);

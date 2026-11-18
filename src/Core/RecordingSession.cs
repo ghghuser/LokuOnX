@@ -28,7 +28,7 @@ public sealed partial class RecordingSession : IDisposable
     private readonly WaveColumns _wave = new();
     private readonly float[] _chPeaks = new float[2];   // 出力のL/Rのピーク（メーター用）
     private volatile bool _stopped;
-    private volatile bool _paused;    // 音を捨てている（フェードアウト完了後）
+    private volatile bool _pauseDone;    // 音を捨てている（フェードアウト完了後）
     private volatile bool _pausing;   // 一時停止が要求されている
 
     /// <summary>いま書き込んでいるファイル（仮名）。最終名への確定は FinishTrack。</summary>
@@ -113,11 +113,11 @@ public sealed partial class RecordingSession : IDisposable
 
     private void OnData(byte[] buf, int count)
     {
-        if (_paused) return;
+        if (_pauseDone) return;
         // 一時停止・再開のつなぎ目は短いフェードでプツッという音を防ぐ
         count = _fader.Apply(buf, count, out var faded);
         if (faded)
-            lock (_pauseLock) { if (_pausing) _paused = true; }
+            lock (_pauseLock) { if (_pausing) _pauseDone = true; }
         if (count <= 0) return;
         var p = PeakMeter.Compute(buf, count, _source.Format);
         if (p > _peak) _peak = p;
@@ -134,12 +134,12 @@ public sealed partial class RecordingSession : IDisposable
     /// <summary>100msごと。データが来ない間の無音補填と、時間による自動分割。</summary>
     private void Tick()
     {
-        if (_stopped || _paused) return;
+        if (_stopped || _pauseDone) return;
         if (_pausing)
         {
             // データが来ない間（ループバックの無音）はフェードが終わらないので、少し待って止める
             if (Stopwatch.GetElapsedTime(_pauseAt).TotalMilliseconds > 100)
-                lock (_pauseLock) { if (_pausing) _paused = true; }
+                lock (_pauseLock) { if (_pausing) _pauseDone = true; }
             return;
         }
         try
@@ -195,7 +195,7 @@ public sealed partial class RecordingSession : IDisposable
             if (!_pausing) return;
             _fader.StartIn();
             _clock.Start();
-            _paused = false;
+            _pauseDone = false;
             _pausing = false;
         }
     }

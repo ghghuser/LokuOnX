@@ -44,7 +44,7 @@ public partial class FileListPanel
             try
             {
                 if (File.Exists(f.Path))
-                    Process.Start(new ProcessStartInfo("explorer.exe") { Arguments = $"/select,\"{f.Path}\"", UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(AppPaths.ExplorerExe) { Arguments = $"/select,\"{f.Path}\"", UseShellExecute = true });
             }
             catch (Exception ex) { ShowError((Loc.Get("filelistpanel.actions.s04") + " ") + ex.Message); return; }
         }
@@ -88,7 +88,7 @@ public partial class FileListPanel
 
         var paths = files.Select(f => f.Path).ToList();
         Releasing?.Invoke(paths);
-        var failed = await Task.Run(() => RecycleBin.Send(paths));
+        var failed = await Task.Run(() => RecycleBin.Send(paths), CancellationToken.None);   // 削除は、一覧の読み直しで止めない
         if (failed.Count > 0) ShowError((Loc.Get("filelistpanel.actions.s09") + " ") + string.Join(" / ", failed));
         _settings.RemoveFromHistory(paths.Where(p => !File.Exists(p)));
         Refresh();

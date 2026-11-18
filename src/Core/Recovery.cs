@@ -10,7 +10,7 @@ namespace Recorder.Core;
 public static class Recovery
 {
     private static readonly Regex TempName = new(
-        @"^_rec_(\d{8})_(\d{6})_No(\d+)(?:_T(\d+))?(?:_D(\d+))?\.([A-Za-z0-9]+)$", RegexOptions.Compiled);
+        @"^_rec_(\d{8})_(\d{6})_No(\d+)(?:_T(\d+))?(?:_D(\d+))?\.([A-Za-z0-9]+)$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     /// <summary>保存先フォルダ（日付フォルダの中も）から、整える対象を探す。空ファイルは消す。ほかのプロセスが開いているものは除く。</summary>
     public static IReadOnlyList<string> Find(string baseFolder)

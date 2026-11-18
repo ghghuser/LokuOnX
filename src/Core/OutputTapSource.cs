@@ -26,7 +26,9 @@ public sealed class OutputTapSource : IAudioSource
     public AudioFormatInfo Format { get; }
 
     public event Action<byte[], int>? DataAvailable;
+#pragma warning disable CS0067   // IAudioSource が求めるイベント。出力の音は自分から止まらないので、ここでは発生させない
     public event Action<Exception?>? Stopped;
+#pragma warning restore CS0067
 
     /// <summary>録音は続くが知らせたいこと（形式が変わった・詰まって捨てたなど。別スレッドから）。</summary>
     public event Action<string>? Notice;

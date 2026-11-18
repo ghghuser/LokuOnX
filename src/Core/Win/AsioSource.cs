@@ -115,7 +115,7 @@ public sealed class AsioSource : IAudioSource
             }
         }
         if (shortage != null) throw new InvalidOperationException(shortage);
-        throw new InvalidOperationException(Loc.Get("asiosource.s04", driver, last?.Message), last);
+        throw new InvalidOperationException(Loc.Get("asiosource.s04", driver, last?.Message ?? ""), last);
     }
 
     /// <summary>
@@ -166,18 +166,18 @@ public sealed class AsioSource : IAudioSource
     public void Start()
     {
         var dispatcher = _dispatcher ?? throw new InvalidOperationException(Loc.Get("asiosource.s07"));
-        Exception? error = null;
-        dispatcher.Invoke(() =>
+        var error = dispatcher.Invoke(() =>
         {
             try
             {
                 _playing = true;
                 _asio!.Play();
+                return (Exception?)null;
             }
             catch (Exception ex)
             {
                 _playing = false;
-                error = ex;
+                return ex;
             }
         });
         if (error != null)

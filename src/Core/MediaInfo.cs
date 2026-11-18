@@ -12,7 +12,7 @@ namespace Recorder.Core;
 /// </summary>
 public sealed class MediaInfo
 {
-    private static readonly Regex DurationLine = new(@"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", RegexOptions.Compiled);
+    private static readonly Regex DurationLine = new(@"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
     private readonly ConcurrentDictionary<string, TimeSpan?> _cache = new();
     private readonly string _ffmpeg;
 

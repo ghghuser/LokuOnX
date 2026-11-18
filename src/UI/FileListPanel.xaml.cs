@@ -111,17 +111,32 @@ public partial class FileListPanel : UserControl
     }
 
     /// <summary>表示を読み直す。選んでいたファイル（keepPath があればそれ）は、見つかれば選び直す。</summary>
-    public async void Refresh(string? keepPath = null)
+    public void Refresh(string? keepPath = null) => _ = RefreshAsync(keepPath);   // 呼び出し側は待たない（読み直しは裏で進む）
+
+    private async Task RefreshAsync(string? keepPath)
+    {
+        try { await RefreshCoreAsync(keepPath); }
+        catch (OperationCanceledException) { }   // 新しい読み直しに置き換えられた
+        catch (Exception ex) { ShowError(ex.Message); }
+    }
+
+    private async Task RefreshCoreAsync(string? keepPath)
     {
         var id = ++_scanId;
-        _cts?.Cancel();
-        var cts = _cts = new CancellationTokenSource();
+        // 状態は先に集めておく（このあと待つ間に画面が変わっても、読み直しを始めた時点の選択・一覧で処理する）
         var keep = keepPath != null ? new List<string> { keepPath } : SelectedFiles.Select(f => f.Path).ToList();
         var known = _items.Where(f => !f.IsRecording).ToDictionary(f => f.Path, f => f, StringComparer.OrdinalIgnoreCase);
         var key = SourceKey;
         var history = key == HistoryKey ? _settings.History.ToList() : null;
+        var previous = _cts;
+        var cts = _cts = new CancellationTokenSource();
+        if (previous != null)   // 前の読み直しは止めて、片付ける
+        {
+            await previous.CancelAsync();
+            previous.Dispose();
+        }
 
-        var files = await Task.Run(() => history != null ? AudioLibrary.FromPaths(history) : AudioLibrary.Scan(key));
+        var files = await Task.Run(() => history != null ? AudioLibrary.FromPaths(history) : AudioLibrary.Scan(key), cts.Token);
         if (id != _scanId) return;
         foreach (var f in files)   // 調べ済みの長さは引き継ぐ（同じサイズのときだけ）
             if (known.TryGetValue(f.Path, out var old) && old.Size == f.Size) f.Length = old.Length;
@@ -178,10 +193,10 @@ public partial class FileListPanel : UserControl
         catch (OperationCanceledException) { }
     }
 
-    private async void EnsureLength(LibraryFile f)
+    private async Task EnsureLengthAsync(LibraryFile f)
     {
         if (f.Length != null) return;
-        var length = await Task.Run(() => _info.Get(f.Path));
+        var length = await Task.Run(() => _info.Get(f.Path), CancellationToken.None);   // 選んだファイルの長さは、読み直しで止めない
         f.Length = length;
     }
 
@@ -195,7 +210,7 @@ public partial class FileListPanel : UserControl
     {
         var files = SelectedFiles;
         if (files.Count != 1) return;
-        EnsureLength(files[0]);
+        _ = EnsureLengthAsync(files[0]);
         Selected?.Invoke(files[0]);
     }
 

@@ -21,9 +21,9 @@ public static class FileNamer
     public const string DefaultDateFormat = "{yyyy}-{MM}-{dd}";
 
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
-    private static readonly Regex Var = new(@"\{([A-Za-z]+)(?::([A-Za-z]+))?\}", RegexOptions.Compiled);
+    private static readonly Regex Var = new(@"\{([A-Za-z]+)(?::([A-Za-z]+))?\}", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
     private static readonly Regex Reserved = new(@"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
     /// <summary>テンプレート中の {変数} を値に置き換える。知らない変数はそのまま残す。</summary>
     public static string Expand(string template, NameContext c) =>

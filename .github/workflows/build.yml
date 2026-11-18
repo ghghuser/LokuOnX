@@ -11,9 +11,9 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
+# 既定は読み取りだけ。書き込みが要る build ジョブにだけ、ジョブ側で付ける
 permissions:
-  contents: write
-  actions: write
+  contents: read
 
 env:
   # BtbN の LGPL ビルド（n8.1）。404 のときは master 版へ自動で切り替える
@@ -37,6 +37,9 @@ jobs:
   build:
     needs: test
     runs-on: windows-latest
+    permissions:
+      contents: write    # タグ(v*)のとき Release を作る
+      actions: write     # 古い成果物の削除に必要
     steps:
       - uses: actions/checkout@v4
 

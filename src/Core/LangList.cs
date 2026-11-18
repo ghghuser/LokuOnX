@@ -14,7 +14,7 @@ public sealed record LangInfo(string Code, string Name)
 /// </summary>
 public static class LangList
 {
-    private static readonly Regex CodePattern = new(@"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$", RegexOptions.Compiled);
+    private static readonly Regex CodePattern = new(@"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     /// <summary>設定ファイルの値として使えるコードか。</summary>
     public static bool IsValidCode(string? code) => code != null && CodePattern.IsMatch(code);

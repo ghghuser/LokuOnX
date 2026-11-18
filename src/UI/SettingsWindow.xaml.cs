@@ -205,7 +205,7 @@ public partial class SettingsWindow : Window
     /// <summary>settings.ini・Profiles・エラーの記録（lokuonx-crash.log）がある、exe と同じフォルダを開く。</summary>
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo("explorer.exe", $"\"{AppPaths.Dir}\"") { UseShellExecute = true }); }
+        try { Process.Start(new ProcessStartInfo(AppPaths.ExplorerExe, $"\"{AppPaths.Dir}\"") { UseShellExecute = true }); }
         catch (Exception) { }
     }
 

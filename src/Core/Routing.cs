@@ -49,11 +49,11 @@ public sealed class MixBus
     /// 全体音量をかけたあと、先頭の2チャンネル(モノラルは1チャンネル)だけ±1に切り詰める。
     /// mono を渡すと、(L+R)/2 を frames 個書く(波形表示用)。post を渡すと、全体音量のあと・切り詰めの前に呼ぶ(出力ごとのEQ・リミッター用)。
     /// </summary>
-    public MixStats Process(float[][] inputs, int frames, int ch, float[] dest, float[]? mono = null, Action<float[], int>? post = null)
+    public MixStats Process(IReadOnlyList<float[]> inputs, int frames, int ch, float[] dest, float[]? mono = null, Action<float[], int>? post = null)
     {
         int samples = frames * ch;
         Array.Clear(dest, 0, samples);
-        int count = Math.Min(inputs.Length, InputCount);
+        int count = Math.Min(inputs.Count, InputCount);
         for (int i = 0; i < count; i++)
         {
             if (!on[i]) continue;

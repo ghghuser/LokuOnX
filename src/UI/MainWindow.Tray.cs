@@ -128,14 +128,11 @@ public partial class MainWindow
             return (Loc.Get("tray.err.hotkeySecond"), true);
         }
         var failed = new List<string>();
-        void Register(int id, string text)
+        foreach (var (id, text) in new[] { (HkStart, _settings.HotkeyStart), (HkPause, _settings.HotkeyPause), (HkSplit, _settings.HotkeySplit) })
         {
-            if (!HotkeySpec.TryParse(text, out var spec)) return;   // 未設定
+            if (!HotkeySpec.TryParse(text, out var spec)) continue;   // 未設定
             if (!_hotkeys.Register(id, spec)) failed.Add(spec.ToString());
         }
-        Register(HkStart, _settings.HotkeyStart);
-        Register(HkPause, _settings.HotkeyPause);
-        Register(HkSplit, _settings.HotkeySplit);
         ShowHotkeyInfo(true);
         return failed.Count == 0 ? ("", false) :
             (Loc.Get("tray.err.hotkeyFailed", string.Join("、", failed)), true);

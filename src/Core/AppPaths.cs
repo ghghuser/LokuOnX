@@ -9,4 +9,7 @@ public static class AppPaths
     public static string SettingsIni => Path.Combine(Dir, "settings.ini");
 
     public static string Ffmpeg => Path.Combine(Dir, "ffmpeg", "ffmpeg.exe");
+
+    /// <summary>エクスプローラー（PATH の探索に任せず、Windows フォルダの絶対パスで起動する）。</summary>
+    public static string ExplorerExe => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
 }
