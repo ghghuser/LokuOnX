@@ -188,6 +188,15 @@ public sealed class OutputCard : Border
         _rec.Click += (_, _) => { _host.ToggleOutputRecording(_index); ShowState(); };
         DockPanel.SetDock(_rec, Dock.Right);
         recRow.Children.Add(_rec);
+        // 「録音中 0:00:05」は、録音/停止ボタンのすぐ左（行の右端寄り）に出す（M14）。録音していないときは非表示
+        _recState.FontSize = 12;
+        _recState.Visibility = Visibility.Collapsed;
+        _recState.FontWeight = FontWeights.SemiBold;
+        _recState.Foreground = new SolidColorBrush(Color.FromRgb(0xC9, 0x4A, 0x86));   // ファイル一覧の「● Recording」と同じ色
+        _recState.VerticalAlignment = VerticalAlignment.Center;
+        _recState.Margin = new Thickness(0, 0, 8, 0);
+        DockPanel.SetDock(_recState, Dock.Right);
+        recRow.Children.Add(_recState);
         _recWith.Content = Loc.Get("outputcard.recWith");
         _recWith.FontSize = 12;
         _recWith.VerticalAlignment = VerticalAlignment.Center;
@@ -199,13 +208,6 @@ public sealed class OutputCard : Border
         root.Children.Add(recRow);
 
         _state.Text = Loc.Get("outputcard.s09");
-        var stateRow = new WrapPanel();
-        _recState.FontSize = 12;
-        _recState.Visibility = Visibility.Collapsed;
-        _recState.FontWeight = FontWeights.SemiBold;
-        _recState.Foreground = new SolidColorBrush(Color.FromRgb(0xC9, 0x4A, 0x86));   // ファイル一覧の「● Recording」と同じ色
-        stateRow.Children.Add(_recState);
-        root.Children.Add(stateRow);
         _error.SetResourceReference(TextBlock.ForegroundProperty, "WarnFg");
         _error.FontWeight = FontWeights.SemiBold;
         _error.FontSize = 12;

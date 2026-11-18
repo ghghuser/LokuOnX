@@ -10,6 +10,7 @@ on:
       - '**.txt'
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:   # 手動実行。実行したときだけ、解析のあとに SonarCloud の issue 一覧をログへ出す（下の最後の手順）
 jobs:
   build:
     name: Build and analyze
@@ -54,3 +55,53 @@ jobs:
           # ソリューションファイルが無いので、アプリ本体を指定してビルドする（ルートで dotnet build だけだと対象が決まらず失敗する）
           dotnet build src/LokuOnX.csproj -c Release
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+      # 手動実行（workflow_dispatch）のときだけ: SonarCloud の API から未解決の issue を全件取り、重大度順にログと実行の要約へ出す。
+      # 解析結果が SonarCloud に反映される（Compute Engine のタスク完了）まで待ってから取得する。失敗しても全体は失敗にしない
+      - name: Export SonarCloud issues (manual run only)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: pwsh
+        run: |
+          $h = @{ Authorization = "Bearer $env:SONAR_TOKEN" }
+          $rt = Get-ChildItem -Recurse -Force -Filter report-task.txt -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($rt) {
+            $url = ((Get-Content $rt.FullName | Where-Object { $_ -like 'ceTaskUrl=*' }) -replace '^ceTaskUrl=', '')
+            for ($i = 0; $i -lt 36; $i++) {
+              $t = Invoke-RestMethod -Uri $url -Headers $h
+              Write-Host "analysis task: $($t.task.status)"
+              if ($t.task.status -in 'SUCCESS', 'FAILED', 'CANCELED') { break }
+              Start-Sleep -Seconds 10
+            }
+          } else { Write-Host 'report-task.txt not found; waiting 60s'; Start-Sleep -Seconds 60 }
+
+          $all = @(); $p = 1
+          do {
+            $r = Invoke-RestMethod -Headers $h -Uri "https://sonarcloud.io/api/issues/search?organization=ghghuser&componentKeys=ghghuser_LokuOnX&resolved=false&ps=500&p=$p"
+            $all += $r.issues
+            $p++
+          } while ($all.Count -lt $r.total -and $r.issues.Count -gt 0)
+
+          $order = @{ BLOCKER = 0; CRITICAL = 1; MAJOR = 2; MINOR = 3; INFO = 4 }
+          $sorted = $all | Sort-Object { $order[$_.severity] }, rule, component, line
+          $lines = @("total issues: $($all.Count)")
+          $lines += '--- by severity ---'
+          $lines += ($all | Group-Object severity | Sort-Object { $order[$_.Name] } | ForEach-Object { "$($_.Name): $($_.Count)" })
+          $lines += '--- by rule (severity, count) ---'
+          $lines += ($all | Group-Object rule | Sort-Object { $order[($_.Group[0]).severity] }, @{ Expression = 'Count'; Descending = $true } | ForEach-Object { "$($_.Name) [$(($_.Group[0]).severity)] x$($_.Count)  e.g. $(($_.Group[0]).message)" })
+          $lines += '--- all issues ---'
+          $lines += ($sorted | ForEach-Object { "[$($_.severity)] $($_.rule) $($_.component -replace '^ghghuser_LokuOnX:', ''):$($_.line) $($_.message)" })
+          $lines | ForEach-Object { Write-Host $_ }
+          $lines | Out-File -FilePath sonar-issues.txt -Encoding utf8
+          $lines | Select-Object -First 60 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Upload SonarCloud issue list (manual run only)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-issues
+          path: sonar-issues.txt
+          if-no-files-found: ignore
