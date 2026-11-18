@@ -35,17 +35,18 @@ public sealed partial class Settings
     {
         int.TryParse(_ini.Get(TemplatesSection, "Count", "0"), out var old);
         old = Math.Clamp(old, 0, MaxTemplates);
-        for (int i = 0; i < list.Count; i++)
+        int count = Math.Min(list.Count, MaxTemplates);   // 画面から増えても、上限を超えて書かない
+        for (int i = 0; i < count; i++)
         {
             _ini.Set(TemplatesSection, $"Name{i}", list[i].Name);
             _ini.Set(TemplatesSection, $"Pattern{i}", list[i].Pattern);
         }
-        for (int i = list.Count; i < old; i++)
+        for (int i = count; i < old; i++)
         {
             _ini.Remove(TemplatesSection, $"Name{i}");
             _ini.Remove(TemplatesSection, $"Pattern{i}");
         }
-        _ini.Set(TemplatesSection, "Count", list.Count.ToString());
+        _ini.Set(TemplatesSection, "Count", count.ToString());
         Save();
     }
 
