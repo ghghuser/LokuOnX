@@ -113,6 +113,10 @@
                         <TextBlock TextAlignment="Center" Margin="0,0,0,14">
                             <Hyperlink x:Name="FolderLink" Click="OpenFolder_Click"><Run Text="{ui:T about.folder}"/></Hyperlink>
                         </TextBlock>
+                        <TextBlock TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420" FontSize="12" Opacity="0.75" Margin="0,0,0,4" Text="{ui:T about.license}"/>
+                        <TextBlock TextAlignment="Center" FontSize="12">
+                            <Hyperlink NavigateUri="https://github.com/ghghuser/LokuOnX/blob/main/LICENSE" RequestNavigate="Link_Navigate"><Run Text="{ui:T about.licenselink}"/></Hyperlink>
+                        </TextBlock>
                     </StackPanel>
                 </Grid>
             </TabItem>

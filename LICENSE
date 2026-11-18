@@ -1,0 +1,55 @@
+LokuOnX License (Non-Commercial / No Redistribution)
+Copyright (c) 2026 ghghuser. All rights reserved.
+
+================================================================
+日本語（英語との間に差がある場合は、日本語を優先します）
+================================================================
+
+1. 許可すること
+   (a) 個人的・非商用の目的での、ソースコードの閲覧と、ビルド済みソフトウェアの使用。
+   (b) 個人的に使うための、自分の環境でのソースコードの改変とビルド。
+
+2. 禁止すること（作者の書面による事前の許可がない限り）
+   (a) 商用利用: 営利目的や業務での使用、販売、有償サービスや広告収入のあるサービスへの組み込み。
+   (b) 再配布: 本ソフトウェアのソースコード・ビルド済みファイル・その一部、およびそれらを改変したものを、
+       第三者に提供・公開・転載・ミラーすること（ZIPの再アップロード、ファイル共有、他のリポジトリへのコピーを含む）。
+   (c) 本ライセンスの表示を削除・変更すること。
+
+3. GitHub について
+   このリポジトリが公開されている間、GitHub の利用規約に基づく GitHub 上での閲覧とフォークは、その規約の範囲で行えます。
+   フォークしても、2. の制限は変わりません。
+
+4. 第三者のソフトウェア
+   同梱・利用している第三者のソフトウェア（FFmpeg: LGPL、NAudio: MIT License ほか）には、それぞれのライセンスが適用されます。
+   本ライセンスは、それらに付与された権利を制限しません。
+
+5. 無保証
+   本ソフトウェアは現状のまま提供され、いかなる保証もありません。
+   使用によって生じた損害について、作者は責任を負いません。
+
+================================================================
+English
+================================================================
+
+1. Permitted
+   (a) Viewing the source code and using the built software for personal, non-commercial purposes.
+   (b) Modifying and building the source code on your own machine for your personal use.
+
+2. Prohibited (without prior written permission from the author)
+   (a) Commercial use: use for profit or business, selling, or including it in paid or advertising-supported services.
+   (b) Redistribution: providing, publishing, reposting or mirroring the source code, built files, any part of them,
+       or modified versions of them to third parties (including re-uploading ZIP files, file sharing, or copying
+       to other repositories).
+   (c) Removing or altering this license notice.
+
+3. GitHub
+   While this repository is public, viewing and forking on GitHub are possible within the scope of the GitHub
+   Terms of Service. Forking does not change the restrictions in section 2.
+
+4. Third-party software
+   Third-party software that is bundled or used (FFmpeg: LGPL, NAudio: MIT License, etc.) is covered by its own
+   license. This license does not restrict the rights granted by those licenses.
+
+5. No warranty
+   This software is provided "as is", without warranty of any kind. The author is not liable for any damages
+   arising from its use.

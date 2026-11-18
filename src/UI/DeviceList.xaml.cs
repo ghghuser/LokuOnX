@@ -82,6 +82,11 @@ public partial class DeviceList : UserControl
         _rows.Select((r, i) => (r, i)).Where(x => x.r.Key.Length > 0 && x.r.Use.IsChecked == true)
             .Select(x => (x.i, OutputConfig.InputLabel(_names, x.i))).ToList();
 
+    /// <summary>デバイスが選ばれている行（使うランプがオフでも）の、行の番号・表示名・ランプがオンか。出力カードの「送り」の欄に使う（ランプをオフにしていても、あとで使う設定を先にしておける）。</summary>
+    public IReadOnlyList<(int Slot, string Name, bool Active)> SelectedInputs =>
+        _rows.Select((r, i) => (r, i)).Where(x => x.r.Key.Length > 0)
+            .Select(x => (x.i, OutputConfig.InputLabel(_names, x.i), x.r.Use.IsChecked == true)).ToList();
+
     /// <summary>全体ゲインが変わった（dB）。録音中も使える。</summary>
     public event Action<double>? MasterGainChanged;
 

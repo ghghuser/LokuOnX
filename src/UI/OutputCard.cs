@@ -16,7 +16,7 @@ public interface IOutputHost
     IReadOnlyList<OutputConfig> Configs { get; }
 
     /// <summary>送れる入力（メイン画面の入力デバイス欄で選ばれている行）。Slot は行の番号（0始まり）、Name は入力の名前。</summary>
-    IReadOnlyList<(int Slot, string Name)> InputSlots();
+    IReadOnlyList<(int Slot, string Name, bool Active)> InputSlots();
 
     /// <summary>index 番目の設定を差し替える（エンジンへ即反映し、設定ファイルへは少し遅れて保存する）。</summary>
     void Update(int index, OutputConfig config);
@@ -363,7 +363,7 @@ public sealed class OutputCard : Border
     {
         var slots = _host.InputSlots();
         UpdateLoopWarnings();   // 入力の行が同じでも、行のデバイスが変わると音が回るかどうかが変わる
-        var sig = string.Join("|", slots.Select(s => s.Slot + ":" + s.Name));
+        var sig = string.Join("|", slots.Select(s => s.Slot + ":" + s.Name + ":" + (s.Active ? 1 : 0)));
         if (sig == _inputSig) { ShowState(); return; }
         _inputSig = sig;
         var was = _loading;
@@ -371,7 +371,7 @@ public sealed class OutputCard : Border
         _inputsPanel.Children.Clear();
         if (slots.Count == 0)
             _inputsPanel.Children.Add(new TextBlock { Text = Loc.Get("outputcard.s19"), Opacity = 0.6, FontSize = 12, Margin = new Thickness(0, 4, 0, 0) });
-        foreach (var (slot, name) in slots) _inputsPanel.Children.Add(MakeSendRow(slot, name));
+        foreach (var (slot, name, active) in slots) _inputsPanel.Children.Add(MakeSendRow(slot, name, active));
         _slotCount = slots.Count;
         _loading = was;
         ShowInputsHeader();
@@ -386,10 +386,11 @@ public sealed class OutputCard : Border
         _inputs.Header = Loc.Get("outputcard.s20", on, _slotCount);
     }
 
-    private UIElement MakeSendRow(int slot, string name)
+    private UIElement MakeSendRow(int slot, string name, bool active)
     {
         var send = Cfg.SendAt(slot);
         var row = new DockPanel { Margin = new Thickness(0, 6, 0, 0), Height = 24 };
+        if (!active) { row.Opacity = 0.55; row.ToolTip = Loc.Get("outputcard.inputOff"); }   // 使うランプがオフの入力: いまは音が来ないので薄く（設定はしておける）
         var check = new CheckBox { IsChecked = send.On, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, ToolTip = Loc.Get("outputcard.s21") };
         // 名前（ダブルクリックか右クリックで変更。メイン画面の入力の名前と同じもの）
         var label = new TextBlock

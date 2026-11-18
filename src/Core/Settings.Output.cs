@@ -130,11 +130,11 @@ public sealed partial class Settings
         Save();
     }
 
-    /// <summary>I/Oルーティングの表示: "tab"（既定。出力を1つずつタブで切り替える）/ "card"（すべての出力をカードで並べる）。</summary>
+    /// <summary>I/Oルーティングの表示: "card"（既定。すべての出力をカードで並べる）/ "tab"（出力を1つずつタブで切り替える）。</summary>
     public string IoView
     {
-        get => _ini.Get(OutSection, "View", "tab") == "card" ? "card" : "tab";
-        set { _ini.Set(OutSection, "View", value == "card" ? "card" : "tab"); Save(); }
+        get => _ini.Get(OutSection, "View", "card") == "tab" ? "tab" : "card";
+        set { _ini.Set(OutSection, "View", value == "tab" ? "tab" : "card"); Save(); }
     }
 
     /// <summary>出力ウィンドウの位置と大きさ（"左,上,幅,高さ"。空＝未保存）。</summary>

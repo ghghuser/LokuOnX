@@ -124,6 +124,7 @@ jobs:
           Copy-Item $env:FFMPEG_EXE "$dst/ffmpeg/ffmpeg.exe"
           New-Item -ItemType Directory -Force -Path "$dst/Lang" | Out-Null
           Copy-Item src/Lang/ja.ini "$dst/Lang/ja.ini"
+          Copy-Item LICENSE "$dst/LICENSE.txt"
           $lic = Get-ChildItem -Path $env:FFMPEG_ROOT -Filter 'LICENSE*' -File -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($lic) { Copy-Item $lic.FullName "$dst/ffmpeg/LICENSE.txt" }
           Write-Host '--- dist contents ---'

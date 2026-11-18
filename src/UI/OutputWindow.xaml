@@ -27,7 +27,7 @@
                 </StackPanel>
                 <TextBlock Text="{ui:T outputwindow.textblock1.text}" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
             </DockPanel>
-            <TextBlock FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,12,10"
+            <TextBlock x:Name="DescriptionText" FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,12,10"
                        Text="{ui:T outputwindow.textblock2.text}"/>
             <!-- 出力の録音（M13）の一括操作 -->
             <WrapPanel Margin="0,0,0,12">
@@ -36,7 +36,8 @@
             </WrapPanel>
             <WrapPanel x:Name="Cards"/>
             <TabControl x:Name="Tabs" Margin="0,0,12,8" Visibility="Collapsed"/>
-            <Button x:Name="AddButton" Content="{ui:T outputwindow.addbutton.content}" HorizontalAlignment="Left" Padding="14,4" Margin="0,0,0,12"
+            <!-- 「出力を追加」: カード式のときは最後のカードの右（入らなければ下）、タブ式のときは一番右のタブ（OutputWindow.xaml.cs の ApplyView が置く） -->
+            <Button x:Name="AddButton" Content="{ui:T outputwindow.addbutton.content}" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="14,4" Margin="0,0,0,12"
                     ToolTip="{ui:T outputwindow.addbutton.tooltip}" Click="Add_Click"/>
         </StackPanel>
     </ScrollViewer>

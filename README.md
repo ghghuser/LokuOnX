@@ -29,4 +29,5 @@ Windows 11 用の録音アプリです（個人用・オンライン利用なし
 C# / .NET 8 / WPF。GitHub Actions（`.github/workflows/build.yml`）が単一ファイル発行し、FFmpeg（LGPL版）を取得・検査して同梱します。仕様の詳細は [PROJECT.md](PROJECT.md) にあります。
 
 ## ライセンス
-同梱の FFmpeg は LGPL 版です。ライセンス文は `ffmpeg/LICENSE.txt` を参照してください。
+**個人利用のみ。商用利用と再配布は禁止です**（詳しくは [LICENSE](LICENSE)）。
+同梱の FFmpeg は LGPL 版です。ライセンス文は `ffmpeg/LICENSE.txt` を参照してください。NAudio は MIT ライセンスです。

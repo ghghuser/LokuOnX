@@ -101,7 +101,7 @@ public partial class MainWindow : IOutputHost
     }
 
     // ---- IOutputHost ----
-    IReadOnlyList<(int Slot, string Name)> IOutputHost.InputSlots() => Devices.ActiveInputs;
+    IReadOnlyList<(int Slot, string Name, bool Active)> IOutputHost.InputSlots() => Devices.SelectedInputs;
 
     void IOutputHost.Update(int index, OutputConfig config)
     {
