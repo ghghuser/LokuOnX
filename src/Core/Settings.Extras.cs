@@ -61,7 +61,7 @@ public sealed partial class Settings
         set => Set("Language", LangList.IsValidSetting(value) ? value : LangList.Auto);
     }
 
-    /// <summary>背景効果: "none"（既定。旧版の "auto" もここへ）/ "mica" / "acrylic"。Windows 11 22H2 以降のみ。</summary>
+    /// <summary>背景効果: "none"（既定）/ "mica" / "acrylic"。Windows 11 22H2 以降のみ。</summary>
     public string BackdropEffect
     {
         get { var e = Get("BackdropEffect", "none"); return e is "mica" or "acrylic" ? e : "none"; }

@@ -65,7 +65,6 @@ public sealed record OutputConfig(string Name, string DeviceId, double VolumeDb,
             if (fx.IsDefault) fx = null;   // 何も設定していなければ持たない（保存・比較が簡単になる）
         }
         var name = CleanName(Name, DefaultName(index));
-        if (name == $"ミックス{index + 1}") name = DefaultName(index);   // 旧い既定名（ミックス1〜4）は新しい既定名（ミックスA〜D）へ
         return new OutputConfig(name, DeviceId ?? "",
             Math.Clamp(double.IsNaN(VolumeDb) ? 0 : VolumeDb, Settings.MinGainDb, Settings.MaxGainDb), sends, fx);
     }

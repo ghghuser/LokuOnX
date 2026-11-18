@@ -68,14 +68,14 @@
                         ToolTip="{ui:T filelistpanel.savefolderbutton.tooltip}"/>
                 <Button x:Name="PickFolderButton" Content="{ui:T filelistpanel.pickfolderbutton.content}" Padding="10,3" Margin="0,0,10,4" Click="PickFolder_Click"
                         ToolTip="{ui:T filelistpanel.pickfolderbutton.tooltip}"/>
-                <Button x:Name="ClearButton" Content="{ui:T filelistpanel.clearbutton.content}" Padding="10,3" Margin="0,0,10,4" Click="Clear_Click"
-                        ToolTip="{ui:T filelistpanel.clearbutton.tooltip}"/>
                 <TextBlock Text="{ui:T filelistpanel.textblock1.text}" VerticalAlignment="Center" Margin="0,0,6,4" Opacity="0.8"/>
                 <TextBox x:Name="FilterBox" Width="130" Margin="0,0,10,4" VerticalContentAlignment="Center"
                          ToolTip="{ui:T filelistpanel.filterbox.tooltip}"
                          TextChanged="Filter_Changed"/>
                 <TextBlock x:Name="CountText" VerticalAlignment="Center" MinWidth="64" Margin="0,0,0,4" Opacity="0.8"
                            ToolTip="{ui:T filelistpanel.counttext.tooltip}"/>
+                <Button x:Name="ClearButton" Content="{ui:T filelistpanel.clearbutton.content}" Padding="10,3" Margin="10,0,0,4" Click="Clear_Click"
+                        ToolTip="{ui:T filelistpanel.clearbutton.tooltip}"/>
             </WrapPanel>
         </StackPanel>
 

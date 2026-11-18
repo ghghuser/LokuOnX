@@ -74,8 +74,6 @@ public sealed partial class Settings
                 foreach (var k in OutputFxSetting.IniKeys) _ini.Remove(OutSection, $"Fx{i}_{k}");
                 if (c.Fx is { IsDefault: false }) c.Fx.WriteTo(new IniSection(_ini, OutSection), $"Fx{i}_", false);
             }
-            _ini.Remove(Section, "OutputDevice");   // 11-2 の旧キー（Count を書いたので、もう読まれない）
-            _ini.Remove(Section, "OutputGain");
             Save();
         }
     }
@@ -130,6 +128,13 @@ public sealed partial class Settings
         }
         _ini.Remove(OutSection, $"Rec{OutputConfig.MaxOutputs}");
         Save();
+    }
+
+    /// <summary>I/Oルーティングの表示: "tab"（既定。出力を1つずつタブで切り替える）/ "card"（すべての出力をカードで並べる）。</summary>
+    public string IoView
+    {
+        get => _ini.Get(OutSection, "View", "tab") == "card" ? "card" : "tab";
+        set { _ini.Set(OutSection, "View", value == "card" ? "card" : "tab"); Save(); }
     }
 
     /// <summary>出力ウィンドウの位置と大きさ（"左,上,幅,高さ"。空＝未保存）。</summary>

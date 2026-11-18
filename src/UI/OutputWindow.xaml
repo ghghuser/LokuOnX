@@ -19,7 +19,14 @@
     <!-- M11-3: 出力カード（最大4枚）。狭いときはカードが折り返す（横スクロールはしない） -->
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16,14,4,8">
-            <TextBlock Text="{ui:T outputwindow.textblock1.text}" Style="{StaticResource SectionTitle}" Margin="0,0,0,4"/>
+            <DockPanel Margin="0,0,12,4">
+                <!-- 表示の切り替え: ⊞＝カード式（全部を並べる）／🗇＝タブ式（1つずつ。既定）。いまの表示は濃く -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="ViewCardButton" Content="⊞" Width="32" Padding="0,2" Click="ViewCard_Click" ToolTip="{ui:T outputwindow.viewcard.tip}"/>
+                    <Button x:Name="ViewTabButton" Content="🗇" Width="32" Padding="0,2" Margin="4,0,0,0" Click="ViewTab_Click" ToolTip="{ui:T outputwindow.viewtab.tip}"/>
+                </StackPanel>
+                <TextBlock Text="{ui:T outputwindow.textblock1.text}" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+            </DockPanel>
             <TextBlock FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,12,10"
                        Text="{ui:T outputwindow.textblock2.text}"/>
             <!-- 出力の録音（M13）の一括操作 -->
@@ -28,6 +35,7 @@
                 <Button x:Name="RecAllButton" Padding="12,4" Click="RecAll_Click" ToolTip="{ui:T outputwindow.recall.tip}"/>
             </WrapPanel>
             <WrapPanel x:Name="Cards"/>
+            <TabControl x:Name="Tabs" Margin="0,0,12,8" Visibility="Collapsed"/>
             <Button x:Name="AddButton" Content="{ui:T outputwindow.addbutton.content}" HorizontalAlignment="Left" Padding="14,4" Margin="0,0,0,12"
                     ToolTip="{ui:T outputwindow.addbutton.tooltip}" Click="Add_Click"/>
         </StackPanel>

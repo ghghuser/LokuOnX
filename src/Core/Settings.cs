@@ -28,7 +28,7 @@ public sealed partial class Settings
             _ini.Set(Section, "NextNo", "1");
             Save();
         }
-        EnsureTemplates();   // 旧版の ini にはテンプレートが無いので、足りなければ初期テンプレートを登録
+        EnsureTemplates();   // テンプレートが ini に無ければ（初回起動）、初期テンプレートを登録
     }
 
     private string Get(string key, string fallback) => _ini.Get(Section, key, fallback);

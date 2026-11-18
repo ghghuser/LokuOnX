@@ -6,7 +6,7 @@ public sealed partial class Settings
     private const string TemplatesSection = "Templates";
     private const int MaxTemplates = 1000;   // 登録できるテンプレートの上限（ini の Count をこの範囲に丸める）
 
-    /// <summary>テンプレート一覧が ini に無ければ（初回起動・旧版からの更新）、初期テンプレートを登録する。</summary>
+    /// <summary>テンプレート一覧が ini に無ければ（初回起動）、初期テンプレートを登録する。</summary>
     private void EnsureTemplates()
     {
         if (_ini.Get(TemplatesSection, "Count", "") != "") return;
