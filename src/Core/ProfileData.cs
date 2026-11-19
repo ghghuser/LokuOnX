@@ -9,6 +9,9 @@ public sealed class ProfileInput
     public string Key { get; set; } = "";
     public double GainDb { get; set; }
     public bool Enabled { get; set; } = true;
+    public int GainMode { get; set; }       // M15: 0 左右一括／1 左右それぞれ／2 バランス（旧プロファイルは 0）
+    public double GainRDb { get; set; }
+    public double Balance { get; set; }
 }
 
 /// <summary>プロファイル内の、入力1つからの送り。</summary>

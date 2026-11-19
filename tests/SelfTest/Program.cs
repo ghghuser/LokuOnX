@@ -22,6 +22,8 @@ GateTests.Run(new CheckFn(Check), Section);
 BufferTests.Run(new CheckFn(Check), Section);
 OutputTests.Run(new CheckFn(Check), Section);
 HubTests.Run(new CheckFn(Check), Section);
+GainTests.Run(new CheckFn(Check), Section);
+TagEditTests.Run(new CheckFn(Check), Section);
 EngineTests.Run(new CheckFn(Check), Section);
 OutputHubTests.Run(new CheckFn(Check), Section);
 OutputFxWiringTests.Run(new CheckFn(Check), Section);

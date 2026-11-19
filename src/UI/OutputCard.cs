@@ -478,9 +478,10 @@ public sealed class OutputCard : Border
         {
             Text = send.Free ? "⛓️‍💥" : "🔗", FontSize = 13, Width = 22, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             Cursor = Cursors.Hand, Background = System.Windows.Media.Brushes.Transparent, Opacity = send.Free ? 1 : 0.6,
-            Foreground = send.Free ? MeterColors.Muted : null,   // 切り離し中はオレンジ
+            FontFamily = new System.Windows.Media.FontFamily("Segoe UI Emoji, Segoe UI Symbol"),
             ToolTip = Loc.Get(send.Free ? "outputcard.chain.freeTip" : "outputcard.chain.linkedTip"),
         };
+        if (send.Free) chain.Foreground = MeterColors.Muted;   // 切り離し中はオレンジ。つながっている間は色を指定せず、継承される文字色のまま（null を入れると見えなくなる）
         chain.MouseLeftButtonDown += (_, e) =>
         {
             e.Handled = true;

@@ -99,6 +99,7 @@
                         <MenuItem Header="{ui:T filelistpanel.menuitem1.header}" Click="Play_Click"/>
                         <MenuItem Header="{ui:T filelistpanel.menuitem2.header}" Click="Explorer_Click"/>
                         <MenuItem Header="{ui:T filelistpanel.menuitem3.header}" InputGestureText="F2" Click="Rename_Click"/>
+                        <MenuItem Header="{ui:T filelistpanel.menuitemtag.header}" Click="Tags_Click"/>
                         <MenuItem Header="{ui:T filelistpanel.menuitem4.header}" InputGestureText="Delete" Click="Delete_Click"/>
                         <Separator/>
                         <MenuItem Header="{ui:T filelistpanel.menuitem5.header}" Click="Refresh_Click"/>

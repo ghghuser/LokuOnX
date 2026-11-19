@@ -26,7 +26,8 @@ public partial class DeviceList : UserControl
         public readonly TextBlock NameText = new();  // 入力の名前（ダブルクリックで変更）
         public readonly TextBox NameBox = new();     // 名前の入力欄（変更中だけ出す）
         public readonly Button FxButton = new();     // この入力のエフェクトを開く（M11-4）
-        public readonly GainMeter Gain = new(2, 6);   // 左右2本の細いメーター＋1つのつまみ
+        public readonly GainMeter Gain = new(2, 6, true);   // 左右2本の細いメーター＋つまみ（動かし方は3通り。M15）
+        public readonly Button ModeButton = new();   // ゲインの動かし方の切り替え（≡ 左右一括／⇅ 左右それぞれ／⇄ バランス）
         public readonly StackPanel MeterBox = new();   // メーター＋その下のdB目盛り
         public readonly TextBlock GainText = new();
         public LevelBar Level => Gain.Bar;
@@ -91,7 +92,7 @@ public partial class DeviceList : UserControl
     /// <summary>デバイスが選ばれている行（ランプがオフでも）の、行の番号・設定（デバイス・ゲイン）・ランプがオンか。出力が「ランプと切り離した入力」を開くのに使う（M15）。</summary>
     public IReadOnlyList<(int Slot, InputSetting Setting, bool Active)> SelectedSettings =>
         _rows.Select((r, i) => (r, i)).Where(x => x.r.Key.Length > 0)
-            .Select(x => (x.i, new InputSetting(x.r.Key, x.r.Gain.Value), x.r.Use.IsChecked == true)).ToList();
+            .Select(x => (x.i, SettingOf(x.r, true), x.r.Use.IsChecked == true)).ToList();
 
     private HashSet<int> _lockCombo = new();
     private HashSet<int> _lockLamp = new();
@@ -123,7 +124,7 @@ public partial class DeviceList : UserControl
         for (int i = 0; i < _rows.Count; i++)
         {
             var m = _rows[i].BgMark;
-            if (slots.TryGetValue(i, out var letters)) { m.Text = "⇶⛓️‍💥" + letters; m.Visibility = Visibility.Visible; }   // 例「⇶⛓️‍💥AB」＝出力A・Bが使っている
+            if (slots.TryGetValue(i, out var letters)) { m.Text = "⇶" + letters; m.Visibility = Visibility.Visible; }   // 例「⇶AB」＝出力A・Bが使っている
             else m.Visibility = Visibility.Collapsed;
         }
     }
@@ -149,7 +150,7 @@ public partial class DeviceList : UserControl
     }
 
     /// <summary>ゲインが変わった（デバイスの順番, dB）。録音中も使える。</summary>
-    public event Action<int, double>? GainChanged;
+    public event Action<int, ChGain>? GainChanged;
 
     public DeviceList()
     {
@@ -205,7 +206,7 @@ public partial class DeviceList : UserControl
         {
             _touched = true;
         }
-        foreach (var i in inputs.Take(Settings.MaxInputs)) AddRow(i.Key, i.GainDb, i.Enabled);
+        foreach (var i in inputs.Take(Settings.MaxInputs)) AddRow(i.Key, i.GainDb, i.Enabled, i);
         while (_rows.Count < Settings.MaxInputs) AddRow("", 0);   // 空き行（デバイスを選ぶまで録音に使われない）
         MixRadio.IsChecked = !_s.SeparateFiles;
         SeparateRadio.IsChecked = _s.SeparateFiles;
@@ -229,14 +230,18 @@ public partial class DeviceList : UserControl
 
     /// <summary>いま選ばれているデバイス（上から順）とゲイン。</summary>
     public IReadOnlyList<InputSetting> Inputs =>
-        Active().Select(r => new InputSetting(r.Key, r.Gain.Value)).ToList();
+        Active().Select(r => SettingOf(r, true)).ToList();
 
     /// <summary>録音に使う行（デバイスが選ばれていて、チェックが入っているもの）。</summary>
     private List<Row> Active() => _rows.Where(r => r.Key.Length > 0 && r.Use.IsChecked == true).ToList();
 
     /// <summary>設定へ保存する全行（「未選択」・無効の行も含む）。</summary>
     private List<InputSetting> AllRows() =>
-        _rows.Select(r => new InputSetting(r.Key, r.Gain.Value, r.Use.IsChecked == true)).ToList();
+        _rows.Select(r => SettingOf(r, r.Use.IsChecked == true)).ToList();
+
+    /// <summary>行のデバイスとゲイン（動かし方・右のゲイン・バランスを含む）。</summary>
+    private static InputSetting SettingOf(Row r, bool enabled) =>
+        new(r.Key, r.Gain.Value, enabled, r.Gain.Mode, r.Gain.ValueR, r.Gain.Balance);
 
     /// <summary>ファイル名の {Device} の例に使う名前。</summary>
     public string NameLabel
@@ -255,7 +260,7 @@ public partial class DeviceList : UserControl
     }
 
     // ---- 行の作成 ----
-    private Row AddRow(string key, double gainDb, bool enabled = true)
+    private Row AddRow(string key, double gainDb, bool enabled = true, InputSetting? full = null)
     {
         var row = new Row { Key = key };
         var g = row.Panel;
@@ -319,8 +324,19 @@ public partial class DeviceList : UserControl
         row.BgMark.ToolTip = Loc.Get("devlist.bgmark.tip");
         row.BgMark.Foreground = MeterColors.Muted;   // オレンジ（切り離しの色）
         DockPanel.SetDock(row.BgMark, Dock.Right);
+        // ゲインの動かし方の切り替え（FXの左。クリックで 一括→左右それぞれ→バランス の順に切り替わる）
+        row.ModeButton.Style = (Style)Application.Current.FindResource("FxButton");
+        row.ModeButton.FontFamily = new FontFamily("Segoe UI Symbol");
+        row.ModeButton.FontSize = 11;
+        row.ModeButton.Height = 18;
+        row.ModeButton.MinWidth = 22;
+        row.ModeButton.Margin = new Thickness(6, 0, 0, 2);
+        row.ModeButton.VerticalAlignment = VerticalAlignment.Center;
+        row.ModeButton.Click += (_, _) => row.Gain.Mode = (row.Gain.Mode + 1) % 3;
+        DockPanel.SetDock(row.ModeButton, Dock.Right);
         nameRow.Children.Add(row.FxButton);
-        nameRow.Children.Add(row.BgMark);   // FXの左（右詰めの2番目）
+        nameRow.Children.Add(row.ModeButton);
+        nameRow.Children.Add(row.BgMark);   // 右詰めの3番目（FX・動かし方の左）
         nameRow.Children.Add(row.NameText);
         nameRow.Children.Add(row.NameBox);
         row.Left.Children.Add(nameRow);
@@ -343,6 +359,7 @@ public partial class DeviceList : UserControl
         row.Gain.Minimum = Settings.MinGainDb;
         row.Gain.Maximum = Settings.MaxGainDb;
         row.Gain.Value = Math.Clamp(gainDb, Settings.MinGainDb, Settings.MaxGainDb);
+        if (full != null) row.Gain.SetState(full.GainMode, full.GainDb, full.GainRDb, full.Balance);
         row.Gain.VerticalAlignment = VerticalAlignment.Center;
         row.Gain.ToolTip = Loc.Get("devlist.gain.tip");
         row.MeterBox.VerticalAlignment = VerticalAlignment.Center;
@@ -350,12 +367,11 @@ public partial class DeviceList : UserControl
         row.MeterBox.Children.Add(new LevelScale { Margin = new Thickness(0, 1, 0, 0) });
         Grid.SetColumn(row.MeterBox, 3);
 
-        row.GainText.Text = GainLabel(row.Gain.Value);
         row.GainText.VerticalAlignment = VerticalAlignment.Center;
         row.GainText.TextAlignment = TextAlignment.Left;
         row.GainText.Margin = new Thickness(10, 0, 0, 0);
-        row.GainText.FontSize = 12;
         row.Gain.AttachReset(row.GainText);   // 数字のダブルクリックで 0 dB
+        ShowGainText(row);
         Grid.SetColumn(row.GainText, 4);
 
         g.Children.Add(row.Use);
@@ -394,12 +410,12 @@ public partial class DeviceList : UserControl
         };
         row.Gain.ValueChanged += (_, _) =>
         {
-            row.GainText.Text = GainLabel(row.Gain.Value);
+            ShowGainText(row);
             ShowMute(row);
             if (_loading) return;
             _touched = true;
             var at = Active().IndexOf(row);
-            if (at >= 0) GainChanged?.Invoke(at, row.Gain.Value);
+            if (at >= 0) GainChanged?.Invoke(at, row.Gain.Channels);
             _saveTimer.Stop();
             _saveTimer.Start();
         };
@@ -507,6 +523,29 @@ public partial class DeviceList : UserControl
         }
     }
 
+    /// <summary>行のゲインの数字（動かし方で変わる）と、動かし方のボタンの記号を合わせる。左右それぞれ・バランスは2行の小さい文字。</summary>
+    private static void ShowGainText(Row row)
+    {
+        var g = row.Gain;
+        switch (g.Mode)
+        {
+            case 1: row.GainText.Text = "L " + ShortGain(g.Value) + "\nR " + ShortGain(g.ValueR); break;
+            case 2: row.GainText.Text = GainLabel(g.Value) + "\n" + BalanceLabel(g.Balance); break;
+            default: row.GainText.Text = GainLabel(g.Value); break;
+        }
+        row.GainText.FontSize = g.Mode == 0 ? 12 : 10;
+        row.ModeButton.Content = g.Mode switch { 1 => "⇅", 2 => "⇄", _ => "≡" };
+        row.ModeButton.ToolTip = Loc.Get("devlist.mode." + g.Mode);
+    }
+
+    private static string ShortGain(double db) => GainMath.IsMuted(db)
+        ? Loc.Get("devlist.mute")
+        : db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture);
+
+    private static string BalanceLabel(double b) => b == 0
+        ? Loc.Get("devlist.balance.center")
+        : (b > 0 ? "R " : "L ") + Math.Round(Math.Abs(b) * 100).ToString(CultureInfo.InvariantCulture) + "%";
+
     private static string GainLabel(double db) => GainMath.IsMuted(db)
         ? Loc.Get("devlist.mute")
         : db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + " dB";
@@ -514,6 +553,7 @@ public partial class DeviceList : UserControl
     /// <summary>ミュート（ゲイン最小）のとき、数値の文字・スライダー・メーターを橙にして、一目で分かるようにする。</summary>
     private static void ShowMute(Row row)
     {
+        if (row.Gain.Modes) { MuteText(row.GainText, row.Gain.AnyMuted); return; }   // 棒・つまみの色は GainMeter が左右ごとに決める
         bool muted = GainMath.IsMuted(row.Gain.Value);
         row.Gain.Muted = muted;
         MuteText(row.GainText, muted);

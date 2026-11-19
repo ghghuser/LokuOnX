@@ -46,6 +46,8 @@
     <Compile Include="..\..\src\Core\OutputEngine.cs" Link="Core\OutputEngine.cs" />
     <Compile Include="..\..\src\Core\OutputConfig.cs" Link="Core\OutputConfig.cs" />
     <Compile Include="..\..\src\Core\OutputHub.cs" Link="Core\OutputHub.cs" />
+    <Compile Include="..\..\src\Core\TagInfo.cs" Link="Core\TagInfo.cs" />
+    <Compile Include="..\..\src\Core\TagEditor.cs" Link="Core\TagEditor.cs" />
   </ItemGroup>
 
 </Project>

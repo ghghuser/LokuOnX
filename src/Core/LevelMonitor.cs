@@ -33,7 +33,7 @@ public sealed class LevelMonitor : IDisposable
         var acquired = new List<InputHub.Entry>();
         try
         {
-            foreach (var i in _inputs) acquired.Add(_hub.Acquire(i.Key, i.GainDb));
+            foreach (var i in _inputs) acquired.Add(_hub.Acquire(i.Key, i.Gains));
         }
         catch
         {
@@ -58,7 +58,7 @@ public sealed class LevelMonitor : IDisposable
     }
 
     /// <summary>録音中でなくても、ゲインの変更を反映する（index は inputs の順）。</summary>
-    public void SetGain(int index, double gainDb)
+    public void SetGain(int index, ChGain gainDb)
     {
         var e = _entries;
         if (index >= 0 && index < e.Length) e[index].Stream.SetGainDb(gainDb);   // 最小＝ミュート（0）

@@ -57,10 +57,13 @@ public partial class FileListPanel : UserControl
         set => Slot.Content = value;
     }
 
+    private string _ffmpeg = "";
+
     public void Init(Settings settings, string ffmpegPath)
     {
         _settings = settings;
         _info = new MediaInfo(ffmpegPath);
+        _ffmpeg = ffmpegPath;
         ReloadSources();
         UpdateHeaders();
     }

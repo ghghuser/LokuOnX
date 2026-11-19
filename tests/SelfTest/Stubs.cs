@@ -9,4 +9,7 @@ public sealed partial class Settings
     public const int MaxInputs = 4;
 }
 
-public sealed record InputSetting(string Key, double GainDb, bool Enabled = true);
+public sealed record InputSetting(string Key, double GainDb, bool Enabled = true, int GainMode = 0, double GainRDb = 0, double Balance = 0)
+{
+    public ChGain Gains => GainMath.Channels(GainMode, GainDb, GainRDb, Balance);
+}

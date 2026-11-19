@@ -22,6 +22,27 @@ public sealed partial class Settings
         set { _ini.Set("Windows", "OutputFxRect", value); Save(); }
     }
 
+    /// <summary>エフェクトのウィンドウの表示: "tab"（既定。入力を上のタブで1つずつ）/ "card"（すべての入力を並べる）。入力用・出力用で共通（M15）。</summary>
+    public string EffectView
+    {
+        get => _ini.Get("Windows", "EffectView", "tab") == "card" ? "card" : "tab";
+        set { _ini.Set("Windows", "EffectView", value == "card" ? "card" : "tab"); Save(); }
+    }
+
+    /// <summary>カード式のときの、エフェクトのウィンドウの位置と大きさ（入力用。"左,上,幅,高さ"。空＝未保存）。</summary>
+    public string EffectCardRect
+    {
+        get => _ini.Get("Windows", "EffectCardRect", "");
+        set { _ini.Set("Windows", "EffectCardRect", value); Save(); }
+    }
+
+    /// <summary>カード式のときの、出力のエフェクトのウィンドウの位置と大きさ。</summary>
+    public string OutputFxCardRect
+    {
+        get => _ini.Get("Windows", "OutputFxCardRect", "");
+        set { _ini.Set("Windows", "OutputFxCardRect", value); Save(); }
+    }
+
     /// <summary>入力1〜4のエフェクト設定（常に4件。範囲外の値は読み込み時に範囲内へ直る）。</summary>
     public IReadOnlyList<EffectSetting> InputEffects
     {

@@ -32,18 +32,19 @@ public sealed partial class DeviceStream
     private long _written;                       // 時間軸に並べたフレーム数（無音の補填を含む）
     private double _lagEma;
     private int _slew;                           // +1 = 少し伸ばす / -1 = 少し縮める / 0 = そのまま
-    private float _gain = 1f;
-    private float _gainTarget = 1f;
+    private float _gainL = 1f, _gainR = 1f;                // 左右それぞれのゲイン（倍率）。偶数番目のチャンネル＝左、奇数番目＝右
+    private float _gainLTarget = 1f, _gainRTarget = 1f;
     private float _peak;
     private float _peakL, _peakR;               // 左右別のピーク（ゲイン後。個別メーターのL/R用）
     private bool _closed;
 
-    public DeviceStream(int rate, int channels, Func<double> now, double gainDb)
+    public DeviceStream(int rate, int channels, Func<double> now, ChGain gainDb)
     {
         _rate = Math.Max(1, rate);
         _ch = Math.Max(1, channels);
         _now = now;
-        _gain = _gainTarget = DbToGain(gainDb);
+        _gainL = _gainLTarget = DbToGain(gainDb.L);
+        _gainR = _gainRTarget = DbToGain(gainDb.R);
     }
 
     private static float DbToGain(double db) => GainMath.DbToLinear(db);
@@ -96,10 +97,14 @@ public sealed partial class DeviceStream
         }
     }
 
-    /// <summary>ゲイン（dB）。録音中も変えられる（滑らかに切り替わる）。</summary>
-    public void SetGainDb(double db)
+    /// <summary>ゲイン（dB。左右それぞれ。double を渡せば左右同じ）。録音中も変えられる（滑らかに切り替わる）。</summary>
+    public void SetGainDb(ChGain db)
     {
-        lock (_lock) _gainTarget = DbToGain(db);
+        lock (_lock)
+        {
+            _gainLTarget = DbToGain(db.L);
+            _gainRTarget = DbToGain(db.R);
+        }
     }
 
     /// <summary>入力デバイスがつながった（つなぎ直した）とき。時間軸は続けたまま、変換だけ作り直す。</summary>
@@ -253,31 +258,19 @@ public sealed partial class DeviceStream
 
     private void ApplyGainAndPeak(float[] f, int frames)
     {
-        float g0 = _gain, g1 = _gainTarget;
-        _gain = g1;
+        float l0 = _gainL, r0 = _gainR, l1 = _gainLTarget, r1 = _gainRTarget;
+        _gainL = l1;
+        _gainR = r1;
         float peak = _peak;
-        if (g0 == g1)
-        {
-            // ゲインが変化中でないとき（ほとんどの間）は、フレームごとの補間計算を省く
-            int total = frames * _ch;
-            for (int i = 0; i < total; i++)
-            {
-                float v = f[i] * g1;
-                f[i] = v;
-                float a = Math.Abs(v);
-                if (a > peak) peak = a;
-            }
-            _peak = peak;
-            TrackChannels(f, frames);
-            return;
-        }
+        bool steady = l0 == l1 && r0 == r1;   // ゲインが変化中でないとき（ほとんどの間）は、フレームごとの補間計算を省く
         for (int n = 0; n < frames; n++)
         {
-            float g = g0 == g1 ? g1 : g0 + (g1 - g0) * n / frames;
+            float gl = steady ? l1 : l0 + (l1 - l0) * n / frames;
+            float gr = steady ? r1 : r0 + (r1 - r0) * n / frames;
             for (int c = 0; c < _ch; c++)
             {
                 int i = n * _ch + c;
-                float v = f[i] * g;
+                float v = f[i] * ((c & 1) == 0 ? gl : gr);
                 f[i] = v;
                 float a = Math.Abs(v);
                 if (a > peak) peak = a;

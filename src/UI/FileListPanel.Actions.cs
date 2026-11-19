@@ -71,6 +71,38 @@ public partial class FileListPanel
         Refresh(error == null ? target : path);
     }
 
+    // ---- タグの変更（1つだけ。現在のタグを読み込んで表示し、保存の前に確認する） ----
+    private async void Tags_Click(object sender, RoutedEventArgs e)
+    {
+        ClearError();
+        var files = SelectedFiles;
+        if (files.Count != 1)
+        {
+            ShowError(Loc.Get("tagedit.needone"));
+            return;
+        }
+        var path = files[0].Path;
+        if (!TagEditor.CanTag(path))
+        {
+            ShowError(Loc.Get("tageditor.noaac"));
+            return;
+        }
+        var current = await Task.Run(() => TagEditor.Read(_ffmpeg, path), CancellationToken.None);
+        var dialog = new TagEditDialog(_settings.Theme, path, current) { Owner = Owner };
+        if (dialog.ShowDialog() != true || dialog.Result is not { } tag) return;
+
+        var answer = MessageBox.Show(Owner!, Loc.Get("tagedit.confirm", files[0].Name),
+            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+        if (answer != MessageBoxResult.Yes) return;
+
+        Releasing?.Invoke(new[] { path });   // 再生中のファイルは置き換えられないので、止めて手放す
+        ShowError(Loc.Get("tagedit.writing"));
+        var error = await Task.Run(() => TagEditor.Write(_ffmpeg, path, tag), CancellationToken.None);
+        ClearError();
+        if (error != null) ShowError(error);
+        Refresh(path);
+    }
+
     // ---- ごみ箱へ削除（複数選択可。確認してから） ----
     private async void Delete_Click(object sender, RoutedEventArgs e)
     {

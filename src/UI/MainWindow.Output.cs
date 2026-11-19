@@ -55,7 +55,7 @@ public partial class MainWindow : IOutputHost
     }
 
     /// <summary>入力のゲインを変えた（index は選ばれている入力の順）。録音・待機・出力のどれが開いていても効く。</summary>
-    private void OnInputGain(int index, double db)
+    private void OnInputGain(int index, ChGain db)
     {
         var inputs = Devices.Inputs;
         if (index >= 0 && index < inputs.Count) _hub.SetGain(inputs[index].Key, db);

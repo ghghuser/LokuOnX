@@ -219,7 +219,7 @@ public partial class MainWindow
                 return;
             }
         }
-        for (int i = 0; i < inputs.Count; i++) _checkMon.SetGain(i, inputs[i].GainDb);   // ゲインのスライダーも反映
+        for (int i = 0; i < inputs.Count; i++) _checkMon.SetGain(i, inputs[i].Gains);   // ゲインのスライダーも反映
         var peaks = _checkMon.TakePeaks();
         Devices.SetLevels(_checkMon.TakePeakPairs());
         Devices.PushWave(peaks);

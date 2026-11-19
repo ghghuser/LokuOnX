@@ -33,28 +33,32 @@ public interface IEffectHost
 
 /// <summary>
 /// エフェクトのウィンドウ（M11-4。入力ごと／11-5確認後に、出力ごとも同じ画面を使うよう統一。違いは IEffectHost だけ）。
-/// 上のタブ＝入力1〜4（選んだ入力の内容だけを作って表示する）。その下に、反映先・コピー・初期値、さらに効果のタブ
-/// （イコライザ＝グラフィックEQ・ローカット・パラメトリックEQ／ノイズゲート／エコー・リバーブ）。
-/// 開き方: 入力デバイス欄の「FX」ボタン／入力の名前・波形・メーターの右クリック「エフェクト…」。
-/// 設定の読み書きは host（MainWindow）経由。エフェクトは動かしている最中も変えられ、すぐ音に反映される。
+/// 表示は2通り（M15。右上の ⊞／🗇 で切り替え。設定 EffectView。既定はタブ）: タブ式＝上のタブで入力1〜4を1つずつ／カード式＝すべての入力を並べる。
+/// 各入力の中身は EffectSlotView（反映先・コピー・初期値、効果のタブ）。
+/// 開き方: 入力デバイス欄の「FX」ボタン／入力の名前・波形・メーターの右クリック「入力のエフェクト…」。
+/// エフェクトは動かしている最中も変えられ、すぐ音に反映される。
 /// </summary>
 public sealed partial class EffectWindow : Window
 {
-    private static EffectSetting? _clip;   // コピーした効果（反映先の設定は含まない）。ウィンドウを閉じても残す
+    private const double CardWidth = 620;
 
     private readonly IEffectHost _host;
     private readonly Settings _s;
-    private readonly TabControl _slotTabs = new();
-    private readonly List<ContentControl> _hosts = new();   // 入力のタブごとの中身の置き場（選んだタブだけ作る）
+    private readonly TabControl _slotTabs = new() { Margin = new Thickness(16, 4, 16, 8) };
+    private readonly WrapPanel _cards = new() { Margin = new Thickness(16, 4, 4, 8) };
+    private readonly List<EffectSlotView> _views = new();
+    private readonly List<ContentControl> _cardHeads = new();
+    private readonly List<Border> _cardBorders = new();
+    private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+    private readonly Button _cardButton = new() { Content = "⊞", Width = 32, Padding = new Thickness(0, 2, 0, 2) };
+    private readonly Button _tabButton = new() { Content = "🗇", Width = 32, Padding = new Thickness(0, 2, 0, 2), Margin = new Thickness(4, 0, 0, 0) };
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private int _slot;
-    private EffectSetting _fx = new();
     private bool _building;
     private string _slotSig = "";   // タブの名前・枚数の変化を見つけるための記録
-    private int _innerIndex;   // 選んでいる効果のタブ（入力を切り替えても維持）
-    private TabControl? _tabs;
-    private CheckBox? _toRec;
-    private Button? _paste;
+    private int _innerIndex;   // タブ式で選んでいる効果のタブ（入力を切り替えても維持）
+
+    private bool CardMode => _s.EffectView == "card";
 
     public EffectWindow(IEffectHost host, Settings settings, int slot)
     {
@@ -75,23 +79,30 @@ public sealed partial class EffectWindow : Window
         ApplyPalette();
         RestoreRect();
 
-        _slotTabs.Margin = new Thickness(16, 12, 16, 8);
         _slotTabs.SelectionChanged += (_, e) =>
         {
             if (!ReferenceEquals(e.OriginalSource, _slotTabs) || _building || _slotTabs.SelectedIndex < 0) return;   // 中のタブ・プルダウンの変更は無視
             _slot = _slotTabs.SelectedIndex;
-            Load();
+            LoadSelected();
         };
-        Content = new ScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = _slotTabs,
-        };
+        _cardButton.ToolTip = Loc.Get("effectwindow.view.card.tip");
+        _tabButton.ToolTip = Loc.Get("effectwindow.view.tab.tip");
+        _cardButton.Click += (_, _) => SwitchView("card");
+        _tabButton.Click += (_, _) => SwitchView("tab");
+        var bar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(16, 8, 16, 0) };
+        bar.Children.Add(_cardButton);
+        bar.Children.Add(_tabButton);
+        var grid = new Grid();
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        Grid.SetRow(_scroll, 1);
+        grid.Children.Add(bar);
+        grid.Children.Add(_scroll);
+        Content = grid;
         ThemeManager.Attach(this, settings.Theme);
 
-        RefreshSlots();
-        Load();
+        EnsureViews(_host.Slots().Count);
+        Layout();
         _timer.Tick += (_, _) => { SyncSlots(); UpdateEnabled(); };
         _timer.Start();
         Closed += (_, _) =>
@@ -104,57 +115,135 @@ public sealed partial class EffectWindow : Window
     /// <summary>このウィンドウの中だけ、黄色の強調色を「赤紫〜青」系（紫）に差し替える（スライダー・トグル・タブの下線・グラフの色など）。</summary>
     private void ApplyPalette() => EffectPalette.Apply(this);
 
-    // ---- 位置と大きさ（閉じるときに保存し、次に開くときに復元する） ----
-    private void RestoreRect()
+    // ---- 位置と大きさ（閉じるときに保存し、次に開くときに復元する。タブ式とカード式で別々） ----
+    private string RectValue
     {
-        var parts = _host.WindowRect.Split(',');
-        if (parts.Length != 4) return;
+        get => CardMode ? (_host.HasRouting ? _s.EffectCardRect : _s.OutputFxCardRect) : _host.WindowRect;
+        set
+        {
+            if (!CardMode) _host.WindowRect = value;
+            else if (_host.HasRouting) _s.EffectCardRect = value;
+            else _s.OutputFxCardRect = value;
+        }
+    }
+
+    private bool RestoreRect()
+    {
+        var parts = RectValue.Split(',');
+        if (parts.Length != 4) return false;
         var v = new double[4];
         for (int i = 0; i < 4; i++)
-            if (!double.TryParse(parts[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v[i])) return;
+            if (!double.TryParse(parts[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v[i])) return false;
         // 画面の外に出てしまわないときだけ復元する
         double sl = SystemParameters.VirtualScreenLeft, st = SystemParameters.VirtualScreenTop;
         double sw = SystemParameters.VirtualScreenWidth, sh = SystemParameters.VirtualScreenHeight;
-        if (v[2] < MinWidth || v[3] < MinHeight || v[0] + 80 > sl + sw || v[0] + v[2] - 80 < sl || v[1] + 40 > st + sh || v[1] < st - 10) return;
+        if (v[2] < MinWidth || v[3] < MinHeight || v[0] + 80 > sl + sw || v[0] + v[2] - 80 < sl || v[1] + 40 > st + sh || v[1] < st - 10) return false;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Left = v[0]; Top = v[1]; Width = v[2]; Height = v[3];
+        return true;
     }
 
     private void SaveRect()
     {
         if (WindowState != WindowState.Normal) return;
-        _host.WindowRect = string.Join(",", new[] { Left, Top, Width, Height }.Select(d => Math.Round(d).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        RectValue = string.Join(",", new[] { Left, Top, Width, Height }.Select(d => Math.Round(d).ToString(System.Globalization.CultureInfo.InvariantCulture)));
     }
 
-    // ---- 入力のタブ ----
-    /// <summary>入力の名前・使われているか・効果が掛かっているかが変わったとき、タブの見出しを作り直す。</summary>
+    // ---- 表示の切り替え（タブ式／カード式） ----
+    private void SwitchView(string mode)
+    {
+        if (_s.EffectView == mode) return;
+        SaveRect();   // 切り替える前の表示の大きさを覚える
+        _s.EffectView = mode;
+        if (!RestoreRect())
+        {
+            var wa = SystemParameters.WorkArea;
+            if (mode == "card") { Width = Math.Min(1320, wa.Width - 40); Height = Math.Min(860, wa.Height - 40); }
+            else { Width = 720; Height = Math.Min(780, wa.Height - 40); }
+        }
+        Layout();
+    }
+
+    // ---- 入力ごとの中身 ----
+    private void EnsureViews(int count)
+    {
+        while (_views.Count < count)
+        {
+            var v = new EffectSlotView(_host, HeaderFor);
+            v.InnerChanged += () => { if (!CardMode) _innerIndex = v.Inner; };
+            _views.Add(v);
+        }
+        while (_views.Count > count && _views.Count > 0) _views.RemoveAt(_views.Count - 1);
+    }
+
+    /// <summary>画面の組み立て（表示の切り替え・入力の枚数の変化・設定が丸ごと変わったとき）。</summary>
+    private void Layout()
+    {
+        _building = true;
+        var slots = _host.Slots();
+        foreach (var t in _slotTabs.Items.OfType<TabItem>()) t.Content = null;   // 置き場から外す（親が残ると別の置き場へ移せない）
+        _slotTabs.Items.Clear();
+        foreach (var b in _cardBorders) b.Child = null;
+        _cards.Children.Clear();
+        _cardHeads.Clear();
+        _cardBorders.Clear();
+        foreach (var v in _views) v.Unload();
+        if (_slot >= slots.Count) _slot = Math.Max(0, slots.Count - 1);
+        for (int i = 0; i < _views.Count && i < slots.Count; i++) _views[i].Slot = slots[i].Slot;
+
+        if (CardMode)
+        {
+            for (int i = 0; i < _views.Count; i++)
+            {
+                var head = new ContentControl { FontSize = 14, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 4) };
+                var d = new DockPanel();
+                DockPanel.SetDock(head, Dock.Top);
+                d.Children.Add(head);
+                d.Children.Add(_views[i].Root);
+                var border = new Border { Width = CardWidth, Margin = new Thickness(0, 0, 12, 12), Padding = new Thickness(12, 8, 12, 8), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1), Child = d };
+                border.SetResourceReference(Border.BorderBrushProperty, "CardBorder");
+                _cards.Children.Add(border);
+                _cardBorders.Add(border);
+                _cardHeads.Add(head);
+                _views[i].Load();
+            }
+            _scroll.Content = _cards;
+        }
+        else
+        {
+            foreach (var v in _views) _slotTabs.Items.Add(new TabItem { Content = v.Root });
+            if (_slotTabs.Items.Count > 0) _slotTabs.SelectedIndex = _slot;
+            _scroll.Content = _slotTabs;
+            LoadSelected();
+        }
+        _cardButton.Opacity = CardMode ? 1.0 : 0.45;
+        _tabButton.Opacity = CardMode ? 0.45 : 1.0;
+        UpdateHeaders();
+        UpdateEnabled();
+        _building = false;
+    }
+
+    /// <summary>タブ式: 選んだ入力の中身だけを作る（ほかの入力のタブの中身は空にする）。</summary>
+    private void LoadSelected()
+    {
+        bool was = _building;
+        _building = true;
+        for (int i = 0; i < _views.Count; i++)
+        {
+            if (i != _slot) { _views[i].Unload(); continue; }
+            _views[i].Inner = _innerIndex;
+            _views[i].Load();
+        }
+        UpdateEnabled();
+        _building = was;
+    }
+
+    /// <summary>入力の名前・使われているか・効果が掛かっているかが変わったとき、見出しを作り直す。</summary>
     public void RefreshSlots()
     {
-        var slots = _host.Slots();
-        _building = true;
-        while (_hosts.Count < slots.Count)
-        {
-            var h = new ContentControl();
-            _hosts.Add(h);
-            _slotTabs.Items.Add(new TabItem { Content = h });
-        }
-        while (_hosts.Count > slots.Count && _hosts.Count > 0)   // 出力カードが減ったとき
-        {
-            _hosts.RemoveAt(_hosts.Count - 1);
-            _slotTabs.Items.RemoveAt(_slotTabs.Items.Count - 1);
-        }
-        if (_slot >= slots.Count) _slot = Math.Max(0, slots.Count - 1);
-        for (int i = 0; i < slots.Count; i++)
-        {
-            var (slot, name, active) = slots[i];
-            var tab = (TabItem)_slotTabs.Items[i];
-            var e = _host.GetEffect(slot);
-            tab.Header = Header(name, Letters(e, AllOrder), e.Bypass);
-            tab.Opacity = active ? 1.0 : 0.55;
-            tab.ToolTip = active ? null : Loc.Get("effectwindow.s01");
-        }
-        if (_slotTabs.SelectedIndex != _slot) _slotTabs.SelectedIndex = _slot;
-        _building = false;
+        int n = _host.Slots().Count;
+        if (n != _views.Count) { EnsureViews(n); Layout(); }
+        else UpdateHeaders();
     }
 
     /// <summary>入力 slot のエフェクトを表示する（すでに開いているウィンドウを、別の入力へ切り替える）。</summary>
@@ -162,96 +251,72 @@ public sealed partial class EffectWindow : Window
     {
         _slot = Math.Max(0, slot);
         RefreshSlots();
-        Load();
+        if (CardMode)
+        {
+            if (_slot < _cardBorders.Count) _cardBorders[_slot].BringIntoView();
+        }
+        else if (_slot < _slotTabs.Items.Count)
+        {
+            if (_slotTabs.SelectedIndex != _slot) _slotTabs.SelectedIndex = _slot;   // 切り替えで読み込まれる
+            else LoadSelected();
+        }
     }
 
     /// <summary>設定が丸ごと変わったとき（プロファイルの読み込みなど）。</summary>
     public void Reload()
     {
-        RefreshSlots();
-        Load();
+        EnsureViews(_host.Slots().Count);
+        Layout();
     }
 
-    /// <summary>選んだ入力の中身を作り直す（ほかの入力のタブの中身は空にする）。</summary>
-    private void Load()
+    // ---- 見出し ----
+    /// <summary>入力 slot の見出し（名前＋掛かっている効果の印）を、いま画面にある編集中の設定に合わせて更新する。</summary>
+    private void HeaderFor(int slot, EffectSetting fx)
     {
-        _building = true;
-        _fx = _host.GetEffect(_slot);
-        foreach (var h in _hosts) h.Content = null;
-        if (_slot < _hosts.Count) _hosts[_slot].Content = BuildBody();
-        UpdateEnabled();
-        _building = false;
+        var slots = _host.Slots();
+        int i = -1;
+        for (int k = 0; k < slots.Count; k++) if (slots[k].Slot == slot) { i = k; break; }
+        if (i < 0) return;
+        var h = Header(slots[i].Name, Letters(fx, AllOrder), fx.Bypass);
+        if (CardMode) { if (i < _cardHeads.Count) _cardHeads[i].Content = h; }
+        else if (i < _slotTabs.Items.Count && _slotTabs.Items[i] is TabItem t) t.Header = h;
     }
 
-    // ---- 選んだ入力の中身 ----
-    private UIElement BuildBody()
+    private void UpdateHeaders()
     {
-        var root = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };
-        root.Children.Add(BuildTopBar());
-
-        Action changed = () => { Commit(); UpdateMarks(); };
-        _tabs = new TabControl { Margin = new Thickness(0, 6, 0, 0) };
-        var eq = EffectEq.Build(_fx, changed, Rebuild);
-        var fx = new StackPanel();   // ノイズゲート・エコー・リバーブは同じタブに
-        fx.Children.Add(EffectSections.Gate(_fx, changed, Rebuild));
-        fx.Children.Add(EffectSections.Echo(_fx, changed, Rebuild));
-        fx.Children.Add(EffectSections.Reverb(_fx, changed, Rebuild));
-        fx.Children.Add(EffectSections.Limiter(_fx, changed, Rebuild));
-        _tabs.Items.Add(new TabItem { Content = eq });
-        _tabs.Items.Add(new TabItem { Content = fx });
-        _tabs.SelectedIndex = Math.Clamp(_innerIndex, 0, 1);
-        _tabs.SelectionChanged += (_, e) =>
+        var slots = _host.Slots();
+        for (int i = 0; i < slots.Count; i++)
         {
-            if (ReferenceEquals(e.OriginalSource, _tabs) && _tabs.SelectedIndex >= 0) _innerIndex = _tabs.SelectedIndex;
-        };
-        UpdateMarks();
-        root.Children.Add(_tabs);
-
-        root.Children.Add(new TextBlock
-        {
-            Text = (_host.HasRouting ? (Loc.Get("effectwindow.s02") + " ") : (Loc.Get("effectwindow.s03") + " "))
-                + Loc.Get("effectwindow.s04"),
-            FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
-        });
-        return root;
+            var (slot, name, active) = slots[i];
+            var e = _host.GetEffect(slot);
+            var h = Header(name, Letters(e, AllOrder), e.Bypass);
+            if (CardMode)
+            {
+                if (i >= _cardHeads.Count) continue;
+                _cardHeads[i].Content = h;
+                _cardBorders[i].Opacity = active ? 1.0 : 0.7;
+                _cardBorders[i].ToolTip = active ? null : Loc.Get("effectwindow.s01");
+            }
+            else if (i < _slotTabs.Items.Count && _slotTabs.Items[i] is TabItem tab)
+            {
+                tab.Header = h;
+                tab.Opacity = active ? 1.0 : 0.55;
+                tab.ToolTip = active ? null : Loc.Get("effectwindow.s01");
+            }
+        }
     }
 
-    private void Edit(Action change)
-    {
-        if (_building) return;
-        change();
-        Commit();
-        UpdateMarks();
-    }
-
-    /// <summary>設定を入れ替えたあと、いまの入力の中身を作り直す（ほかのタブの印も更新する）。</summary>
-    private void Rebuild()
-    {
-        Load();
-        RefreshSlots();
-    }
-
-    /// <summary>画面で変えた設定を、録音・出力へ反映して保存する。</summary>
-    private void Commit()
-    {
-        if (_building) return;
-        _host.SetEffect(_slot, _fx.Clone());
-    }
-
-    /// <summary>タブの名前・枚数が変わったら（出力カードの追加・削除・名前の変更）、タブを作り直す。</summary>
+    /// <summary>タブの名前・枚数が変わったら（出力カードの追加・削除・名前の変更）、見出し（枚数が変わったら画面全体）を作り直す。</summary>
     private void SyncSlots()
     {
         var sig = string.Join("|", _host.Slots().Select(s => s.Slot + ":" + s.Name));
         if (sig == _slotSig) return;
-        bool countChanged = _slotSig.Length > 0 && sig.Split('|').Length != _slotSig.Split('|').Length;
         _slotSig = sig;
         RefreshSlots();
-        if (countChanged) Load();
     }
 
     private void UpdateEnabled()
     {
-        if (_toRec != null) _toRec.IsEnabled = !_host.IsRecording;
-        if (_paste != null) _paste.IsEnabled = _clip != null;
+        foreach (var v in _views) v.UpdateEnabled();
     }
 }

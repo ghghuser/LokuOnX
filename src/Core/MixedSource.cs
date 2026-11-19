@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace Recorder.Core;
 
 /// <summary>1台ぶんの指定（Key・表示名・ゲインdB）。</summary>
-public sealed record MixInput(string Key, string Label, double GainDb);
+public sealed record MixInput(string Key, string Label, ChGain GainDb);
 
 /// <summary>
 /// 複数のデバイスを壁時計に合わせてミックスし、1つの float PCM として流す音源（PROJECT.md §3-1）。
@@ -81,7 +81,7 @@ public sealed class MixedSource : IAudioSource
     public void SetMasterGain(double gainDb) => _masterTarget = GainMath.DbToLinear(gainDb);
 
     /// <summary>録音中にゲインを変える（index は inputs の順）。</summary>
-    public void SetGain(int index, double gainDb)
+    public void SetGain(int index, ChGain gainDb)
     {
         var e = _entries;
         if (index >= 0 && index < e.Length) e[index].Stream.SetGainDb(gainDb);

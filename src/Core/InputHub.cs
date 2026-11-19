@@ -52,7 +52,7 @@ public sealed class InputHub : IDisposable
     /// 入力を使い始める。すでに開いていればそれを共有し、無ければ開く（開けなくても、あとからつながれば自動で再開する）。
     /// 使い終わったら必ず Release する。開くのに時間がかかることがある（UIスレッドを長く止めたくない場合は別スレッドから）。
     /// </summary>
-    public Entry Acquire(string key, double gainDb)
+    public Entry Acquire(string key, ChGain gainDb)
     {
         lock (_lock)
         {
@@ -93,7 +93,7 @@ public sealed class InputHub : IDisposable
     }
 
     /// <summary>開いている入力のゲイン（dB）を変える（録音中・待機中・出力中のどれでも効く）。</summary>
-    public void SetGain(string key, double gainDb)
+    public void SetGain(string key, ChGain gainDb)
     {
         Entry? e;
         lock (_lock) _entries.TryGetValue(key, out e);

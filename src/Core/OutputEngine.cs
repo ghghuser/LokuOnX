@@ -265,7 +265,7 @@ public sealed class OutputEngine : IDisposable
             if (run.Contains(key)) continue;
             int free = Array.IndexOf(run, null);
             if (free < 0) break;
-            var e = _hub.Acquire(key, inputs.First(i => i.Key == key).GainDb);
+            var e = _hub.Acquire(key, inputs.First(i => i.Key == key).Gains);
             _entries[free] = e;
             e.Stream.AddTap(_taps[free]);
             run[free] = key;

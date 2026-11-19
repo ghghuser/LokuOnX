@@ -133,7 +133,7 @@ public sealed class RecordingGroup : IDisposable
             for (int idx = 0; idx < lanes.Count; idx++)
             {
                 var lane = lanes[idx];
-                var mixInputs = lane.Select(i => new MixInput(i.Key, LabelOf(i.Key), i.GainDb)).ToList();
+                var mixInputs = lane.Select(i => new MixInput(i.Key, LabelOf(i.Key), i.Gains)).ToList();
                 var src = new MixedSource(hub, mixInputs, devices);
                 src.SetMasterGain(s.MasterGainDb);
                 sources.Add(src);
@@ -211,7 +211,7 @@ public sealed class RecordingGroup : IDisposable
     public (float L, float R)[] TakeDevicePeakPairs() => _sources.SelectMany(x => x.TakeDevicePeakPairs()).ToArray();
 
     /// <summary>録音中にゲインを変える（index は選んだ順）。</summary>
-    public void SetGain(int index, double gainDb)
+    public void SetGain(int index, ChGain gainDb)
     {
         if (_separate)
         {

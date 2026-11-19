@@ -72,7 +72,7 @@ public sealed partial class Settings
         SampleRate = SampleRate,
         Channels = Channels,
         Compression = Compression,
-        Inputs = Inputs.Select(i => new ProfileInput { Key = i.Key, GainDb = i.GainDb, Enabled = i.Enabled }).ToList(),
+        Inputs = Inputs.Select(i => new ProfileInput { Key = i.Key, GainDb = i.GainDb, Enabled = i.Enabled, GainMode = i.GainMode, GainRDb = i.GainRDb, Balance = i.Balance }).ToList(),
         SeparateFiles = SeparateFiles,
         SplitSeconds = SplitSeconds,
         Template = Template,
@@ -101,7 +101,8 @@ public sealed partial class Settings
         Channels = p.Channels;
         SetCompressionFor(Format, p.Compression);
         Inputs = p.Inputs.Take(MaxInputs)
-            .Select(i => new InputSetting(i.Key, Math.Clamp(i.GainDb, MinGainDb, MaxGainDb), i.Enabled)).ToList();
+            .Select(i => new InputSetting(i.Key, Math.Clamp(i.GainDb, MinGainDb, MaxGainDb), i.Enabled, Math.Clamp(i.GainMode, 0, 2),
+                Math.Clamp(i.GainRDb, MinGainDb, MaxGainDb), Math.Clamp(double.IsNaN(i.Balance) ? 0 : i.Balance, -1, 1))).ToList();
         SeparateFiles = p.SeparateFiles;
         SplitSeconds = p.SplitSeconds;
         Template = p.Template;
