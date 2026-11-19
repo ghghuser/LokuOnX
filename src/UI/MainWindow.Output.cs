@@ -84,7 +84,7 @@ public partial class MainWindow : IOutputHost
         if (_outHub == null) return;
         var combo = new HashSet<int>();
         var lamp = new HashSet<int>();
-        var bg = new HashSet<int>();
+        var bg = new Dictionary<int, string>();
         for (int i = 0; i < _outCfgs.Count && i < _outHub.Count; i++)
         {
             bool rec = ((IOutputHost)this).OutputRecMode(i) != 0;
@@ -93,7 +93,7 @@ public partial class MainWindow : IOutputHost
             {
                 bool free = _outCfgs[i].SendAt(x.Slot).Free;
                 if (rec) { combo.Add(x.Slot); if (x.Active && !free) lamp.Add(x.Slot); }
-                if (!x.Active && running) bg.Add(x.Slot);
+                if (!x.Active && running) bg[x.Slot] = bg.GetValueOrDefault(x.Slot, "") + OutputConfig.Letter(i);
             }
         }
         Devices.SetOutputLocks(combo, lamp);

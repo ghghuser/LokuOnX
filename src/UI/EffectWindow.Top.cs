@@ -65,7 +65,7 @@ public sealed partial class EffectWindow
         {
             "N" => c.GateOn, "Lc" => c.HpfHz >= 20, "G" => c.EqOn, "P" => c.ParamOn, "E" => c.EchoOn, "R" => c.ReverbOn, "Lm" => c.LimiterOn, _ => false,
         };
-        return string.Concat(order.Split(',').Where(On));
+        return string.Join(",", order.Split(',').Where(On));   // 「,」区切り（例 N,Lc,G）
     }
 
     /// <summary>タブの見出し。名前の後ろに「⚡NGR」のように、掛かっている効果を緑（入力ランプと同じ緑）で出す。バイパス中は灰色。</summary>
@@ -75,7 +75,7 @@ public sealed partial class EffectWindow
         tb.Inlines.Add(new Run(name));
         if (letters.Length > 0)
         {
-            var mark = new Run("  ⚡" + letters) { FontWeight = FontWeights.SemiBold };
+            var mark = new Run("  ⚡" + letters) { FontWeight = FontWeights.SemiBold, FontSize = 11 };   // 見出しより2つ小さく
             mark.SetResourceReference(TextElement.ForegroundProperty, bypass ? "DisabledFg" : "LampOn");
             tb.Inlines.Add(mark);
         }

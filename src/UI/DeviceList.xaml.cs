@@ -118,10 +118,14 @@ public partial class DeviceList : UserControl
     }
 
     /// <summary>ランプがオフなのに、出力が裏でこの入力を使っている行に小さい目印を出す（M15。マイクが知らないうちに開いたままにならないように）。</summary>
-    public void SetBackground(HashSet<int> slots)
+    public void SetBackground(Dictionary<int, string> slots)
     {
         for (int i = 0; i < _rows.Count; i++)
-            _rows[i].BgMark.Visibility = slots.Contains(i) ? Visibility.Visible : Visibility.Collapsed;
+        {
+            var m = _rows[i].BgMark;
+            if (slots.TryGetValue(i, out var letters)) { m.Text = "⇶⛓️‍💥" + letters; m.Visibility = Visibility.Visible; }   // 例「⇶⛓️‍💥AB」＝出力A・Bが使っている
+            else m.Visibility = Visibility.Collapsed;
+        }
     }
 
     /// <summary>全体ゲインが変わった（dB）。録音中も使える。</summary>
@@ -313,10 +317,10 @@ public partial class DeviceList : UserControl
         row.BgMark.Margin = new Thickness(6, 0, 0, 1);
         row.BgMark.Visibility = Visibility.Collapsed;
         row.BgMark.ToolTip = Loc.Get("devlist.bgmark.tip");
-        row.BgMark.SetResourceReference(TextBlock.ForegroundProperty, "LampRec");
+        row.BgMark.Foreground = MeterColors.Muted;   // オレンジ（切り離しの色）
         DockPanel.SetDock(row.BgMark, Dock.Right);
-        nameRow.Children.Add(row.BgMark);
         nameRow.Children.Add(row.FxButton);
+        nameRow.Children.Add(row.BgMark);   // FXの左（右詰めの2番目）
         nameRow.Children.Add(row.NameText);
         nameRow.Children.Add(row.NameBox);
         row.Left.Children.Add(nameRow);

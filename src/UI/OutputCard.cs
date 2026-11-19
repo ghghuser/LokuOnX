@@ -476,8 +476,9 @@ public sealed class OutputCard : Border
         // 鎖（M15）: つながっている＝メイン画面のランプに連動／切り離し＝ランプがオフでも、この送りのとおりに出力する
         var chain = new TextBlock
         {
-            Text = send.Free ? "✂" : "🔗", FontSize = 13, Width = 22, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            Text = send.Free ? "⛓️‍💥" : "🔗", FontSize = 13, Width = 22, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             Cursor = Cursors.Hand, Background = System.Windows.Media.Brushes.Transparent, Opacity = send.Free ? 1 : 0.6,
+            Foreground = send.Free ? MeterColors.Muted : null,   // 切り離し中はオレンジ
             ToolTip = Loc.Get(send.Free ? "outputcard.chain.freeTip" : "outputcard.chain.linkedTip"),
         };
         chain.MouseLeftButtonDown += (_, e) =>
@@ -488,9 +489,9 @@ public sealed class OutputCard : Border
             Dispatcher.BeginInvoke(new Action(RefreshInputs));   // 見た目（薄さ・記号）を作り直す。この操作が終わってから
         };
         DockPanel.SetDock(chain, Dock.Left);
+        row.Children.Add(chain);
         row.Children.Add(check);
         row.Children.Add(nameHost);
-        row.Children.Add(chain);
         row.Children.Add(text);
         row.Children.Add(slider);
         return row;
