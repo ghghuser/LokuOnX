@@ -81,6 +81,7 @@ public sealed class OutputCard : Border
     private readonly Button _rec = new();
     private readonly Button _fx = new();
     private readonly ComboBox _device = new();
+    private bool _devReady;   // 出力先の一覧を読み込み済み（それまでは押せない）
     private readonly TextBlock _state = new();
     private readonly TextBlock _recState = new();
     private readonly TextBlock _error = new();
@@ -337,6 +338,7 @@ public sealed class OutputCard : Border
         _loading = true;
         _device.ItemsSource = items;
         _device.SelectedItem = items.FirstOrDefault(d => d.Id == saved) ?? None;
+        _devReady = true;
         _device.IsEnabled = true;
         _loading = false;
         UpdateLoopWarnings();
@@ -363,7 +365,7 @@ public sealed class OutputCard : Border
     {
         var slots = _host.InputSlots();
         UpdateLoopWarnings();   // 入力の行が同じでも、行のデバイスが変わると音が回るかどうかが変わる
-        var sig = string.Join("|", slots.Select(s => s.Slot + ":" + s.Name + ":" + (s.Active ? 1 : 0)));
+        var sig = string.Join("|", slots.Select(s => s.Slot + ":" + s.Name + ":" + (s.Active ? 1 : 0) + ":" + (Cfg.SendAt(s.Slot).Free ? 1 : 0)));
         if (sig == _inputSig) { ShowState(); return; }
         _inputSig = sig;
         var was = _loading;
@@ -390,7 +392,7 @@ public sealed class OutputCard : Border
     {
         var send = Cfg.SendAt(slot);
         var row = new DockPanel { Margin = new Thickness(0, 6, 0, 0), Height = 24 };
-        if (!active) { row.Opacity = 0.55; row.ToolTip = Loc.Get("outputcard.inputOff"); }   // 使うランプがオフの入力: いまは音が来ないので薄く（設定はしておける）
+        if (!active && !send.Free) { row.Opacity = 0.55; row.ToolTip = Loc.Get("outputcard.inputOff"); }   // 使うランプがオフの入力: いまは音が来ないので薄く（設定はしておける）
         var check = new CheckBox { IsChecked = send.On, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, ToolTip = Loc.Get("outputcard.s21") };
         // 名前（ダブルクリックか右クリックで変更。メイン画面の入力の名前と同じもの）
         var label = new TextBlock
@@ -456,7 +458,7 @@ public sealed class OutputCard : Border
         {
             Show();
             if (_loading) return;
-            _host.Update(_index, Cfg.WithSend(slot, new OutSend(check.IsChecked == true, slider.Value)));
+            _host.Update(_index, Cfg.WithSend(slot, Cfg.SendAt(slot) with { On = check.IsChecked == true, Db = slider.Value }));
             ShowInputsHeader();
         }
         check.Checked += (_, _) => Commit();
@@ -471,8 +473,24 @@ public sealed class OutputCard : Border
         DockPanel.SetDock(check, Dock.Left);
         DockPanel.SetDock(text, Dock.Right);
         DockPanel.SetDock(nameHost, Dock.Left);
+        // 鎖（M15）: つながっている＝メイン画面のランプに連動／切り離し＝ランプがオフでも、この送りのとおりに出力する
+        var chain = new TextBlock
+        {
+            Text = send.Free ? "✂" : "🔗", FontSize = 13, Width = 22, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            Cursor = Cursors.Hand, Background = System.Windows.Media.Brushes.Transparent, Opacity = send.Free ? 1 : 0.6,
+            ToolTip = Loc.Get(send.Free ? "outputcard.chain.freeTip" : "outputcard.chain.linkedTip"),
+        };
+        chain.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;
+            if (_loading) return;
+            _host.Update(_index, Cfg.WithSend(slot, Cfg.SendAt(slot) with { Free = !Cfg.SendAt(slot).Free }));
+            Dispatcher.BeginInvoke(new Action(RefreshInputs));   // 見た目（薄さ・記号）を作り直す。この操作が終わってから
+        };
+        DockPanel.SetDock(chain, Dock.Left);
         row.Children.Add(check);
         row.Children.Add(nameHost);
+        row.Children.Add(chain);
         row.Children.Add(text);
         row.Children.Add(slider);
         return row;
@@ -511,7 +529,7 @@ public sealed class OutputCard : Border
     private void ShowState()
     {
         var e = Engine;
-        _state.Text = _device.IsEnabled ? e.State : Loc.Get("outputcard.s09");
+        _state.Text = _devReady ? e.State : Loc.Get("outputcard.s09");
         var error = e.Error;
         if (error.Length == 0 && _loopWarn) error = OutputGuard.LoopMessage;   // 「出力する」がオフでも、選んだ時点で理由を出す
         _error.Text = error;
@@ -529,6 +547,11 @@ public sealed class OutputCard : Border
 
         // 録音（M13）
         int mode = _host.OutputRecMode(_index);
+        if (_devReady)
+        {
+            _device.IsEnabled = mode == 0;   // 録音中は出力先を変えない（M15。録音の形式が途中で変わるのを防ぐ）
+            _device.ToolTip = Loc.Get(mode == 0 ? "outputcard.s08" : "outputcard.lockedByRec");
+        }
         if (mode != 0)
         {
             var t = _host.OutputRecElapsed(_index);

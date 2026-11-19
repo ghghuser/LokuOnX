@@ -40,7 +40,7 @@ public partial class MainWindow : IOutputHost
         _outCfgs = _settings.Outputs.ToList();
         _outHub.EnsureCount(_outCfgs.Count);
         for (int i = 0; i < _outCfgs.Count; i++) ApplyOutput(i);
-        _outTimer.Tick += (_, _) => UpdateOutputButton();
+        _outTimer.Tick += (_, _) => { UpdateOutputButton(); UpdateOutputLocks(); };
         _outTimer.Start();
         _outSaveTimer.Tick += (_, _) => { _outSaveTimer.Stop(); _settings.Outputs = _outCfgs; };
     }
@@ -49,7 +49,6 @@ public partial class MainWindow : IOutputHost
     private void SyncOutputInputs()
     {
         SyncEffects();   // 入力（行）が変わったので、エフェクトも渡し直す（出力・録音が入力を開く前に）
-        _outHub.SetInputs(Devices.Inputs);
         for (int i = 0; i < _outCfgs.Count && i < _outHub.Count; i++) ApplySends(i);
         _outWindow?.RefreshInputs();
         _fxWindow?.RefreshSlots();
@@ -66,7 +65,39 @@ public partial class MainWindow : IOutputHost
     private void ApplySends(int i)
     {
         var cfg = _outCfgs[i];
-        _outHub[i].SetSends(Devices.ActiveInputs.Select(a => cfg.SendAt(a.Slot)).ToList());
+        var list = OutputInputs(i);
+        _outHub[i].SetInputs(list.Select(x => x.Setting).ToList());   // この出力が使う入力（ランプがオンのもの＋切り離して送りがオンのもの）
+        _outHub[i].SetSends(list.Select(x => cfg.SendAt(x.Slot)).ToList());
+        UpdateOutputLocks();
+    }
+
+    /// <summary>出力 i が使う入力。ランプがオンの入力はすべて、ランプがオフの入力は「切り離し＋送りオン」のものだけ（M15）。</summary>
+    private List<(int Slot, InputSetting Setting, bool Active)> OutputInputs(int i)
+    {
+        var cfg = _outCfgs[i];
+        return Devices.SelectedSettings.Where(x => x.Active || (cfg.SendAt(x.Slot).Free && cfg.SendAt(x.Slot).On)).ToList();
+    }
+
+    /// <summary>出力の録音中は、その出力が使う入力のデバイスと（つながっている入力は）ランプを止める。ランプがオフなのに裏で動いている入力には目印を出す（M15）。</summary>
+    private void UpdateOutputLocks()
+    {
+        if (_outHub == null) return;
+        var combo = new HashSet<int>();
+        var lamp = new HashSet<int>();
+        var bg = new HashSet<int>();
+        for (int i = 0; i < _outCfgs.Count && i < _outHub.Count; i++)
+        {
+            bool rec = ((IOutputHost)this).OutputRecMode(i) != 0;
+            bool running = _outHub[i].Running || _outHub[i].On;
+            foreach (var x in OutputInputs(i))
+            {
+                bool free = _outCfgs[i].SendAt(x.Slot).Free;
+                if (rec) { combo.Add(x.Slot); if (x.Active && !free) lamp.Add(x.Slot); }
+                if (!x.Active && running) bg.Add(x.Slot);
+            }
+        }
+        Devices.SetOutputLocks(combo, lamp);
+        Devices.SetBackground(bg);
     }
 
     private void ApplyOutput(int i)

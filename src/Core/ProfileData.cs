@@ -16,6 +16,7 @@ public sealed class ProfileSend
 {
     public bool On { get; set; } = true;
     public double Db { get; set; }
+    public bool Free { get; set; }   // M15: メイン画面のランプと切り離す（旧プロファイルは false）
 }
 
 /// <summary>プロファイル内の出力カード1枚分（M11-3。「出力する」のON/OFFは含めない）。</summary>

@@ -35,7 +35,7 @@ public sealed partial class Settings
                     var raw = _ini.Get(OutSection, $"Send{i}_{s}", "1,0").Split(',');
                     bool on = raw.Length < 1 || raw[0].Trim() != "0";
                     double db = raw.Length > 1 ? Num(raw[1]) : 0;
-                    sends.Add(new OutSend(on, db));
+                    sends.Add(new OutSend(on, db, raw.Length > 2 && raw[2].Trim() == "1"));
                 }
                 var fx = OutputFxSetting.ReadFrom(new IniSection(_ini, OutSection), $"Fx{i}_");
                 list.Add(new OutputConfig(_ini.Get(OutSection, $"Name{i}", ""), _ini.Get(OutSection, $"Device{i}", ""),
@@ -67,8 +67,8 @@ public sealed partial class Settings
                 {
                     var send = c.SendAt(s - 1);
                     var key = $"Send{i}_{s}";
-                    if (send.On && send.Db == 0) _ini.Remove(OutSection, key);
-                    else _ini.Set(OutSection, key, (send.On ? "1," : "0,") + send.Db.ToString("0.#", CultureInfo.InvariantCulture));
+                    if (send.On && send.Db == 0 && !send.Free) _ini.Remove(OutSection, key);
+                    else _ini.Set(OutSection, key, (send.On ? "1," : "0,") + send.Db.ToString("0.#", CultureInfo.InvariantCulture) + (send.Free ? ",1" : ""));
                 }
                 // 出力ごとのエフェクト（初期値のままなら書かず、前に書いたものも消す）
                 foreach (var k in OutputFxSetting.IniKeys) _ini.Remove(OutSection, $"Fx{i}_{k}");

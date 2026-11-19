@@ -85,7 +85,7 @@ public sealed partial class Settings
             Name = o.Name,
             DeviceId = o.DeviceId,
             VolumeDb = o.VolumeDb,
-            Sends = Enumerable.Range(0, OutputConfig.InputSlots).Select(i => new ProfileSend { On = o.SendAt(i).On, Db = o.SendAt(i).Db }).ToList(),
+            Sends = Enumerable.Range(0, OutputConfig.InputSlots).Select(i => new ProfileSend { On = o.SendAt(i).On, Db = o.SendAt(i).Db, Free = o.SendAt(i).Free }).ToList(),
             Fx = o.Fx is { IsDefault: false } ? o.Fx.Clone() : null,
         }).ToList(),
         InputNames = InputNames.ToList(),
@@ -113,7 +113,7 @@ public sealed partial class Settings
         if (p.InputEffects != null) InputEffects = p.InputEffects.Select(e => e ?? new EffectSetting()).ToList();
         if (p.Outputs is { Count: > 0 })
             Outputs = p.Outputs.Take(OutputConfig.MaxOutputs).Select((o, i) => new OutputConfig(o.Name, o.DeviceId, o.VolumeDb,
-                Enumerable.Range(0, OutputConfig.InputSlots).Select(k => k < (o.Sends?.Count ?? 0) ? new OutSend(o.Sends![k].On, o.Sends[k].Db) : new OutSend()).ToList(),
+                Enumerable.Range(0, OutputConfig.InputSlots).Select(k => k < (o.Sends?.Count ?? 0) ? new OutSend(o.Sends![k].On, o.Sends[k].Db, o.Sends[k].Free) : new OutSend()).ToList(),
                 o.Fx).Normalize(i)).ToList();
         CurrentProfile = p.Name;
     }

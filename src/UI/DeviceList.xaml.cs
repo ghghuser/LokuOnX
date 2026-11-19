@@ -20,6 +20,7 @@ public partial class DeviceList : UserControl
     {
         public readonly Grid Panel = new();
         public readonly CheckBox Use = new();
+        public readonly TextBlock BgMark = new();
         public readonly ComboBox Combo = new();
         public readonly StackPanel Left = new();     // 名前の小さいラベル＋プルダウン
         public readonly TextBlock NameText = new();  // 入力の名前（ダブルクリックで変更）
@@ -86,6 +87,42 @@ public partial class DeviceList : UserControl
     public IReadOnlyList<(int Slot, string Name, bool Active)> SelectedInputs =>
         _rows.Select((r, i) => (r, i)).Where(x => x.r.Key.Length > 0)
             .Select(x => (x.i, OutputConfig.InputLabel(_names, x.i), x.r.Use.IsChecked == true)).ToList();
+
+    /// <summary>デバイスが選ばれている行（ランプがオフでも）の、行の番号・設定（デバイス・ゲイン）・ランプがオンか。出力が「ランプと切り離した入力」を開くのに使う（M15）。</summary>
+    public IReadOnlyList<(int Slot, InputSetting Setting, bool Active)> SelectedSettings =>
+        _rows.Select((r, i) => (r, i)).Where(x => x.r.Key.Length > 0)
+            .Select(x => (x.i, new InputSetting(x.r.Key, x.r.Gain.Value), x.r.Use.IsChecked == true)).ToList();
+
+    private HashSet<int> _lockCombo = new();
+    private HashSet<int> _lockLamp = new();
+
+    /// <summary>出力の録音が使っている行を止める（M15）。combo＝デバイスの選択、lamp＝使うランプ。メインの録音中の止め方（SetRecording）とは別に重ねる。</summary>
+    public void SetOutputLocks(HashSet<int> combo, HashSet<int> lamp)
+    {
+        if (_lockCombo.SetEquals(combo) && _lockLamp.SetEquals(lamp)) return;
+        _lockCombo = combo;
+        _lockLamp = lamp;
+        ApplyLocks();
+    }
+
+    private void ApplyLocks()
+    {
+        for (int i = 0; i < _rows.Count; i++)
+        {
+            var r = _rows[i];
+            bool combo = _recording || _lockCombo.Contains(i);
+            r.Combo.IsEnabled = !combo;
+            r.Use.IsEnabled = !(_recording || _lockLamp.Contains(i));
+            r.Combo.ToolTip = !_recording && _lockCombo.Contains(i) ? Loc.Get("devlist.lockedByOutputRec") : null;
+        }
+    }
+
+    /// <summary>ランプがオフなのに、出力が裏でこの入力を使っている行に小さい目印を出す（M15。マイクが知らないうちに開いたままにならないように）。</summary>
+    public void SetBackground(HashSet<int> slots)
+    {
+        for (int i = 0; i < _rows.Count; i++)
+            _rows[i].BgMark.Visibility = slots.Contains(i) ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     /// <summary>全体ゲインが変わった（dB）。録音中も使える。</summary>
     public event Action<double>? MasterGainChanged;
@@ -269,6 +306,16 @@ public partial class DeviceList : UserControl
         row.FxButton.Click += (_, _) => FxRequested?.Invoke(_rows.IndexOf(row));
         DockPanel.SetDock(row.FxButton, Dock.Right);
         var nameRow = new DockPanel { LastChildFill = true };
+        row.BgMark.Text = Loc.Get("devlist.bgmark");
+        row.BgMark.FontSize = 10;
+        row.BgMark.FontWeight = FontWeights.SemiBold;
+        row.BgMark.VerticalAlignment = VerticalAlignment.Center;
+        row.BgMark.Margin = new Thickness(6, 0, 0, 1);
+        row.BgMark.Visibility = Visibility.Collapsed;
+        row.BgMark.ToolTip = Loc.Get("devlist.bgmark.tip");
+        row.BgMark.SetResourceReference(TextBlock.ForegroundProperty, "LampRec");
+        DockPanel.SetDock(row.BgMark, Dock.Right);
+        nameRow.Children.Add(row.BgMark);
         nameRow.Children.Add(row.FxButton);
         nameRow.Children.Add(row.NameText);
         nameRow.Children.Add(row.NameBox);
@@ -583,11 +630,8 @@ public partial class DeviceList : UserControl
     {
         _recording = recording;
         foreach (var r in _rows)
-        {
-            r.Combo.IsEnabled = !recording;
-            r.Use.IsEnabled = !recording;
             if (!recording) r.Gain.Reset();
-        }
+        ApplyLocks();
         UpdateWarnings();   // ランプの色（録音中は青）を付け直す
         UpdateLayout2();
     }

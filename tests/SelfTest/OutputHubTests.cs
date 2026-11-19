@@ -31,6 +31,8 @@ static class OutputHubTests
             check(c.Name == "ミックスC" && c.VolumeDb == Settings.MaxGainDb && c.Sends.Count == OutputConfig.InputSlots && c.SendAt(0).Db == Settings.MinGainDb && c.SendAt(3).On, "範囲外の値と足りない送りを直す");
             var w = OutputConfig.Default(0).WithSend(2, new OutSend(false, 3));
             check(!w.SendAt(2).On && w.SendAt(2).Db == 3 && w.SendAt(0).On, "送りの1つだけ変えた設定を作れる");
+            var fr = OutputConfig.Default(0).WithSend(1, new OutSend(true, 0, true)).Normalize(0);
+            check(fr.SendAt(1).Free && !fr.SendAt(0).Free, "ランプとの切り離し（Free）は送りごとに持ち、整えても残る");
         }
 
         section("複数の出力（OutputHub）");

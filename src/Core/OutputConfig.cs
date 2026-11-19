@@ -1,7 +1,7 @@
 namespace Recorder.Core;
 
-/// <summary>入力1つから、ある出力への送り（M11-3）。On＝この出力へ送る、Db＝入力×出力ごとの音量（最小＝ミュート）。</summary>
-public sealed record OutSend(bool On = true, double Db = 0);
+/// <summary>入力1つから、ある出力への送り（M11-3）。On＝この出力へ送る、Db＝入力×出力ごとの音量（最小＝ミュート）。Free＝メイン画面のランプと切り離す（M15。ランプがオフでも、Onなら出力へ送る。メインの録音には入らない）。</summary>
+public sealed record OutSend(bool On = true, double Db = 0, bool Free = false);
 
 /// <summary>
 /// 出力カード1枚ぶんの設定（M11-3。名前・出力先・全体音量・入力ごとの送り）。「出力する」のON/OFFは含めない（起動のたびにオフ）。
