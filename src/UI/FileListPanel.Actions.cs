@@ -91,9 +91,7 @@ public partial class FileListPanel
         var dialog = new TagEditDialog(_settings.Theme, path, current) { Owner = Owner };
         if (dialog.ShowDialog() != true || dialog.Result is not { } tag) return;
 
-        var answer = MessageBox.Show(Owner!, Loc.Get("tagedit.confirm", files[0].Name),
-            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes) return;
+        if (!ConfirmDialog.Ask(Owner, _settings.Theme, Loc.Get("tagedit.confirm", files[0].Name))) return;
 
         Releasing?.Invoke(new[] { path });   // 再生中のファイルは置き換えられないので、止めて手放す
         ShowError(Loc.Get("tagedit.writing"));

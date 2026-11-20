@@ -187,7 +187,7 @@ public sealed partial class EffectWindow : Window
         _cards.Children.Clear();
         _cardHeads.Clear();
         _cardBorders.Clear();
-        foreach (var v in _views) v.Unload();
+        foreach (var v in _views) v.ResetRoot();   // 置き場ごと作り直す（古い親に残った親子関係で「Must disconnect…」と落ちるのを防ぐ）
         if (_slot >= slots.Count) _slot = Math.Max(0, slots.Count - 1);
         for (int i = 0; i < _views.Count && i < slots.Count; i++) _views[i].Slot = slots[i].Slot;
 

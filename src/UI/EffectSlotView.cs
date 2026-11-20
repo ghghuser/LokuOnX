@@ -31,7 +31,14 @@ internal sealed class EffectSlotView
     public int Slot { get; set; }
 
     /// <summary>中身の置き場。作っていない間は空。</summary>
-    public ContentControl Root { get; } = new();
+    public ContentControl Root { get; private set; } = new();
+
+    /// <summary>置き場を新しく作り直す（タブ式⇔カード式で置き場所の親が変わるとき、古い親に見た目の親子関係が残って落ちるため）。</summary>
+    public void ResetRoot()
+    {
+        Root.Content = null;
+        Root = new ContentControl();
+    }
 
     /// <summary>選んでいる効果のタブ（0＝イコライザ／1＝ノイズゲート…）。</summary>
     public int Inner { get; set; }
