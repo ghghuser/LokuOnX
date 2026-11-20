@@ -7,9 +7,9 @@ static class TagEditTests
     {
         section("タグの変更（M15）");
         {
-            var t = TagEditor.ParseFfmetadata(";FFMETADATA1\ntitle=朝の録音\nartist=わたし\ndate=2026\ncomment=a\\=b\;c\\\\d\nencoder=Lavf60\n[STREAM]\ntitle=無視される\n");
+            var t = TagEditor.ParseFfmetadata(";FFMETADATA1\ntitle=朝の録音\nartist=わたし\ndate=2026\ncomment=a\\=b\\;c\\\\d\nencoder=Lavf60\n[STREAM]\ntitle=無視される\n");
             check(t.Title == "朝の録音" && t.Artist == "わたし" && t.Year == "2026", "ffmetadata からタイトル・アーティスト・年を読む");
-            check(t.Comment == "a=b\;c\\d", "= ; \\ のエスケープを戻す", t.Comment);
+            check(t.Comment == "a=b\\;c\\d", "= ; \\ のエスケープを戻す", t.Comment);
             check(t.Album == "" && t.Genre == "", "無い項目は空");
             var m = TagEditor.ParseFfmetadata(";FFMETADATA1\ncomment=1行目\\\n2行目\n");
             check(m.Comment == "1行目\n2行目", "行末の \\ は値の中の改行", m.Comment);
