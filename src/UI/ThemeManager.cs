@@ -15,6 +15,9 @@ public static class ThemeManager
     private static readonly List<ResourceDictionary> Current = new();
     private static readonly string[] SurfaceKeys = { "WindowBg", "PanelBg", "PanelHover", "InputBg", "LaneBg", "WaveBg", "WaveBgOff", "CardBg", "MeterBg", "LightBtnFace", "LightBtnHover", "LightBtnPressed", "SoftFace", "SoftFaceHover", "SoftFacePressed" };
     private static string _mode = "auto";
+
+    /// <summary>いま適用している画面の色の設定（auto／light／dark …）。確認ダイアログなど、あとから作るウィンドウが使う。</summary>
+    public static string Mode => _mode;
     private static string _effect = "none";
     private static int _opacity = 90;
 

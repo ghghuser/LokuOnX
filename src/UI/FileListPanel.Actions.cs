@@ -35,9 +35,7 @@ public partial class FileListPanel
         }
         if (files.Count > 1)
         {
-            var answer = MessageBox.Show(Owner!, Loc.Get("filelistpanel.actions.s03", files.Count, files.Count),
-                AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-            if (answer != MessageBoxResult.Yes) return;
+            if (!ConfirmDialog.Ask(Owner, Loc.Get("filelistpanel.actions.s03", files.Count, files.Count))) return;
         }
         foreach (var f in files)
         {
@@ -91,7 +89,7 @@ public partial class FileListPanel
         var dialog = new TagEditDialog(_settings.Theme, path, current) { Owner = Owner };
         if (dialog.ShowDialog() != true || dialog.Result is not { } tag) return;
 
-        if (!ConfirmDialog.Ask(Owner, _settings.Theme, Loc.Get("tagedit.confirm", files[0].Name))) return;
+        if (!ConfirmDialog.Ask(Owner, Loc.Get("tagedit.confirm", files[0].Name))) return;
 
         Releasing?.Invoke(new[] { path });   // 再生中のファイルは置き換えられないので、止めて手放す
         ShowError(Loc.Get("tagedit.writing"));
@@ -112,9 +110,7 @@ public partial class FileListPanel
             return;
         }
         var what = files.Count == 1 ? $"「{files[0].Name}」" : Loc.Get("filelistpanel.actions.s07", files.Count);
-        var answer = MessageBox.Show(Owner!, Loc.Get("filelistpanel.actions.s08", what),
-            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes) return;
+        if (!ConfirmDialog.Ask(Owner, Loc.Get("filelistpanel.actions.s08", what))) return;
 
         var paths = files.Select(f => f.Path).ToList();
         Releasing?.Invoke(paths);
@@ -178,9 +174,7 @@ public partial class FileListPanel
             Refresh();
             return;
         }
-        var answer = MessageBox.Show(Owner!, Loc.Get("filelistpanel.actions.s14"),
-            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes) return;
+        if (!ConfirmDialog.Ask(Owner, Loc.Get("filelistpanel.actions.s14"))) return;
         _settings.ClearHistory();
         Refresh();
     }

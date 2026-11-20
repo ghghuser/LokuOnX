@@ -20,6 +20,8 @@ public sealed class GainMeter : Grid
     private readonly Border _thumb = new();
     private readonly Border _thumbR = new();   // 左右それぞれのときの、右の棒のつまみ
     private readonly Border _center = new();   // バランスのときの、中央の目印
+    private readonly TextBlock _lblL = new(), _lblR = new();   // バランスのときの、左右の端の「L」「R」
+    private const double GapNormal = 1, GapSplit = 3;   // 2本の棒の間（左右それぞれのときだけ、ほんのわずかに広げる）
     private readonly bool _modes;
     private readonly double _barHeight;
     private double _min = -30, _max = 20, _value, _valueR, _balance;
@@ -47,7 +49,7 @@ public sealed class GainMeter : Grid
             _bars.Add(b);
         }
         Children.Add(stack);
-        MinHeight = bars * barHeight + (bars - 1) + 8;   // つまみの形が変わっても、行の高さは変えない
+        MinHeight = bars * barHeight + (bars - 1) * GapSplit + 8;   // つまみ・棒の間隔が変わっても、行の高さは変えない
         SetupThumb(_thumb);
         Children.Add(_thumb);
         SetupThumb(_thumbR);
@@ -63,6 +65,21 @@ public sealed class GainMeter : Grid
         _center.SetResourceReference(Border.BackgroundProperty, "WindowFg");
         SetZIndex(_center, 4);
         Children.Add(_center);
+        foreach (var (t, left) in new[] { (_lblL, true), (_lblR, false) })
+        {
+            t.Text = left ? "L" : "R";
+            t.FontSize = 9;
+            t.FontWeight = FontWeights.SemiBold;
+            t.Opacity = 0.85;
+            t.IsHitTestVisible = false;
+            t.VerticalAlignment = VerticalAlignment.Center;
+            t.HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            t.Margin = left ? new Thickness(3, 0, 0, 0) : new Thickness(0, 0, LevelBar.ClipWidth + LevelBar.Gap + 3, 0);
+            t.Visibility = Visibility.Collapsed;
+            t.SetResourceReference(TextBlock.ForegroundProperty, "WindowFg");
+            SetZIndex(t, 6);
+            Children.Add(t);
+        }
         SizeChanged += (_, _) => Place();
     }
 
@@ -239,24 +256,27 @@ public sealed class GainMeter : Grid
     {
         if (ActualWidth <= 0 || _max <= _min) return;
         double w = BarWidth;
-        double stack = _bars.Count * _barHeight + (_bars.Count - 1);
-        double tall = stack + 8;
-        double X(double v) => (v - _min) / (_max - _min) * w - _thumb.Width / 2;
+        double gap = _mode == 1 && _bars.Count == 2 ? GapSplit : GapNormal;
+        if (_bars.Count == 2) _bars[0].Margin = new Thickness(0, 0, 0, gap);
+        double stack = _bars.Count * _barHeight + (_bars.Count - 1) * gap;
+        double top = Math.Max(0, (ActualHeight - stack) / 2);
+        double X(double v, double tw) => (v - _min) / (_max - _min) * w - tw / 2;
+        _lblL.Visibility = _lblR.Visibility = _mode == 2 ? Visibility.Visible : Visibility.Collapsed;
         if (_mode == 1)
         {
-            // 左右それぞれ: L・R の棒に1つずつ（背の低いつまみ）
-            double h = _barHeight + 4, top = (tall - stack) / 2;
-            _thumb.Height = h;
-            _thumb.VerticalAlignment = VerticalAlignment.Top;
-            _thumb.Margin = new Thickness(X(_value), top - 2, 0, 0);
-            _thumbR.Height = h;
-            _thumbR.VerticalAlignment = VerticalAlignment.Top;
-            _thumbR.Margin = new Thickness(X(_valueR), top + _barHeight + 1 - 2, 0, 0);
+            // 左右それぞれ: L・R の棒に1つずつ（背の低いつまみ。ほんのわずかに大きめ）
+            double tw = 9, h = _barHeight + 6;
+            _thumb.Width = _thumbR.Width = tw;
+            _thumb.Height = _thumbR.Height = h;
+            _thumb.VerticalAlignment = _thumbR.VerticalAlignment = VerticalAlignment.Top;
+            _thumb.Margin = new Thickness(X(_value, tw), top - 3, 0, 0);
+            _thumbR.Margin = new Thickness(X(_valueR, tw), top + _barHeight + gap - 3, 0, 0);
             _thumbR.Visibility = Visibility.Visible;
             _center.Visibility = Visibility.Collapsed;
             return;
         }
-        _thumb.Height = tall;
+        _thumb.Width = 8;
+        _thumb.Height = stack + 8;
         _thumb.VerticalAlignment = VerticalAlignment.Center;
         _thumbR.Visibility = Visibility.Collapsed;
         if (_mode == 2)
@@ -267,7 +287,7 @@ public sealed class GainMeter : Grid
         }
         else
         {
-            _thumb.Margin = new Thickness(X(_value), 0, 0, 0);
+            _thumb.Margin = new Thickness(X(_value, 8), 0, 0, 0);
             _center.Visibility = Visibility.Collapsed;
         }
     }

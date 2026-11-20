@@ -89,9 +89,7 @@ public partial class ProfileBar : UserControl
         Acting?.Invoke();
         var name = ProfileBox.Text.Trim();
         if (!_s.Profiles.Any(p => p.Name == name)) { Error?.Invoke(Loc.Get("profile.err.noSuch")); return; }
-        var answer = MessageBox.Show(Window.GetWindow(this), Loc.Get("profile.deleteConfirm", name),
-            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes) return;
+        if (!ConfirmDialog.Ask(Window.GetWindow(this), Loc.Get("profile.deleteConfirm", name))) return;
         _s.DeleteProfile(name);
         if (_s.CurrentProfile == name) _s.CurrentProfile = "";
         Reload("");

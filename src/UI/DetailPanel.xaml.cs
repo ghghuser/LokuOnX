@@ -176,9 +176,7 @@ public partial class DetailPanel : UserControl
         if (_s == null) return;
         var name = TemplateBox.Text.Trim();
         if (!_s.Templates.Any(t => t.Name == name)) { Warn(Loc.Get("detail.err.noSuchTemplate")); return; }
-        var answer = MessageBox.Show(Window.GetWindow(this), Loc.Get("detail.deleteConfirm", name),
-            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes) return;
+        if (!ConfirmDialog.Ask(Window.GetWindow(this), Loc.Get("detail.deleteConfirm", name))) return;
         _s.DeleteTemplate(name);
         ReloadTemplates("");
         Changed?.Invoke();
@@ -253,5 +251,5 @@ public partial class DetailPanel : UserControl
     }
 
     private void Warn(string message) =>
-        MessageBox.Show(Window.GetWindow(this), message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+        ConfirmDialog.Info(Window.GetWindow(this), message);
 }

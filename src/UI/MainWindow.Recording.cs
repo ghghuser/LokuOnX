@@ -263,10 +263,9 @@ public partial class MainWindow
     {
         if (_session != null && !_closeAfterStop)
         {
-            var answer = MessageBox.Show(this, Loc.Get("rec.closeConfirm"),
-                AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            bool yes = ConfirmDialog.Ask(this, Loc.Get("rec.closeConfirm"));
             e.Cancel = true;
-            if (answer != MessageBoxResult.Yes) return;
+            if (!yes) return;
             _closeAfterStop = true;
             StopAllOutputRecsSync();
             _ = StopAsync(null);

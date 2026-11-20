@@ -13,10 +13,7 @@ public static class RecoveryPrompt
         var files = await Task.Run(() => Recovery.Find(settings.Folder));
         if (files.Count == 0 || busy()) return;
 
-        var answer = MessageBox.Show(owner,
-            Loc.Get("recovery.confirm", files.Count),
-            AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
-        if (answer != MessageBoxResult.Yes) return;
+        if (!ConfirmDialog.Ask(owner, Loc.Get("recovery.confirm", files.Count), yesDefault: true)) return;
 
         status(Loc.Get("recovery.working"));
         var results = await Task.Run(() => Recovery.Repair(files, AppPaths.Ffmpeg));

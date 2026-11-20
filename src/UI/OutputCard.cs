@@ -322,9 +322,7 @@ public sealed class OutputCard : Border
     private void AskRemove()
     {
         var owner = Window.GetWindow(this);
-        var r = MessageBox.Show(owner, Loc.Get("outputcard.s16", Cfg.Name), Loc.Get("outputcard.s17"),
-            MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (r == MessageBoxResult.Yes) _removeRequested(_index);
+        if (ConfirmDialog.Ask(owner, Loc.Get("outputcard.s16", Cfg.Name))) _removeRequested(_index);
     }
 
     // ---- 出力先 ----

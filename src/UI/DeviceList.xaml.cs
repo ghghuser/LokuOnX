@@ -29,6 +29,8 @@ public partial class DeviceList : UserControl
         public readonly GainMeter Gain = new(2, 6, true);   // 左右2本の細いメーター＋つまみ（動かし方は3通り。M15）
         public readonly Button ModeButton = new();   // ゲインの動かし方の切り替え（≡ 左右一括／⇅ 左右それぞれ／⇄ バランス）
         public readonly StackPanel MeterBox = new();   // メーター＋その下のdB目盛り
+        public readonly LevelScale Scale = new() { Margin = new Thickness(0, 1, 0, 0) };   // dB目盛り（左右それぞれのときは消す）
+        public readonly DockPanel MeterHost = new();   // 動かし方のボタン（メーターの前）＋メーター
         public readonly TextBlock GainText = new();
         public LevelBar Level => Gain.Bar;
         public readonly WaveView Wave = new();
@@ -324,19 +326,8 @@ public partial class DeviceList : UserControl
         row.BgMark.ToolTip = Loc.Get("devlist.bgmark.tip");
         row.BgMark.Foreground = MeterColors.Muted;   // オレンジ（切り離しの色）
         DockPanel.SetDock(row.BgMark, Dock.Right);
-        // ゲインの動かし方の切り替え（FXの左。クリックで 一括→左右それぞれ→バランス の順に切り替わる）
-        row.ModeButton.Style = (Style)Application.Current.FindResource("FxButton");
-        row.ModeButton.FontFamily = new FontFamily("Segoe UI Symbol");
-        row.ModeButton.FontSize = 11;
-        row.ModeButton.Height = 18;
-        row.ModeButton.MinWidth = 22;
-        row.ModeButton.Margin = new Thickness(6, 0, 0, 2);
-        row.ModeButton.VerticalAlignment = VerticalAlignment.Center;
-        row.ModeButton.Click += (_, _) => row.Gain.Mode = (row.Gain.Mode + 1) % 3;
-        DockPanel.SetDock(row.ModeButton, Dock.Right);
         nameRow.Children.Add(row.FxButton);
-        nameRow.Children.Add(row.ModeButton);
-        nameRow.Children.Add(row.BgMark);   // 右詰めの3番目（FX・動かし方の左）
+        nameRow.Children.Add(row.BgMark);   // FXの左（右詰めの2番目）
         nameRow.Children.Add(row.NameText);
         nameRow.Children.Add(row.NameBox);
         row.Left.Children.Add(nameRow);
@@ -364,8 +355,20 @@ public partial class DeviceList : UserControl
         row.Gain.ToolTip = Loc.Get("devlist.gain.tip");
         row.MeterBox.VerticalAlignment = VerticalAlignment.Center;
         row.MeterBox.Children.Add(row.Gain);
-        row.MeterBox.Children.Add(new LevelScale { Margin = new Thickness(0, 1, 0, 0) });
-        Grid.SetColumn(row.MeterBox, 3);
+        row.MeterBox.Children.Add(row.Scale);
+        // 動かし方の切り替えボタンは、メーターの前（クリックで 一括→左右それぞれ→バランス の順）
+        row.ModeButton.Style = (Style)Application.Current.FindResource("FxButton");
+        row.ModeButton.FontFamily = new FontFamily("Segoe UI Symbol");
+        row.ModeButton.FontSize = 11;
+        row.ModeButton.Height = 18;
+        row.ModeButton.MinWidth = 22;
+        row.ModeButton.Margin = new Thickness(0, 0, 6, 0);
+        row.ModeButton.VerticalAlignment = VerticalAlignment.Center;
+        row.ModeButton.Click += (_, _) => row.Gain.Mode = (row.Gain.Mode + 1) % 3;
+        DockPanel.SetDock(row.ModeButton, Dock.Left);
+        row.MeterHost.Children.Add(row.ModeButton);
+        row.MeterHost.Children.Add(row.MeterBox);
+        Grid.SetColumn(row.MeterHost, 3);
 
         row.GainText.VerticalAlignment = VerticalAlignment.Center;
         row.GainText.TextAlignment = TextAlignment.Left;
@@ -377,7 +380,7 @@ public partial class DeviceList : UserControl
         g.Children.Add(row.Use);
         g.Children.Add(row.Left);
         g.Children.Add(row.Lane);
-        g.Children.Add(row.MeterBox);
+        g.Children.Add(row.MeterHost);
         g.Children.Add(row.GainText);
         row.Lane.ContextMenu = new ContextMenu { Items = { FxItem(row) } };
         row.MeterBox.ContextMenu = new ContextMenu { Items = { FxItem(row) } };
@@ -533,7 +536,11 @@ public partial class DeviceList : UserControl
             case 2: row.GainText.Text = GainLabel(g.Value) + "\n" + BalanceLabel(g.Balance); break;
             default: row.GainText.Text = GainLabel(g.Value); break;
         }
-        row.GainText.FontSize = g.Mode == 0 ? 12 : 10;
+        row.GainText.FontSize = g.Mode switch { 0 => 12, 1 => 9, _ => 10 };
+        // 左右それぞれ: 1行の高さを棒の間隔（6＋3）に合わせて、L・R の数字を各棒の高さにそろえる。目盛りの数字は消す
+        row.GainText.LineHeight = g.Mode == 1 ? 9 : double.NaN;
+        row.GainText.LineStackingStrategy = g.Mode == 1 ? LineStackingStrategy.BlockLineHeight : LineStackingStrategy.MaxHeight;
+        row.Scale.Visibility = g.Mode == 1 ? Visibility.Collapsed : Visibility.Visible;
         row.ModeButton.Content = g.Mode switch { 1 => "⇅", 2 => "⇄", _ => "≡" };
         row.ModeButton.ToolTip = Loc.Get("devlist.mode." + g.Mode);
     }
