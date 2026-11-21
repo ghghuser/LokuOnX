@@ -92,10 +92,10 @@ public partial class FileListPanel
         if (!ConfirmDialog.Ask(Owner, Loc.Get("tagedit.confirm", files[0].Name))) return;
 
         Releasing?.Invoke(new[] { path });   // 再生中のファイルは置き換えられないので、止めて手放す
-        ShowError(Loc.Get("tagedit.writing"));
+        Notice?.Invoke(Loc.Get("tagedit.writing"));
         var error = await Task.Run(() => TagEditor.Write(_ffmpeg, path, tag), CancellationToken.None);
-        ClearError();
-        if (error != null) ShowError(error);
+        if (error != null) { Notice?.Invoke(""); ShowError(error); }
+        else Notice?.Invoke(Loc.Get("tagedit.done", files[0].Name));   // ログ欄に残す（次の知らせが出るまで）
         Refresh(path);
     }
 

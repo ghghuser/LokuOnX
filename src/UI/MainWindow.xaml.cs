@@ -73,6 +73,7 @@ public partial class MainWindow : Window
         Files.Selected += Player.Load;
         Files.PlayRequested += Player.PlayFile;
         Files.Releasing += Player.Release;
+        Files.Notice += text => { if (_session == null) StatusText.Text = text; };   // 録音中はログ欄が録音の表示で埋まるので出さない
         ThemeManager.Attach(this, settings.Theme);
         _loading = false;
 

@@ -45,6 +45,9 @@ public partial class FileListPanel : UserControl
     /// <summary>名前の変更・削除の直前（再生中のファイルを手放すため）。</summary>
     public event Action<IReadOnlyCollection<string>>? Releasing;
 
+    /// <summary>画面下のログ欄に出す知らせ（「タグを書き込みました」など。赤文字のエラーではないもの）。</summary>
+    public event Action<string>? Notice;
+
     public FileListPanel()
     {
         InitializeComponent();

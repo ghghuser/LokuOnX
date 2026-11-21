@@ -532,7 +532,7 @@ public partial class DeviceList : UserControl
         var g = row.Gain;
         switch (g.Mode)
         {
-            case 1: row.GainText.Text = "L " + ShortGain(g.Value) + "\nR " + ShortGain(g.ValueR); break;
+            case 1: row.GainText.Text = "L " + GainLabel(g.Value) + "\nR " + GainLabel(g.ValueR); break;
             case 2: row.GainText.Text = GainLabel(g.Value) + "\n" + BalanceLabel(g.Balance); break;
             default: row.GainText.Text = GainLabel(g.Value); break;
         }
@@ -544,10 +544,6 @@ public partial class DeviceList : UserControl
         row.ModeButton.Content = g.Mode switch { 1 => "⇅", 2 => "⇄", _ => "≡" };
         row.ModeButton.ToolTip = Loc.Get("devlist.mode." + g.Mode);
     }
-
-    private static string ShortGain(double db) => GainMath.IsMuted(db)
-        ? Loc.Get("devlist.mute")
-        : db.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture);
 
     private static string BalanceLabel(double b) => b == 0
         ? Loc.Get("devlist.balance.center")
