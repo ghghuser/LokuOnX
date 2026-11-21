@@ -37,6 +37,8 @@ internal sealed class OutputFxHost : IEffectHost
 
     public bool HasRouting => false;
 
+    public EffectPresetStore Presets => _s.EffectPresets;
+
     public string WindowRect
     {
         get => _s.OutputFxWindowRect;

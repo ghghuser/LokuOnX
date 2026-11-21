@@ -110,6 +110,8 @@ public partial class MainWindow : IEffectHost
 
     bool IEffectHost.HasRouting => true;
 
+    EffectPresetStore IEffectHost.Presets => _settings.EffectPresets;
+
     string IEffectHost.WindowRect
     {
         get => _settings.EffectWindowRect;

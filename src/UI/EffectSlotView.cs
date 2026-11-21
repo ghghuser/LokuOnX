@@ -11,14 +11,15 @@ namespace Recorder.UI;
 /// </summary>
 internal sealed class EffectSlotView
 {
-    private static EffectSetting? _clip;   // コピーした効果（反映先の設定は含まない）。ウィンドウを閉じても残す
-
     private readonly IEffectHost _host;
     private readonly Action<int, EffectSetting> _marks;   // 掛かっている効果の印が変わったとき（タブ・カードの見出しの更新）
     private EffectSetting _fx = new();
     private TabControl? _tabs;
     private CheckBox? _toRec;
-    private Button? _paste;
+    private ComboBox? _presetBox;
+    private TextBlock? _presetMsg;
+    private string _presetText = "";   // プリセット欄の文字（画面を作り直しても保つ）
+    private bool _filling;
     private bool _building;
 
     public EffectSlotView(IEffectHost host, Action<int, EffectSetting> marks)
@@ -74,7 +75,8 @@ internal sealed class EffectSlotView
         fx.Children.Add(EffectSections.Limiter(_fx, changed, Rebuild));
         _tabs.Items.Add(new TabItem { Content = eq });
         _tabs.Items.Add(new TabItem { Content = fx });
-        _tabs.SelectedIndex = Math.Clamp(Inner, 0, 1);
+        _tabs.Items.Add(new TabItem { Content = EffectSections.Vocal(_fx, changed, Rebuild) });   // ボーカル低減（掛かる順は最初だが、タブは末尾に足した）
+        _tabs.SelectedIndex = Math.Clamp(Inner, 0, 2);
         var tabs = _tabs;
         tabs.SelectionChanged += (_, e) =>
         {
@@ -94,7 +96,7 @@ internal sealed class EffectSlotView
         return root;
     }
 
-    /// <summary>反映先（録音・出力。入力のみ）・バイパス・コピー／貼り付け／すべて初期値に（この3つはひとまとまりで、折り返してもばらけない）。</summary>
+    /// <summary>反映先（録音・出力。入力のみ）・バイパス・プリセット（M16。旧コピー／貼り付けの置き換え）・すべて初期値に（ひとまとまりで、折り返してもばらけない）。</summary>
     private UIElement BuildTopBar()
     {
         var row = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) };
@@ -117,16 +119,6 @@ internal sealed class EffectSlotView
         row.Children.Add(bypass);
 
         string what = _host.HasRouting ? Loc.Get("effectwindow.top.s08") : Loc.Get("effectwindow.top.s09");
-        var copy = new Button { Content = Loc.Get("effectwindow.top.s10"), Padding = new Thickness(12, 3, 12, 3), ToolTip = what + Loc.Get("effectwindow.top.s11") + (_host.HasRouting ? Loc.Get("effectwindow.top.s12") : "") };
-        copy.Click += (_, _) => { _clip = _fx.Clone(); UpdateEnabled(); };
-        _paste = new Button { Content = Loc.Get("effectwindow.top.s13"), Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s14") + what + Loc.Get("effectwindow.top.s15") };
-        _paste.Click += (_, _) =>
-        {
-            if (_clip == null) return;
-            _fx.CopySoundFrom(_clip);
-            Commit();
-            Rebuild();
-        };
         var reset = new Button { Content = Loc.Get("effectwindow.top.s16"), Padding = new Thickness(12, 3, 12, 3), Margin = new Thickness(8, 0, 0, 0), ToolTip = what + Loc.Get("effectwindow.top.s17") };
         reset.Click += (_, _) =>
         {
@@ -134,12 +126,85 @@ internal sealed class EffectSlotView
             Commit();
             Rebuild();
         };
-        var set = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        set.Children.Add(copy);
-        set.Children.Add(_paste);
-        set.Children.Add(reset);
-        row.Children.Add(set);
-        return row;
+        row.Children.Add(reset);
+
+        // 2段目: プリセット（幅が足りなければ折り返す）。登録・削除などの知らせは、その下に小さく出す
+        var top = new StackPanel();
+        top.Children.Add(row);
+        top.Children.Add(BuildPresetBar());
+        top.Children.Add(_presetMsg!);
+        return top;
+    }
+
+    /// <summary>プリセット（M16）: 名前の欄（選ぶとその設定に置き換わる。書いて「登録」で追加・上書き）・登録・削除・初期プリセットの復元。入力・出力で共通。</summary>
+    private UIElement BuildPresetBar()
+    {
+        var p = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+        var label = new TextBlock { Text = Loc.Get("effectwindow.top.s20"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
+        _presetBox = new ComboBox { Width = 190, IsEditable = true, Tag = "InputBg", ToolTip = Loc.Get("effectwindow.top.s21") };
+        var save = new Button { Content = Loc.Get("effectwindow.top.s22"), Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(6, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s23") };
+        var del = new Button { Content = Loc.Get("effectwindow.top.s24"), Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(6, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s25") };
+        var restore = new Button { Content = "↺", Width = 26, Padding = new Thickness(0), Margin = new Thickness(6, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s26") };
+        _presetMsg = new TextBlock { FontSize = 11, Opacity = 0.75, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap };
+        FillPresets(_presetText);
+        _presetBox.SelectionChanged += (_, _) =>
+        {
+            if (_building || _filling || _presetBox.SelectedItem is not string name) return;
+            var preset = _host.Presets.Get(name);
+            if (preset == null) return;
+            _presetText = name;
+            _fx.CopySoundFrom(preset.Sound);   // 効果の中身だけ置き換える（録音・出力への反映先は変えない）
+            Commit();
+            Rebuild();
+        };
+        save.Click += (_, _) =>
+        {
+            var name = EffectPresetStore.CleanName(_presetBox.Text);
+            if (name.Length == 0) { Say(Loc.Get("effectwindow.top.s27")); return; }
+            if (!_host.Presets.Save(name, _fx)) { Say(Loc.Get("effectwindow.top.s29")); return; }
+            _presetText = name;
+            FillPresets(name);
+            Say(Loc.Get("effectwindow.top.s28", name));
+        };
+        del.Click += (_, _) =>
+        {
+            var name = EffectPresetStore.CleanName(_presetBox.Text);
+            if (_host.Presets.Get(name) == null) { Say(Loc.Get("effectwindow.top.s34", name)); return; }
+            if (!ConfirmDialog.Ask(Window.GetWindow(Root), Loc.Get("effectwindow.top.s30", name))) return;
+            _host.Presets.Delete(name);
+            _presetText = "";
+            FillPresets("");
+            Say(Loc.Get("effectwindow.top.s32", name));
+        };
+        restore.Click += (_, _) =>
+        {
+            if (!ConfirmDialog.Ask(Window.GetWindow(Root), Loc.Get("effectwindow.top.s31"))) return;
+            _host.Presets.RestoreDefaults();
+            FillPresets(_presetBox.Text);
+            Say(Loc.Get("effectwindow.top.s33"));
+        };
+        p.Children.Add(label);
+        p.Children.Add(_presetBox);
+        p.Children.Add(save);
+        p.Children.Add(del);
+        p.Children.Add(restore);
+        return p;
+    }
+
+    /// <summary>プリセットの一覧を入れ直し、欄の文字を text にする（一覧にある名前なら選んだ状態にする）。</summary>
+    private void FillPresets(string text)
+    {
+        if (_presetBox == null) return;
+        _filling = true;
+        _presetBox.Items.Clear();
+        foreach (var p in _host.Presets.List()) _presetBox.Items.Add(p.Name);
+        _presetBox.Text = text;
+        _filling = false;
+    }
+
+    private void Say(string text)
+    {
+        if (_presetMsg != null) _presetMsg.Text = text;
     }
 
     private void Edit(Action change)
@@ -163,11 +228,12 @@ internal sealed class EffectSlotView
     /// <summary>効果のタブの見出しと、入力のタブ（カード）の見出しに、掛かっている効果の印（⚡＋頭文字）を出す。</summary>
     private void UpdateMarks()
     {
-        if (_tabs != null && _tabs.Items.Count >= 2)
+        if (_tabs != null && _tabs.Items.Count >= 3)
         {
             var c = _fx;
             ((TabItem)_tabs.Items[0]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s18"), EffectWindow.Letters(c, "Lc,G,P"), c.Bypass);
             ((TabItem)_tabs.Items[1]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s19"), EffectWindow.Letters(c, "N,E,R,Lm"), c.Bypass);
+            ((TabItem)_tabs.Items[2]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s35"), EffectWindow.Letters(c, "V"), c.Bypass);
         }
         _marks(Slot, _fx);
     }
@@ -176,6 +242,5 @@ internal sealed class EffectSlotView
     public void UpdateEnabled()
     {
         if (_toRec != null) _toRec.IsEnabled = !_host.IsRecording;
-        if (_paste != null) _paste.IsEnabled = _clip != null;
     }
 }

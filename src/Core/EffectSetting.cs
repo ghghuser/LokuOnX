@@ -13,7 +13,16 @@ public sealed class EffectSetting
     /// <summary>エフェクトをかけた音を出力に流すか(既定: する)。</summary>
     public bool ToOutput { get; set; } = true;
 
-    // ---- ノイズゲート(いちばん最初にかかる。小さい音=ノイズを自動で下げ、声などの大きい音のときだけ通す)
+    // ---- ボーカル低減(カラオケ化。いちばん最初にかかる。ステレオの中央に定位した音を弱める。モノラル入力では効果なし)
+    public bool VocalOn { get; set; }
+    /// <summary>弱める量(0〜1。1=対象帯域の中央成分を完全に消す)。</summary>
+    public double VocalAmount { get; set; } = 0.85;
+    /// <summary>対象帯域の下限(Hz)。これより低い音(ベース・キックなど)は中央でも残す。50〜1000。</summary>
+    public double VocalLowHz { get; set; } = 200;
+    /// <summary>対象帯域の上限(Hz)。これより高い音は残す。1000〜12000。</summary>
+    public double VocalHighHz { get; set; } = 6000;
+
+    // ---- ノイズゲート(ボーカル低減の次にかかる。小さい音=ノイズを自動で下げ、声などの大きい音のときだけ通す)
     public bool GateOn { get; set; }
     /// <summary>この音量(dB)を超えると開く。-70〜-10。</summary>
     public double GateThresholdDb { get; set; } = -45;
@@ -57,7 +66,7 @@ public sealed class EffectSetting
     public bool IsActive => !Bypass && HasAny;
     /// <summary>設定が1つでも入っているか(FXボタンの色づけ用。バイパス中でも true)。</summary>
     [JsonIgnore]
-    public bool HasAny => GateOn || EqOn || HpfHz >= 20 || ParamOn || EchoOn || ReverbOn || LimiterOn;
+    public bool HasAny => VocalOn || GateOn || EqOn || HpfHz >= 20 || ParamOn || EchoOn || ReverbOn || LimiterOn;
 
     public EffectSetting Clone()
     {
@@ -79,6 +88,7 @@ public sealed class EffectSetting
         for (int i = 0; i < pd.Length; i++)
             if (Params != null && i < Params.Length && Params[i] != null) { pd[i] = Params[i]; pd[i].Normalize(i); }
         Params = pd;
+        VocalAmount = C(VocalAmount, 0, 1, 0.85); VocalLowHz = C(VocalLowHz, 50, 1000, 200); VocalHighHz = C(VocalHighHz, 1000, 12000, 6000);
         GateThresholdDb = C(GateThresholdDb, -70, -10, -45); GateReleaseMs = C(GateReleaseMs, 20, 1000, 200); GateReductionDb = C(GateReductionDb, 6, 80, 40);
         EchoMs = C(EchoMs, 20, 1000, 300); EchoFeedback = C(EchoFeedback, 0, 0.9, 0.35); EchoMix = C(EchoMix, 0, 1, 0.3);
         ReverbRoom = C(ReverbRoom, 0, 1, 0.5); ReverbDamp = C(ReverbDamp, 0, 1, 0.5); ReverbMix = C(ReverbMix, 0, 1, 0.25);
@@ -94,6 +104,7 @@ public sealed class EffectSetting
     {
         var c = o.Clone();
         Bypass = c.Bypass;
+        VocalOn = c.VocalOn; VocalAmount = c.VocalAmount; VocalLowHz = c.VocalLowHz; VocalHighHz = c.VocalHighHz;
         GateOn = c.GateOn; GateThresholdDb = c.GateThresholdDb; GateReleaseMs = c.GateReleaseMs; GateReductionDb = c.GateReductionDb;
         EqOn = c.EqOn; HpfHz = c.HpfHz; Bands = c.Bands;
         ParamOn = c.ParamOn; Params = c.Params;
@@ -106,7 +117,7 @@ public sealed class EffectSetting
     /// <summary>WriteTo が書く項目名（prefix の後ろ）。初期値に戻ったとき、ini から消すのに使う。</summary>
     public static readonly string[] IniKeys =
     {
-        "Bypass", "ToRecording", "ToOutput", "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "EqOn", "HpfHz", "EqBands",
+        "Bypass", "ToRecording", "ToOutput", "VocalOn", "VocalAmount", "VocalLowHz", "VocalHighHz", "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "EqOn", "HpfHz", "EqBands",
         "ParamOn", "ParamBands", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
         "LimiterOn", "CeilingDb", "ReleaseMs",
     };
@@ -116,6 +127,7 @@ public sealed class EffectSetting
         string? C(string t) => comment ? t : null;
         s.Set(prefix + "Bypass", Bypass, C("入力ごとのエフェクト。Bypass=すべてバイパス / ToRecording=録音に反映 / ToOutput=出力に反映"));
         s.Set(prefix + "ToRecording", ToRecording); s.Set(prefix + "ToOutput", ToOutput);
+        s.Set(prefix + "VocalOn", VocalOn, C("ボーカル低減(カラオケ化。弱める量0〜1 / 対象帯域の下限Hz 50〜1000 / 上限Hz 1000〜12000。ステレオのみ)")); s.Set(prefix + "VocalAmount", VocalAmount); s.Set(prefix + "VocalLowHz", VocalLowHz); s.Set(prefix + "VocalHighHz", VocalHighHz);
         s.Set(prefix + "GateOn", GateOn, C("ノイズゲート(閾値dB-70〜-10 / 戻りms / 下げる量dB)")); s.Set(prefix + "GateThresholdDb", GateThresholdDb); s.Set(prefix + "GateReleaseMs", GateReleaseMs); s.Set(prefix + "GateReductionDb", GateReductionDb);
         s.Set(prefix + "EqOn", EqOn);
         s.Set(prefix + "HpfHz", HpfHz, C("ローカット(Hz、0=なし)"));
@@ -135,6 +147,8 @@ public sealed class EffectSetting
         var e = new EffectSetting
         {
             Bypass = s.GetBool(prefix + "Bypass", d.Bypass), ToRecording = s.GetBool(prefix + "ToRecording", d.ToRecording), ToOutput = s.GetBool(prefix + "ToOutput", d.ToOutput),
+            VocalOn = s.GetBool(prefix + "VocalOn", d.VocalOn), VocalAmount = s.GetDouble(prefix + "VocalAmount", d.VocalAmount),
+            VocalLowHz = s.GetDouble(prefix + "VocalLowHz", d.VocalLowHz), VocalHighHz = s.GetDouble(prefix + "VocalHighHz", d.VocalHighHz),
             GateOn = s.GetBool(prefix + "GateOn", d.GateOn), GateThresholdDb = s.GetDouble(prefix + "GateThresholdDb", d.GateThresholdDb),
             GateReleaseMs = s.GetDouble(prefix + "GateReleaseMs", d.GateReleaseMs), GateReductionDb = s.GetDouble(prefix + "GateReductionDb", d.GateReductionDb),
             EqOn = s.GetBool(prefix + "EqOn", d.EqOn), ParamOn = s.GetBool(prefix + "ParamOn", d.ParamOn), HpfHz = s.GetDouble(prefix + "HpfHz", d.HpfHz),
@@ -171,7 +185,7 @@ public sealed class EffectSetting
 
     /// <summary>効果の中身(オン/オフと数値)が同じか。録音・出力への反映先の設定は比べない。</summary>
     public bool SameSound(EffectSetting o) =>
-        Bypass == o.Bypass && GateOn == o.GateOn && GateThresholdDb == o.GateThresholdDb && GateReleaseMs == o.GateReleaseMs && GateReductionDb == o.GateReductionDb && EqOn == o.EqOn && HpfHz == o.HpfHz && SameBands(o) && ParamOn == o.ParamOn && SameParams(o) && EchoOn == o.EchoOn && EchoMs == o.EchoMs && EchoFeedback == o.EchoFeedback
+        Bypass == o.Bypass && VocalOn == o.VocalOn && VocalAmount == o.VocalAmount && VocalLowHz == o.VocalLowHz && VocalHighHz == o.VocalHighHz && GateOn == o.GateOn && GateThresholdDb == o.GateThresholdDb && GateReleaseMs == o.GateReleaseMs && GateReductionDb == o.GateReductionDb && EqOn == o.EqOn && HpfHz == o.HpfHz && SameBands(o) && ParamOn == o.ParamOn && SameParams(o) && EchoOn == o.EchoOn && EchoMs == o.EchoMs && EchoFeedback == o.EchoFeedback
         && EchoMix == o.EchoMix && ReverbOn == o.ReverbOn && ReverbRoom == o.ReverbRoom && ReverbDamp == o.ReverbDamp && ReverbMix == o.ReverbMix
         && LimiterOn == o.LimiterOn && CeilingDb == o.CeilingDb && ReleaseMs == o.ReleaseMs;
 }

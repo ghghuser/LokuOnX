@@ -14,6 +14,9 @@ public sealed partial class Settings
     /// <summary>プロファイルのJSONを入れるフォルダ（exeと同じ場所の Profiles。PROJECT.md §3-6）。</summary>
     private readonly string _profileDir;
 
+    /// <summary>エフェクトのプリセット（exeと同じ場所の EffectPresets。入力・出力のエフェクトで共通。M16）。</summary>
+    public EffectPresetStore EffectPresets { get; }
+
     /// <summary>直近の保存エラー（なければ null）。</summary>
     public string? SaveError { get; private set; }
 
@@ -22,12 +25,14 @@ public sealed partial class Settings
         _ini = new IniFile(path);
         ReadOnly = readOnly;
         _profileDir = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)) ?? "", "Profiles");
+        EffectPresets = new EffectPresetStore(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)) ?? "", "EffectPresets"), readOnly);
         if (!_ini.Existed && !readOnly)
         {
             _ini.Set(Section, "Format", "flac");
             _ini.Set(Section, "NextNo", "1");
             Save();
         }
+        EffectPresets.EnsureDefaults();   // 初回だけ、エフェクトの既定プリセットを書き出す
         EnsureTemplates();   // テンプレートが ini に無ければ（初回起動）、初期テンプレートを登録
     }
 

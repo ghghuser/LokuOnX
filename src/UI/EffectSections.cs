@@ -15,6 +15,21 @@ internal static class EffectSections
     private static DockPanel Head(CheckBox toggle, Action resetValues, Action changed, Action rebuild) =>
         EffectUi.Head(toggle, EffectUi.ResetButton(Loc.Get("effectsections.s01"), () => { resetValues(); changed(); rebuild(); }));
 
+    public static Border Vocal(EffectSetting fx, Action changed, Action rebuild)
+    {
+        var card = EffectUi.Card(Head(EffectUi.Toggle(Loc.Get("effectsections.s31"), fx.VocalOn,
+            Loc.Get("effectsections.s32"), on => { fx.VocalOn = on; changed(); }),
+            () => { var d = new EffectSetting(); fx.VocalAmount = d.VocalAmount; fx.VocalLowHz = d.VocalLowHz; fx.VocalHighHz = d.VocalHighHz; }, changed, rebuild), out var body);
+        body.Children.Add(EffectUi.Slide(Loc.Get("effectsections.s33"), 0, 1, fx.VocalAmount, 0.85, EffectUi.Percent,
+            v => { fx.VocalAmount = v; changed(); }, 0.05, Loc.Get("effectsections.s34")));
+        body.Children.Add(EffectUi.Slide(Loc.Get("effectsections.s35"), 50, 1000, fx.VocalLowHz, 200, EffectUi.Hz,
+            v => { fx.VocalLowHz = v; changed(); }, 10, Loc.Get("effectsections.s36")));
+        body.Children.Add(EffectUi.Slide(Loc.Get("effectsections.s37"), 1000, 12000, fx.VocalHighHz, 6000, EffectUi.Hz,
+            v => { fx.VocalHighHz = v; changed(); }, 100, Loc.Get("effectsections.s38")));
+        body.Children.Add(new TextBlock { Text = Loc.Get("effectsections.s39"), FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) });
+        return card;
+    }
+
     public static Border Gate(EffectSetting fx, Action changed, Action rebuild)
     {
         var card = EffectUi.Card(Head(EffectUi.Toggle(Loc.Get("effectsections.s02"), fx.GateOn,

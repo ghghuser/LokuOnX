@@ -18,6 +18,12 @@ public sealed class OutputFxSetting
     public bool ParamOn { get; set; }
     public ParamBand[] Params { get; set; } = ParamBand.Defaults();
 
+    // ---- ボーカル低減（入力のエフェクトと同じもの。M16）
+    public bool VocalOn { get; set; }
+    public double VocalAmount { get; set; } = 0.85;
+    public double VocalLowHz { get; set; } = 200;
+    public double VocalHighHz { get; set; } = 6000;
+
     // ---- ノイズゲート・エコー・リバーブ（入力のエフェクトと同じもの。11-5確認後に追加）
     public bool GateOn { get; set; }
     public double GateThresholdDb { get; set; } = -45;
@@ -41,7 +47,7 @@ public sealed class OutputFxSetting
     public const double CeilingMinDb = -24, CeilingMaxDb = 0, ReleaseMinMs = 20, ReleaseMaxMs = 1000;
 
     [JsonIgnore]
-    public bool HasAny => EqOn || HpfHz >= 20 || ParamOn || LimiterOn || GateOn || EchoOn || ReverbOn;
+    public bool HasAny => VocalOn || EqOn || HpfHz >= 20 || ParamOn || LimiterOn || GateOn || EchoOn || ReverbOn;
     [JsonIgnore]
     public bool IsActive => !Bypass && HasAny;
     [JsonIgnore]
@@ -67,6 +73,7 @@ public sealed class OutputFxSetting
         for (int i = 0; i < pd.Length; i++)
             if (Params != null && i < Params.Length && Params[i] != null) { pd[i] = Params[i]; pd[i].Normalize(i); }
         Params = pd;
+        VocalAmount = C(VocalAmount, 0, 1, 0.85); VocalLowHz = C(VocalLowHz, 50, 1000, 200); VocalHighHz = C(VocalHighHz, 1000, 12000, 6000);
         GateThresholdDb = C(GateThresholdDb, -70, -10, -45); GateReleaseMs = C(GateReleaseMs, 20, 1000, 200); GateReductionDb = C(GateReductionDb, 6, 80, 40);
         EchoMs = C(EchoMs, 20, 1000, 300); EchoFeedback = C(EchoFeedback, 0, 0.9, 0.35); EchoMix = C(EchoMix, 0, 1, 0.3);
         ReverbRoom = C(ReverbRoom, 0, 1, 0.5); ReverbDamp = C(ReverbDamp, 0, 1, 0.5); ReverbMix = C(ReverbMix, 0, 1, 0.25);
@@ -76,7 +83,7 @@ public sealed class OutputFxSetting
 
     public bool SameSound(OutputFxSetting o)
     {
-        if (Bypass != o.Bypass || EqOn != o.EqOn || HpfHz != o.HpfHz || ParamOn != o.ParamOn || LimiterOn != o.LimiterOn || CeilingDb != o.CeilingDb || ReleaseMs != o.ReleaseMs) return false;
+        if (Bypass != o.Bypass || VocalOn != o.VocalOn || VocalAmount != o.VocalAmount || VocalLowHz != o.VocalLowHz || VocalHighHz != o.VocalHighHz || EqOn != o.EqOn || HpfHz != o.HpfHz || ParamOn != o.ParamOn || LimiterOn != o.LimiterOn || CeilingDb != o.CeilingDb || ReleaseMs != o.ReleaseMs) return false;
         if (GateOn != o.GateOn || GateThresholdDb != o.GateThresholdDb || GateReleaseMs != o.GateReleaseMs || GateReductionDb != o.GateReductionDb) return false;
         if (EchoOn != o.EchoOn || EchoMs != o.EchoMs || EchoFeedback != o.EchoFeedback || EchoMix != o.EchoMix) return false;
         if (ReverbOn != o.ReverbOn || ReverbRoom != o.ReverbRoom || ReverbDamp != o.ReverbDamp || ReverbMix != o.ReverbMix) return false;
@@ -95,6 +102,7 @@ public sealed class OutputFxSetting
     public EffectSetting ToEffectSetting() => new()
     {
         Bypass = Bypass,
+        VocalOn = VocalOn, VocalAmount = VocalAmount, VocalLowHz = VocalLowHz, VocalHighHz = VocalHighHz,
         EqOn = EqOn, HpfHz = HpfHz, Bands = (double[])Bands.Clone(), ParamOn = ParamOn, Params = Params.Select(p => p.Clone()).ToArray(), ToOutput = true,
         GateOn = GateOn, GateThresholdDb = GateThresholdDb, GateReleaseMs = GateReleaseMs, GateReductionDb = GateReductionDb,
         EchoOn = EchoOn, EchoMs = EchoMs, EchoFeedback = EchoFeedback, EchoMix = EchoMix,
@@ -107,6 +115,7 @@ public sealed class OutputFxSetting
     {
         var c = e.Clone();
         Bypass = c.Bypass;
+        VocalOn = c.VocalOn; VocalAmount = c.VocalAmount; VocalLowHz = c.VocalLowHz; VocalHighHz = c.VocalHighHz;
         EqOn = c.EqOn; HpfHz = c.HpfHz; Bands = c.Bands; ParamOn = c.ParamOn; Params = c.Params;
         GateOn = c.GateOn; GateThresholdDb = c.GateThresholdDb; GateReleaseMs = c.GateReleaseMs; GateReductionDb = c.GateReductionDb;
         EchoOn = c.EchoOn; EchoMs = c.EchoMs; EchoFeedback = c.EchoFeedback; EchoMix = c.EchoMix;
@@ -118,7 +127,7 @@ public sealed class OutputFxSetting
     /// <summary>WriteTo が書く項目名（prefix の後ろ）。初期値に戻したとき ini から消すのに使う。</summary>
     public static readonly string[] IniKeys =
     {
-        "Bypass", "EqOn", "HpfHz", "EqBands", "ParamOn", "ParamBands", "LimiterOn", "CeilingDb", "ReleaseMs",
+        "Bypass", "VocalOn", "VocalAmount", "VocalLowHz", "VocalHighHz", "EqOn", "HpfHz", "EqBands", "ParamOn", "ParamBands", "LimiterOn", "CeilingDb", "ReleaseMs",
         "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
     };
 
@@ -126,6 +135,7 @@ public sealed class OutputFxSetting
     {
         string? C(string t) => comment ? t : null;
         s.Set(prefix + "Bypass", Bypass, C("この出力の最終ミックスのエフェクト(ローカット→グラフィックEQ→パラメトリックEQ→リミッター)。Bypass=すべてバイパス"));
+        s.Set(prefix + "VocalOn", VocalOn, C("ボーカル低減(弱める量0〜1 / 対象帯域の下限Hz / 上限Hz)")); s.Set(prefix + "VocalAmount", VocalAmount); s.Set(prefix + "VocalLowHz", VocalLowHz); s.Set(prefix + "VocalHighHz", VocalHighHz);
         s.Set(prefix + "EqOn", EqOn);
         s.Set(prefix + "HpfHz", HpfHz, C("ローカット(Hz、0=なし)"));
         s.Set(prefix + "EqBands", string.Join(",", Bands.Select(v => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))));
@@ -144,7 +154,10 @@ public sealed class OutputFxSetting
         var d = new OutputFxSetting();
         var e = new OutputFxSetting
         {
-            Bypass = s.GetBool(prefix + "Bypass", false), EqOn = s.GetBool(prefix + "EqOn", false), HpfHz = s.GetDouble(prefix + "HpfHz", 0),
+            Bypass = s.GetBool(prefix + "Bypass", false),
+            VocalOn = s.GetBool(prefix + "VocalOn", false), VocalAmount = s.GetDouble(prefix + "VocalAmount", d.VocalAmount),
+            VocalLowHz = s.GetDouble(prefix + "VocalLowHz", d.VocalLowHz), VocalHighHz = s.GetDouble(prefix + "VocalHighHz", d.VocalHighHz),
+            EqOn = s.GetBool(prefix + "EqOn", false), HpfHz = s.GetDouble(prefix + "HpfHz", 0),
             ParamOn = s.GetBool(prefix + "ParamOn", false), LimiterOn = s.GetBool(prefix + "LimiterOn", false),
             CeilingDb = s.GetDouble(prefix + "CeilingDb", d.CeilingDb), ReleaseMs = s.GetDouble(prefix + "ReleaseMs", d.ReleaseMs),
             GateOn = s.GetBool(prefix + "GateOn", false), GateThresholdDb = s.GetDouble(prefix + "GateThresholdDb", d.GateThresholdDb),

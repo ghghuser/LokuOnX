@@ -23,6 +23,10 @@ public sealed class EffectChain
     private readonly Bq[] eqAll;    // ローカット → 10バンド → パラメトリック の順
     private bool eqWasOn;
 
+    // --- ボーカル低減(いちばん最初。ステレオのときだけ)
+    private readonly VocalReducer vocal = new();
+    private bool vocalOn, vocalWasOn;
+
     // --- ノイズゲート
     private bool gateOn, gateWasOn, gateOpen = true;
     private float gateOpenLin, gateCloseLin, gateFloor = 0.01f, gateG = 1f, gateRel = 0.001f, gateAtk = 0.1f;
@@ -72,6 +76,7 @@ public sealed class EffectChain
         if (!s.IsActive) { if (applied != null && applied.IsActive) { applied = s; ResetStates(); } return; }
         if (!ReferenceEquals(s, applied)) { Rebuild(s); applied = s; }
 
+        if (vocalOn) vocal.Process(buf, frames, ch);
         if (gateOn) ProcessGate(buf, frames);
         if (eqOnNow) ProcessEq(buf, frames);
         if (echoOn) ProcessEcho(buf, frames);
@@ -107,12 +112,22 @@ public sealed class EffectChain
     {
         foreach (var b in eqAll) { Array.Clear(b.Z1); Array.Clear(b.Z2); }
         echo = null; combs = null; allpasses = null; echoWasOn = revWasOn = eqWasOn = limWasOn = false; gateWasOn = false; gateOpen = true; gateG = 1f;
+        vocalWasOn = false; vocal.Reset();
     }
 
     // ------------------------------------------------------------ 設定の反映
 
     private void Rebuild(EffectSetting s)
     {
+        // ボーカル低減(2チャンネル以上のときだけ。モノラルでは何もしない)
+        vocalOn = s.VocalOn && ch >= 2;
+        if (vocalOn)
+        {
+            vocal.Set(sr, s.VocalAmount, s.VocalLowHz, s.VocalHighHz);
+            if (!vocalWasOn) vocal.Reset();
+        }
+        vocalWasOn = vocalOn;
+
         // ノイズゲート
         gateOn = s.GateOn;
         if (s.GateOn)

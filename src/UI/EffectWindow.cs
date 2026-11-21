@@ -27,6 +27,9 @@ public interface IEffectHost
     /// <summary>「録音に反映」「出力に反映」を出すか（入力のエフェクトだけ。出力のエフェクトは最終ミックスに掛かるだけ）。</summary>
     bool HasRouting { get; }
 
+    /// <summary>エフェクトのプリセット（入力・出力で共通。M16）。</summary>
+    EffectPresetStore Presets { get; }
+
     /// <summary>ウィンドウの位置と大きさ（"左,上,幅,高さ"。空＝未保存）。入力用・出力用で別々に覚える。</summary>
     string WindowRect { get; set; }
 }

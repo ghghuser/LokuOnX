@@ -83,6 +83,14 @@ public static class EqMath
         return ((1 + cs) / 2 / a0, -(1 + cs) / a0, (1 + cs) / 2 / a0, -2 * cs / a0, (1 - al) / a0);
     }
 
+    /// <summary>ハイカット(2次のバターワース相当)の係数 (b0, b1, b2, a1, a2)。ボーカル低減の対象帯域の上限に使う。</summary>
+    public static (double, double, double, double, double) LowPass(int sr, double f)
+    {
+        double w = 2 * Math.PI * Math.Min(f, sr * 0.45) / sr, cs = Math.Cos(w), al = Math.Sin(w) / (2 * 0.7071);
+        double a0 = 1 + al;
+        return ((1 - cs) / 2 / a0, (1 - cs) / a0, (1 - cs) / 2 / a0, -2 * cs / a0, (1 - al) / a0);
+    }
+
     private static double MagDb(double b0, double b1, double b2, double a1, double a2, double c1, double c2)
     {
         double num = b0 * b0 + b1 * b1 + b2 * b2 + 2 * (b0 * b1 + b1 * b2) * c1 + 2 * b0 * b2 * c2;

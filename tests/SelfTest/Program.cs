@@ -18,6 +18,8 @@ void Section(string s) => Console.WriteLine("\n# " + s);
 RoutingTests.Run(new CheckFn(Check), Section);
 EffectTests.Run(new CheckFn(Check), Section);
 OutputFxTests.Run(new CheckFn(Check), Section);
+VocalTests.Run(new CheckFn(Check), Section);
+EffectPresetTests.Run(new CheckFn(Check), Section);
 GateTests.Run(new CheckFn(Check), Section);
 BufferTests.Run(new CheckFn(Check), Section);
 OutputTests.Run(new CheckFn(Check), Section);

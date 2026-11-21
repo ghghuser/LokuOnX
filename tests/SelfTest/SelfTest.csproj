@@ -15,6 +15,8 @@
   <ItemGroup>
     <Compile Include="..\..\src\Core\EffectSetting.cs" Link="Core\EffectSetting.cs" />
     <Compile Include="..\..\src\Core\EffectChain.cs" Link="Core\EffectChain.cs" />
+    <Compile Include="..\..\src\Core\VocalReducer.cs" Link="Core\VocalReducer.cs" />
+    <Compile Include="..\..\src\Core\EffectPresetStore.cs" Link="Core\EffectPresetStore.cs" />
     <Compile Include="..\..\src\Core\EqMath.cs" Link="Core\EqMath.cs" />
     <Compile Include="..\..\src\Core\OutputFxSetting.cs" Link="Core\OutputFxSetting.cs" />
     <Compile Include="..\..\src\Core\OutputFxChain.cs" Link="Core\OutputFxChain.cs" />
