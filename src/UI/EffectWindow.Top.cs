@@ -18,7 +18,7 @@ public sealed partial class EffectWindow
         {
             "V" => c.VocalOn, "N" => c.GateOn, "Lc" => c.HpfHz >= 20, "G" => c.EqOn, "P" => c.ParamOn, "E" => c.EchoOn, "R" => c.ReverbOn, "Lm" => c.LimiterOn, _ => false,
         };
-        return string.Join(",", order.Split(',').Where(On));   // 「,」区切り（例 N,Lc,G）
+        return string.Join(".", order.Split(',').Where(On));   // 「.」区切り（例 N.Lc.G）
     }
 
     /// <summary>見出し。名前の後ろに「⚡N,Lc,G」のように、掛かっている効果を緑（入力ランプと同じ緑）で出す。バイパス中は灰色。</summary>
