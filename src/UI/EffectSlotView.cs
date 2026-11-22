@@ -6,7 +6,7 @@ namespace Recorder.UI;
 
 /// <summary>
 /// 1つの入力（出力のエフェクトでは1つの出力）のエフェクト画面の中身（M15。EffectWindow から分けた）。
-/// 上段（反映先・バイパス・コピー・貼り付け・すべて初期値に）＋効果のタブ（イコライザ／ノイズゲート・エコー・リバーブ・リミッター）＋注意書き。
+/// 上段（反映先・バイパス・コピー・貼り付け・すべて初期値に）＋効果のタブ（イコライザ／ノイズゲート・コーラス・エコー・リバーブ・リミッター）＋注意書き。
 /// タブ式では選んだ入力のぶんだけ作り、カード式ではすべての入力のぶんを並べて作る。設定の読み書きは host 経由（動作中も変えられ、すぐ反映される）。
 /// </summary>
 internal sealed class EffectSlotView
@@ -68,8 +68,9 @@ internal sealed class EffectSlotView
         Action changed = () => { Commit(); UpdateMarks(); };
         _tabs = new TabControl { Margin = new Thickness(0, 6, 0, 0) };
         var eq = EffectEq.Build(_fx, changed, Rebuild);
-        var fx = new StackPanel();   // ノイズゲート・エコー・リバーブ・リミッターは同じタブに
+        var fx = new StackPanel();   // ノイズゲート・コーラス・エコー・リバーブ・リミッターは同じタブに
         fx.Children.Add(EffectSections.Gate(_fx, changed, Rebuild));
+        fx.Children.Add(EffectSections.Chorus(_fx, changed, Rebuild));
         fx.Children.Add(EffectSections.Echo(_fx, changed, Rebuild));
         fx.Children.Add(EffectSections.Reverb(_fx, changed, Rebuild));
         fx.Children.Add(EffectSections.Limiter(_fx, changed, Rebuild));
@@ -232,7 +233,7 @@ internal sealed class EffectSlotView
         {
             var c = _fx;
             ((TabItem)_tabs.Items[0]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s18"), EffectWindow.Letters(c, "Lc,G,P"), c.Bypass);
-            ((TabItem)_tabs.Items[1]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s19"), EffectWindow.Letters(c, "N,E,R,Lm"), c.Bypass);
+            ((TabItem)_tabs.Items[1]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s19"), EffectWindow.Letters(c, "N,C,E,R,Lm"), c.Bypass);
             ((TabItem)_tabs.Items[2]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s35"), EffectWindow.Letters(c, "V"), c.Bypass);
         }
         _marks(Slot, _fx);

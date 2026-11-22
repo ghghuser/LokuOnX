@@ -43,6 +43,18 @@ internal static class EffectSections
         return card;
     }
 
+    public static Border Chorus(EffectSetting fx, Action changed, Action rebuild)
+    {
+        var card = EffectUi.Card(Head(EffectUi.Toggle(Loc.Get("effectsections.s40"), fx.ChorusOn, Loc.Get("effectsections.s41"), on => { fx.ChorusOn = on; changed(); }), () => { var d = new EffectSetting(); fx.ChorusRate = d.ChorusRate; fx.ChorusDepthMs = d.ChorusDepthMs; fx.ChorusMix = d.ChorusMix; }, changed, rebuild), out var body);
+        body.Children.Add(EffectUi.Slide(Loc.Get("effectsections.s42"), 0.05, 5, fx.ChorusRate, 0.8, v => v.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + " Hz",
+            v => { fx.ChorusRate = v; changed(); }, 0.05, Loc.Get("effectsections.s43")));
+        body.Children.Add(EffectUi.Slide(Loc.Get("effectsections.s44"), 0, 10, fx.ChorusDepthMs, 3, EffectUi.Ms,
+            v => { fx.ChorusDepthMs = v; changed(); }, 0.5, Loc.Get("effectsections.s45")));
+        body.Children.Add(EffectUi.Slide(Loc.Get("effectsections.s16"), 0, 1, fx.ChorusMix, 0.5, EffectUi.Percent,
+            v => { fx.ChorusMix = v; changed(); }, 0.05, Loc.Get("effectsections.s46")));
+        return card;
+    }
+
     public static Border Echo(EffectSetting fx, Action changed, Action rebuild)
     {
         var card = EffectUi.Card(Head(EffectUi.Toggle(Loc.Get("effectsections.s10"), fx.EchoOn, Loc.Get("effectsections.s11"), on => { fx.EchoOn = on; changed(); }), () => { var d = new EffectSetting(); fx.EchoMs = d.EchoMs; fx.EchoFeedback = d.EchoFeedback; fx.EchoMix = d.EchoMix; }, changed, rebuild), out var body);

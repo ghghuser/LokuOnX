@@ -32,6 +32,10 @@ public sealed class EffectChain
     private float gateOpenLin, gateCloseLin, gateFloor = 0.01f, gateG = 1f, gateRel = 0.001f, gateAtk = 0.1f;
     private int gateHold, gateHoldFrames;
 
+    // --- コーラス(イコライザの後、エコーの前)
+    private readonly Chorus chorus;
+    private bool chorusOn, chorusWasOn;
+
     // --- エコー
     private float[][]? echo;
     private int echoLen, echoPos, echoDelay;
@@ -58,6 +62,7 @@ public sealed class EffectChain
         sr = sampleRate; ch = Math.Max(1, channels);
         eqAll = new[] { hpfBq }.Concat(bands).Concat(paramBq).ToArray();
         lim = new Limiter(sampleRate, ch);
+        chorus = new Chorus(sampleRate, ch);
     }
 
     /// <summary>設定を渡す(コピーして持つ。次の Process から反映)。</summary>
@@ -79,6 +84,7 @@ public sealed class EffectChain
         if (vocalOn) vocal.Process(buf, frames, ch);
         if (gateOn) ProcessGate(buf, frames);
         if (eqOnNow) ProcessEq(buf, frames);
+        if (chorusOn) chorus.Process(buf, frames);
         if (echoOn) ProcessEcho(buf, frames);
         if (revOn) ProcessReverb(buf, frames);
         if (limOn) lim.Process(buf, frames);
@@ -113,6 +119,7 @@ public sealed class EffectChain
         foreach (var b in eqAll) { Array.Clear(b.Z1); Array.Clear(b.Z2); }
         echo = null; combs = null; allpasses = null; echoWasOn = revWasOn = eqWasOn = limWasOn = false; gateWasOn = false; gateOpen = true; gateG = 1f;
         vocalWasOn = false; vocal.Reset();
+        chorusWasOn = false; chorus.Reset();
     }
 
     // ------------------------------------------------------------ 設定の反映
@@ -176,6 +183,15 @@ public sealed class EffectChain
             }
         }
         eqWasOn = eqOnNow;
+
+        // コーラス
+        chorusOn = s.ChorusOn;
+        if (chorusOn)
+        {
+            chorus.Set(s.ChorusRate, s.ChorusDepthMs, s.ChorusMix);
+            if (!chorusWasOn) chorus.Reset();
+        }
+        chorusWasOn = chorusOn;
 
         // エコー
         echoOn = s.EchoOn;

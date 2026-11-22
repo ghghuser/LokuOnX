@@ -47,6 +47,10 @@ public sealed class EffectSetting
     public double EchoMs { get; set; } = 300;
     public double EchoFeedback { get; set; } = 0.35;
     public double EchoMix { get; set; } = 0.30;
+    public bool ChorusOn { get; set; }
+    public double ChorusRate { get; set; } = 0.8;
+    public double ChorusDepthMs { get; set; } = 3;
+    public double ChorusMix { get; set; } = 0.5;
 
     // ---- リバーブ
     public bool ReverbOn { get; set; }
@@ -66,7 +70,7 @@ public sealed class EffectSetting
     public bool IsActive => !Bypass && HasAny;
     /// <summary>設定が1つでも入っているか(FXボタンの色づけ用。バイパス中でも true)。</summary>
     [JsonIgnore]
-    public bool HasAny => VocalOn || GateOn || EqOn || HpfHz >= 20 || ParamOn || EchoOn || ReverbOn || LimiterOn;
+    public bool HasAny => VocalOn || GateOn || EqOn || HpfHz >= 20 || ParamOn || ChorusOn || EchoOn || ReverbOn || LimiterOn;
 
     public EffectSetting Clone()
     {
@@ -91,6 +95,7 @@ public sealed class EffectSetting
         VocalAmount = C(VocalAmount, 0, 1, 0.85); VocalLowHz = C(VocalLowHz, 50, 1000, 200); VocalHighHz = C(VocalHighHz, 1000, 12000, 6000);
         GateThresholdDb = C(GateThresholdDb, -70, -10, -45); GateReleaseMs = C(GateReleaseMs, 20, 1000, 200); GateReductionDb = C(GateReductionDb, 6, 80, 40);
         EchoMs = C(EchoMs, 20, 1000, 300); EchoFeedback = C(EchoFeedback, 0, 0.9, 0.35); EchoMix = C(EchoMix, 0, 1, 0.3);
+        ChorusRate = C(ChorusRate, 0.05, 5, 0.8); ChorusDepthMs = C(ChorusDepthMs, 0, 10, 3); ChorusMix = C(ChorusMix, 0, 1, 0.5);
         ReverbRoom = C(ReverbRoom, 0, 1, 0.5); ReverbDamp = C(ReverbDamp, 0, 1, 0.5); ReverbMix = C(ReverbMix, 0, 1, 0.25);
         CeilingDb = C(CeilingDb, -24, 0, -1.0); ReleaseMs = C(ReleaseMs, 20, 1000, 150);
     }
@@ -109,6 +114,7 @@ public sealed class EffectSetting
         EqOn = c.EqOn; HpfHz = c.HpfHz; Bands = c.Bands;
         ParamOn = c.ParamOn; Params = c.Params;
         EchoOn = c.EchoOn; EchoMs = c.EchoMs; EchoFeedback = c.EchoFeedback; EchoMix = c.EchoMix;
+        ChorusOn = c.ChorusOn; ChorusRate = c.ChorusRate; ChorusDepthMs = c.ChorusDepthMs; ChorusMix = c.ChorusMix;
         ReverbOn = c.ReverbOn; ReverbRoom = c.ReverbRoom; ReverbDamp = c.ReverbDamp; ReverbMix = c.ReverbMix;
         LimiterOn = c.LimiterOn; CeilingDb = c.CeilingDb; ReleaseMs = c.ReleaseMs;
         Normalize();
@@ -118,7 +124,7 @@ public sealed class EffectSetting
     public static readonly string[] IniKeys =
     {
         "Bypass", "ToRecording", "ToOutput", "VocalOn", "VocalAmount", "VocalLowHz", "VocalHighHz", "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "EqOn", "HpfHz", "EqBands",
-        "ParamOn", "ParamBands", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
+        "ParamOn", "ParamBands", "ChorusOn", "ChorusRate", "ChorusDepthMs", "ChorusMix", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
         "LimiterOn", "CeilingDb", "ReleaseMs",
     };
 
@@ -137,6 +143,7 @@ public sealed class EffectSetting
         s.Set(prefix + "ParamBands", string.Join(",", (Params ?? ParamBand.Defaults()).Select(b => b.ToText())),
             C("パラメトリックEQ 4バンドの 周波数Hz:ゲインdB:幅(Q)"));
         s.Set(prefix + "EchoOn", EchoOn); s.Set(prefix + "EchoMs", EchoMs); s.Set(prefix + "EchoFeedback", EchoFeedback); s.Set(prefix + "EchoMix", EchoMix);
+        s.Set(prefix + "ChorusOn", ChorusOn, C("コーラス(揺らす速さHz 0.05〜5 / 揺れ幅ms 0〜10 / 混ぜる量0〜1)")); s.Set(prefix + "ChorusRate", ChorusRate); s.Set(prefix + "ChorusDepthMs", ChorusDepthMs); s.Set(prefix + "ChorusMix", ChorusMix);
         s.Set(prefix + "ReverbOn", ReverbOn); s.Set(prefix + "ReverbRoom", ReverbRoom); s.Set(prefix + "ReverbDamp", ReverbDamp); s.Set(prefix + "ReverbMix", ReverbMix);
         s.Set(prefix + "LimiterOn", LimiterOn, C("リミッター(上限dB -24〜0 / 戻りms 20〜1000)")); s.Set(prefix + "CeilingDb", CeilingDb); s.Set(prefix + "ReleaseMs", ReleaseMs);
     }
@@ -154,6 +161,7 @@ public sealed class EffectSetting
             EqOn = s.GetBool(prefix + "EqOn", d.EqOn), ParamOn = s.GetBool(prefix + "ParamOn", d.ParamOn), HpfHz = s.GetDouble(prefix + "HpfHz", d.HpfHz),
             EchoOn = s.GetBool(prefix + "EchoOn", d.EchoOn), EchoMs = s.GetDouble(prefix + "EchoMs", d.EchoMs),
             EchoFeedback = s.GetDouble(prefix + "EchoFeedback", d.EchoFeedback), EchoMix = s.GetDouble(prefix + "EchoMix", d.EchoMix),
+            ChorusOn = s.GetBool(prefix + "ChorusOn", d.ChorusOn), ChorusRate = s.GetDouble(prefix + "ChorusRate", d.ChorusRate), ChorusDepthMs = s.GetDouble(prefix + "ChorusDepthMs", d.ChorusDepthMs), ChorusMix = s.GetDouble(prefix + "ChorusMix", d.ChorusMix),
             ReverbOn = s.GetBool(prefix + "ReverbOn", d.ReverbOn), ReverbRoom = s.GetDouble(prefix + "ReverbRoom", d.ReverbRoom),
             ReverbDamp = s.GetDouble(prefix + "ReverbDamp", d.ReverbDamp), ReverbMix = s.GetDouble(prefix + "ReverbMix", d.ReverbMix),
             LimiterOn = s.GetBool(prefix + "LimiterOn", d.LimiterOn), CeilingDb = s.GetDouble(prefix + "CeilingDb", d.CeilingDb), ReleaseMs = s.GetDouble(prefix + "ReleaseMs", d.ReleaseMs),
@@ -185,7 +193,7 @@ public sealed class EffectSetting
 
     /// <summary>効果の中身(オン/オフと数値)が同じか。録音・出力への反映先の設定は比べない。</summary>
     public bool SameSound(EffectSetting o) =>
-        Bypass == o.Bypass && VocalOn == o.VocalOn && VocalAmount == o.VocalAmount && VocalLowHz == o.VocalLowHz && VocalHighHz == o.VocalHighHz && GateOn == o.GateOn && GateThresholdDb == o.GateThresholdDb && GateReleaseMs == o.GateReleaseMs && GateReductionDb == o.GateReductionDb && EqOn == o.EqOn && HpfHz == o.HpfHz && SameBands(o) && ParamOn == o.ParamOn && SameParams(o) && EchoOn == o.EchoOn && EchoMs == o.EchoMs && EchoFeedback == o.EchoFeedback
+        Bypass == o.Bypass && VocalOn == o.VocalOn && VocalAmount == o.VocalAmount && VocalLowHz == o.VocalLowHz && VocalHighHz == o.VocalHighHz && GateOn == o.GateOn && GateThresholdDb == o.GateThresholdDb && GateReleaseMs == o.GateReleaseMs && GateReductionDb == o.GateReductionDb && EqOn == o.EqOn && HpfHz == o.HpfHz && SameBands(o) && ParamOn == o.ParamOn && SameParams(o) && ChorusOn == o.ChorusOn && ChorusRate == o.ChorusRate && ChorusDepthMs == o.ChorusDepthMs && ChorusMix == o.ChorusMix && EchoOn == o.EchoOn && EchoMs == o.EchoMs && EchoFeedback == o.EchoFeedback
         && EchoMix == o.EchoMix && ReverbOn == o.ReverbOn && ReverbRoom == o.ReverbRoom && ReverbDamp == o.ReverbDamp && ReverbMix == o.ReverbMix
         && LimiterOn == o.LimiterOn && CeilingDb == o.CeilingDb && ReleaseMs == o.ReleaseMs;
 }

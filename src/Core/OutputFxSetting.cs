@@ -33,6 +33,10 @@ public sealed class OutputFxSetting
     public double EchoMs { get; set; } = 300;
     public double EchoFeedback { get; set; } = 0.35;
     public double EchoMix { get; set; } = 0.30;
+    public bool ChorusOn { get; set; }
+    public double ChorusRate { get; set; } = 0.8;
+    public double ChorusDepthMs { get; set; } = 3;
+    public double ChorusMix { get; set; } = 0.5;
     public bool ReverbOn { get; set; }
     public double ReverbRoom { get; set; } = 0.5;
     public double ReverbDamp { get; set; } = 0.5;
@@ -47,7 +51,7 @@ public sealed class OutputFxSetting
     public const double CeilingMinDb = -24, CeilingMaxDb = 0, ReleaseMinMs = 20, ReleaseMaxMs = 1000;
 
     [JsonIgnore]
-    public bool HasAny => VocalOn || EqOn || HpfHz >= 20 || ParamOn || LimiterOn || GateOn || EchoOn || ReverbOn;
+    public bool HasAny => VocalOn || EqOn || HpfHz >= 20 || ParamOn || LimiterOn || GateOn || ChorusOn || EchoOn || ReverbOn;
     [JsonIgnore]
     public bool IsActive => !Bypass && HasAny;
     [JsonIgnore]
@@ -76,6 +80,7 @@ public sealed class OutputFxSetting
         VocalAmount = C(VocalAmount, 0, 1, 0.85); VocalLowHz = C(VocalLowHz, 50, 1000, 200); VocalHighHz = C(VocalHighHz, 1000, 12000, 6000);
         GateThresholdDb = C(GateThresholdDb, -70, -10, -45); GateReleaseMs = C(GateReleaseMs, 20, 1000, 200); GateReductionDb = C(GateReductionDb, 6, 80, 40);
         EchoMs = C(EchoMs, 20, 1000, 300); EchoFeedback = C(EchoFeedback, 0, 0.9, 0.35); EchoMix = C(EchoMix, 0, 1, 0.3);
+        ChorusRate = C(ChorusRate, 0.05, 5, 0.8); ChorusDepthMs = C(ChorusDepthMs, 0, 10, 3); ChorusMix = C(ChorusMix, 0, 1, 0.5);
         ReverbRoom = C(ReverbRoom, 0, 1, 0.5); ReverbDamp = C(ReverbDamp, 0, 1, 0.5); ReverbMix = C(ReverbMix, 0, 1, 0.25);
         CeilingDb = C(CeilingDb, CeilingMinDb, CeilingMaxDb, -1.0);
         ReleaseMs = C(ReleaseMs, ReleaseMinMs, ReleaseMaxMs, 150);
@@ -85,6 +90,7 @@ public sealed class OutputFxSetting
     {
         if (Bypass != o.Bypass || VocalOn != o.VocalOn || VocalAmount != o.VocalAmount || VocalLowHz != o.VocalLowHz || VocalHighHz != o.VocalHighHz || EqOn != o.EqOn || HpfHz != o.HpfHz || ParamOn != o.ParamOn || LimiterOn != o.LimiterOn || CeilingDb != o.CeilingDb || ReleaseMs != o.ReleaseMs) return false;
         if (GateOn != o.GateOn || GateThresholdDb != o.GateThresholdDb || GateReleaseMs != o.GateReleaseMs || GateReductionDb != o.GateReductionDb) return false;
+        if (ChorusOn != o.ChorusOn || ChorusRate != o.ChorusRate || ChorusDepthMs != o.ChorusDepthMs || ChorusMix != o.ChorusMix) return false;
         if (EchoOn != o.EchoOn || EchoMs != o.EchoMs || EchoFeedback != o.EchoFeedback || EchoMix != o.EchoMix) return false;
         if (ReverbOn != o.ReverbOn || ReverbRoom != o.ReverbRoom || ReverbDamp != o.ReverbDamp || ReverbMix != o.ReverbMix) return false;
         for (int i = 0; i < EqBands.Count; i++) if ((Bands?[i] ?? 0) != (o.Bands?[i] ?? 0)) return false;
@@ -106,6 +112,7 @@ public sealed class OutputFxSetting
         EqOn = EqOn, HpfHz = HpfHz, Bands = (double[])Bands.Clone(), ParamOn = ParamOn, Params = Params.Select(p => p.Clone()).ToArray(), ToOutput = true,
         GateOn = GateOn, GateThresholdDb = GateThresholdDb, GateReleaseMs = GateReleaseMs, GateReductionDb = GateReductionDb,
         EchoOn = EchoOn, EchoMs = EchoMs, EchoFeedback = EchoFeedback, EchoMix = EchoMix,
+        ChorusOn = ChorusOn, ChorusRate = ChorusRate, ChorusDepthMs = ChorusDepthMs, ChorusMix = ChorusMix,
         ReverbOn = ReverbOn, ReverbRoom = ReverbRoom, ReverbDamp = ReverbDamp, ReverbMix = ReverbMix,
         LimiterOn = LimiterOn, CeilingDb = CeilingDb, ReleaseMs = ReleaseMs,
     };
@@ -119,6 +126,7 @@ public sealed class OutputFxSetting
         EqOn = c.EqOn; HpfHz = c.HpfHz; Bands = c.Bands; ParamOn = c.ParamOn; Params = c.Params;
         GateOn = c.GateOn; GateThresholdDb = c.GateThresholdDb; GateReleaseMs = c.GateReleaseMs; GateReductionDb = c.GateReductionDb;
         EchoOn = c.EchoOn; EchoMs = c.EchoMs; EchoFeedback = c.EchoFeedback; EchoMix = c.EchoMix;
+        ChorusOn = c.ChorusOn; ChorusRate = c.ChorusRate; ChorusDepthMs = c.ChorusDepthMs; ChorusMix = c.ChorusMix;
         ReverbOn = c.ReverbOn; ReverbRoom = c.ReverbRoom; ReverbDamp = c.ReverbDamp; ReverbMix = c.ReverbMix;
         LimiterOn = c.LimiterOn; CeilingDb = c.CeilingDb; ReleaseMs = c.ReleaseMs;
         Normalize();
@@ -128,7 +136,7 @@ public sealed class OutputFxSetting
     public static readonly string[] IniKeys =
     {
         "Bypass", "VocalOn", "VocalAmount", "VocalLowHz", "VocalHighHz", "EqOn", "HpfHz", "EqBands", "ParamOn", "ParamBands", "LimiterOn", "CeilingDb", "ReleaseMs",
-        "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
+        "GateOn", "GateThresholdDb", "GateReleaseMs", "GateReductionDb", "ChorusOn", "ChorusRate", "ChorusDepthMs", "ChorusMix", "EchoOn", "EchoMs", "EchoFeedback", "EchoMix", "ReverbOn", "ReverbRoom", "ReverbDamp", "ReverbMix",
     };
 
     public void WriteTo(IniSection s, string prefix, bool comment)
@@ -146,6 +154,7 @@ public sealed class OutputFxSetting
         s.Set(prefix + "ReleaseMs", ReleaseMs, C("リミッターの戻り時間(ミリ秒、20〜1000)"));
         s.Set(prefix + "GateOn", GateOn); s.Set(prefix + "GateThresholdDb", GateThresholdDb); s.Set(prefix + "GateReleaseMs", GateReleaseMs); s.Set(prefix + "GateReductionDb", GateReductionDb);
         s.Set(prefix + "EchoOn", EchoOn); s.Set(prefix + "EchoMs", EchoMs); s.Set(prefix + "EchoFeedback", EchoFeedback); s.Set(prefix + "EchoMix", EchoMix);
+        s.Set(prefix + "ChorusOn", ChorusOn, C("コーラス(揺らす速さHz 0.05〜5 / 揺れ幅ms 0〜10 / 混ぜる量0〜1)")); s.Set(prefix + "ChorusRate", ChorusRate); s.Set(prefix + "ChorusDepthMs", ChorusDepthMs); s.Set(prefix + "ChorusMix", ChorusMix);
         s.Set(prefix + "ReverbOn", ReverbOn); s.Set(prefix + "ReverbRoom", ReverbRoom); s.Set(prefix + "ReverbDamp", ReverbDamp); s.Set(prefix + "ReverbMix", ReverbMix);
     }
 
@@ -164,6 +173,7 @@ public sealed class OutputFxSetting
             GateReleaseMs = s.GetDouble(prefix + "GateReleaseMs", d.GateReleaseMs), GateReductionDb = s.GetDouble(prefix + "GateReductionDb", d.GateReductionDb),
             EchoOn = s.GetBool(prefix + "EchoOn", false), EchoMs = s.GetDouble(prefix + "EchoMs", d.EchoMs),
             EchoFeedback = s.GetDouble(prefix + "EchoFeedback", d.EchoFeedback), EchoMix = s.GetDouble(prefix + "EchoMix", d.EchoMix),
+            ChorusOn = s.GetBool(prefix + "ChorusOn", false), ChorusRate = s.GetDouble(prefix + "ChorusRate", d.ChorusRate), ChorusDepthMs = s.GetDouble(prefix + "ChorusDepthMs", d.ChorusDepthMs), ChorusMix = s.GetDouble(prefix + "ChorusMix", d.ChorusMix),
             ReverbOn = s.GetBool(prefix + "ReverbOn", false), ReverbRoom = s.GetDouble(prefix + "ReverbRoom", d.ReverbRoom),
             ReverbDamp = s.GetDouble(prefix + "ReverbDamp", d.ReverbDamp), ReverbMix = s.GetDouble(prefix + "ReverbMix", d.ReverbMix),
         };
