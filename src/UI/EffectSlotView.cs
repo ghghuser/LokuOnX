@@ -6,7 +6,7 @@ namespace Recorder.UI;
 
 /// <summary>
 /// 1つの入力（出力のエフェクトでは1つの出力）のエフェクト画面の中身（M15。EffectWindow から分けた）。
-/// 上段（反映先・バイパス・コピー・貼り付け・すべて初期値に）＋効果のタブ（イコライザ／ノイズゲート・コーラス・エコー・リバーブ・リミッター）＋注意書き。
+/// 上段（反映先・バイパス・コピー・貼り付け・すべて初期値に）＋効果のタブ（EQ/フィルター／ダイナミクス／時間/空間系／特殊効果）＋注意書き。
 /// タブ式では選んだ入力のぶんだけ作り、カード式ではすべての入力のぶんを並べて作る。設定の読み書きは host 経由（動作中も変えられ、すぐ反映される）。
 /// </summary>
 internal sealed class EffectSlotView
@@ -41,7 +41,7 @@ internal sealed class EffectSlotView
         Root = new ContentControl();
     }
 
-    /// <summary>選んでいる効果のタブ（0＝イコライザ／1＝ノイズゲート…）。</summary>
+    /// <summary>選んでいる効果のタブ（0＝EQ/フィルター／1＝ダイナミクス／2＝時間/空間系／3＝特殊効果）。</summary>
     public int Inner { get; set; }
 
     /// <summary>効果のタブを切り替えたとき。</summary>
@@ -68,16 +68,18 @@ internal sealed class EffectSlotView
         Action changed = () => { Commit(); UpdateMarks(); };
         _tabs = new TabControl { Margin = new Thickness(0, 6, 0, 0) };
         var eq = EffectEq.Build(_fx, changed, Rebuild);
-        var fx = new StackPanel();   // ノイズゲート・コーラス・エコー・リバーブ・リミッターは同じタブに
-        fx.Children.Add(EffectSections.Gate(_fx, changed, Rebuild));
-        fx.Children.Add(EffectSections.Chorus(_fx, changed, Rebuild));
-        fx.Children.Add(EffectSections.Echo(_fx, changed, Rebuild));
-        fx.Children.Add(EffectSections.Reverb(_fx, changed, Rebuild));
-        fx.Children.Add(EffectSections.Limiter(_fx, changed, Rebuild));
+        var dyn = new StackPanel();   // ダイナミクス: ノイズゲート・リミッター
+        dyn.Children.Add(EffectSections.Gate(_fx, changed, Rebuild));
+        dyn.Children.Add(EffectSections.Limiter(_fx, changed, Rebuild));
+        var space = new StackPanel();   // 時間/空間系: コーラス・エコー・リバーブ
+        space.Children.Add(EffectSections.Chorus(_fx, changed, Rebuild));
+        space.Children.Add(EffectSections.Echo(_fx, changed, Rebuild));
+        space.Children.Add(EffectSections.Reverb(_fx, changed, Rebuild));
         _tabs.Items.Add(new TabItem { Content = eq });
-        _tabs.Items.Add(new TabItem { Content = fx });
-        _tabs.Items.Add(new TabItem { Content = EffectSections.Vocal(_fx, changed, Rebuild) });   // ボーカル低減（掛かる順は最初だが、タブは末尾に足した）
-        _tabs.SelectedIndex = Math.Clamp(Inner, 0, 2);
+        _tabs.Items.Add(new TabItem { Content = dyn });
+        _tabs.Items.Add(new TabItem { Content = space });
+        _tabs.Items.Add(new TabItem { Content = EffectSections.Vocal(_fx, changed, Rebuild) });   // 特殊効果: ボーカル低減（掛かる順は最初だが、画面では末尾）
+        _tabs.SelectedIndex = Math.Clamp(Inner, 0, 3);
         var tabs = _tabs;
         tabs.SelectionChanged += (_, e) =>
         {
@@ -229,12 +231,13 @@ internal sealed class EffectSlotView
     /// <summary>効果のタブの見出しと、入力のタブ（カード）の見出しに、掛かっている効果の印（⚡＋頭文字）を出す。</summary>
     private void UpdateMarks()
     {
-        if (_tabs != null && _tabs.Items.Count >= 3)
+        if (_tabs != null && _tabs.Items.Count >= 4)
         {
             var c = _fx;
             ((TabItem)_tabs.Items[0]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s18"), EffectWindow.Letters(c, "Lc,G,P"), c.Bypass);
-            ((TabItem)_tabs.Items[1]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s19"), EffectWindow.Letters(c, "N,C,E,R,Lm"), c.Bypass);
-            ((TabItem)_tabs.Items[2]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s35"), EffectWindow.Letters(c, "V"), c.Bypass);
+            ((TabItem)_tabs.Items[1]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s19"), EffectWindow.Letters(c, "N,Lm"), c.Bypass);
+            ((TabItem)_tabs.Items[2]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s36"), EffectWindow.Letters(c, "C,E,R"), c.Bypass);
+            ((TabItem)_tabs.Items[3]).Header = EffectWindow.Header(Loc.Get("effectwindow.top.s35"), EffectWindow.Letters(c, "V"), c.Bypass);
         }
         _marks(Slot, _fx);
     }
