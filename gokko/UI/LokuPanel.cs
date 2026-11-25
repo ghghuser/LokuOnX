@@ -10,6 +10,7 @@ namespace Gokko.UI;
 public sealed class LokuPanel : Border
 {
     private const int Slots = 4;
+    private const double MinGainDb = -30, MaxGainDb = 20;   // LokuOnX の制御API（ControlDispatcher）と同じ範囲
 
     private readonly ControlClient _client;
     private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) };
@@ -76,7 +77,7 @@ public sealed class LokuPanel : Border
         _mute[i] = new ToggleButton { Content = Loc.Get("g.loku.mute"), Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(0, 0, 4, 0), ToolTip = Loc.Get("g.loku.mute.tip", i + 1) };
         _mute[i].Click += (_, _) => Cmd("input.mute", new { index = i + 1, mute = _mute[i].IsChecked == true });
         g.Children.Add(Cell(_mute[i], 2));
-        _gain[i] = new Slider { Minimum = ControlDispatcher.MinGainDb, Maximum = ControlDispatcher.MaxGainDb, TickFrequency = 0.5, IsSnapToTickEnabled = true, MinWidth = 90, ToolTip = Loc.Get("g.loku.gain.tip", i + 1), VerticalAlignment = VerticalAlignment.Center };
+        _gain[i] = new Slider { Minimum = MinGainDb, Maximum = MaxGainDb, TickFrequency = 0.5, IsSnapToTickEnabled = true, MinWidth = 90, ToolTip = Loc.Get("g.loku.gain.tip", i + 1), VerticalAlignment = VerticalAlignment.Center };
         _gain[i].ValueChanged += (_, e) => { UpdateText(_gainText[i], e.NewValue); if (!_syncing) Cmd("input.gain", new { index = i + 1, db = e.NewValue }); };
         g.Children.Add(Cell(_gain[i], 3));
         _gainText[i] = new TextBlock { Width = 56, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
@@ -94,7 +95,7 @@ public sealed class LokuPanel : Border
         Grid.SetColumnSpan(_outOn[i], 2);
         g.Children.Add(Cell(_outOn[i], 1));
         Grid.SetColumnSpan(_outOn[i], 2);
-        _vol[i] = new Slider { Minimum = ControlDispatcher.MinGainDb, Maximum = ControlDispatcher.MaxGainDb, TickFrequency = 0.5, IsSnapToTickEnabled = true, MinWidth = 90, ToolTip = Loc.Get("g.loku.vol.tip", (char)('A' + i)), VerticalAlignment = VerticalAlignment.Center };
+        _vol[i] = new Slider { Minimum = MinGainDb, Maximum = MaxGainDb, TickFrequency = 0.5, IsSnapToTickEnabled = true, MinWidth = 90, ToolTip = Loc.Get("g.loku.vol.tip", (char)('A' + i)), VerticalAlignment = VerticalAlignment.Center };
         _vol[i].ValueChanged += (_, e) => { UpdateText(_volText[i], e.NewValue); if (!_syncing) Cmd("output.volume", new { index = i + 1, db = e.NewValue }); };
         g.Children.Add(Cell(_vol[i], 3));
         _volText[i] = new TextBlock { Width = 56, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
