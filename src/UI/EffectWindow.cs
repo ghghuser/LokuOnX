@@ -47,7 +47,7 @@ public sealed partial class EffectWindow : Window
 
     private readonly IEffectHost _host;
     private readonly Settings _s;
-    private readonly TabControl _slotTabs = new() { Margin = new Thickness(16, 4, 16, 8) };
+    private readonly TabControl _slotTabs = new() { Margin = new Thickness(16, 2, 16, 4) };
     private readonly WrapPanel _cards = new() { Margin = new Thickness(16, 4, 4, 8) };
     private readonly List<EffectSlotView> _views = new();
     private readonly List<ContentControl> _cardHeads = new();
@@ -71,8 +71,8 @@ public sealed partial class EffectWindow : Window
         Title = host.WindowTitle;
         Width = 720;
         Height = 780;
-        MinWidth = 600;
-        MinHeight = 460;
+        MinWidth = 570;
+        MinHeight = 430;
         FontFamily = new FontFamily("Yu Gothic UI, Meiryo UI");
         FontSize = 13;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;

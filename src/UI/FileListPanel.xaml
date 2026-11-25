@@ -52,13 +52,21 @@
 
         <!-- 表示する場所（タブ: 録音履歴／フォルダ）と操作ボタン。幅が足りなければ折り返す -->
         <StackPanel Grid.Row="0" Margin="0,0,0,4">
-            <TabControl x:Name="SourceTabs" Template="{StaticResource HeaderOnlyTabs}" Margin="0,0,0,8"
-                        SelectionChanged="SourceTab_Changed">
-                <TabItem Header="{ui:T filelistpanel.tabitem1.header}"
-                         ToolTip="{ui:T filelistpanel.tabitem2.tooltip}"/>
-                <TabItem Header="{ui:T filelistpanel.tabitem3.header}"
-                         ToolTip="{ui:T filelistpanel.tabitem4.tooltip}"/>
-            </TabControl>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TabControl x:Name="SourceTabs" Template="{StaticResource HeaderOnlyTabs}" Margin="0,0,0,8"
+                            SelectionChanged="SourceTab_Changed">
+                    <TabItem Header="{ui:T filelistpanel.tabitem1.header}"
+                             ToolTip="{ui:T filelistpanel.tabitem2.tooltip}"/>
+                    <TabItem Header="{ui:T filelistpanel.tabitem3.header}"
+                             ToolTip="{ui:T filelistpanel.tabitem4.tooltip}"/>
+                </TabControl>
+                <!-- タブの行の右端（予約録音のお知らせなど。メイン画面から差し込む） -->
+                <ContentControl x:Name="TabsTrailingHost" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            </Grid>
             <WrapPanel>
                 <Button x:Name="RefreshButton" Content="{ui:T filelistpanel.refreshbutton.content}" Padding="10,3" Margin="0,0,10,4" Click="Refresh_Click"/>
                 <ComboBox x:Name="SourceBox" Width="250" Margin="0,0,10,4" DisplayMemberPath="Label"

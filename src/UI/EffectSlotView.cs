@@ -62,11 +62,11 @@ internal sealed class EffectSlotView
 
     private UIElement BuildBody()
     {
-        var root = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };
+        var root = new StackPanel { Margin = new Thickness(0, 0, 0, 2) };
         root.Children.Add(BuildTopBar());
 
         Action changed = () => { Commit(); UpdateMarks(); };
-        _tabs = new TabControl { Margin = new Thickness(0, 6, 0, 0) };
+        _tabs = new TabControl { Margin = new Thickness(0, 3, 0, 0) };
         var eq = EffectEq.Build(_fx, changed, Rebuild);
         var dyn = new StackPanel();   // ダイナミクス: ノイズゲート・リミッター
         dyn.Children.Add(EffectSections.Gate(_fx, changed, Rebuild));
@@ -94,7 +94,7 @@ internal sealed class EffectSlotView
         {
             Text = (_host.HasRouting ? (Loc.Get("effectwindow.s02") + " ") : (Loc.Get("effectwindow.s03") + " "))
                 + Loc.Get("effectwindow.s04"),
-            FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0),
+            FontSize = 11, Opacity = 0.65, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
         });
         return root;
     }
@@ -102,7 +102,7 @@ internal sealed class EffectSlotView
     /// <summary>反映先（録音・出力。入力のみ）・バイパス・プリセット（M16。旧コピー／貼り付けの置き換え）・すべて初期値に（ひとまとまりで、折り返してもばらけない）。</summary>
     private UIElement BuildTopBar()
     {
-        var row = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) };
+        var row = new WrapPanel { Margin = new Thickness(0, 2, 0, 4) };
         _toRec = null;
         if (_host.HasRouting)
         {
@@ -148,7 +148,7 @@ internal sealed class EffectSlotView
         var save = new Button { Content = Loc.Get("effectwindow.top.s22"), Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(6, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s23") };
         var del = new Button { Content = Loc.Get("effectwindow.top.s24"), Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(6, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s25") };
         var restore = new Button { Content = "↺", Width = 26, Padding = new Thickness(0), Margin = new Thickness(6, 0, 0, 0), ToolTip = Loc.Get("effectwindow.top.s26") };
-        _presetMsg = new TextBlock { FontSize = 11, Opacity = 0.75, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap };
+        _presetMsg = new TextBlock { FontSize = 11, Opacity = 0.75, Margin = new Thickness(0, 2, 0, 0), TextWrapping = TextWrapping.Wrap };
         FillPresets(_presetText);
         _presetBox.SelectionChanged += (_, _) =>
         {

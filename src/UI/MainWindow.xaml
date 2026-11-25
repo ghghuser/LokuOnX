@@ -47,25 +47,18 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="{ui:T mainwindow.textblock1.text}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <ui:ProfileBar x:Name="Profiles"/>
+                <!-- アプリランチャー（M17）: 「Profilesフォルダを開く」の右 -->
+                <ui:LauncherBar x:Name="Launcher" Margin="4,0,0,2" VerticalAlignment="Top"/>
             </StackPanel>
-            <!-- 予約録音が有効なとき、次の予約を目立つ色で出す -->
-            <Border x:Name="ScheduleBadge" Grid.Column="2" Visibility="Collapsed" CornerRadius="11" Padding="11,3" Margin="0,0,10,0"
-                    VerticalAlignment="Center" Background="{DynamicResource ScheduleOnBg}"
-                    ToolTip="{ui:T mainwindow.schedulebadge.tooltip}">
-                <TextBlock x:Name="ScheduleBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ScheduleOnFg}"/>
-            </Border>
             <!-- 出力（M11-2）: 出力ウィンドウを開く。出力中は色が変わる -->
             <Grid Grid.Column="3" Margin="0,0,6,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <!-- アプリランチャー（M17）: 登録したアプリ（最大5個）。出力アイコンの左 -->
-                <ui:LauncherBar x:Name="Launcher" Margin="0,0,10,0" VerticalAlignment="Center"/>
                 <!-- 出力ランプ（出力カードの数だけ。録音に含める出力は、ここから録音パネルへ線を下ろす） -->
-                <ui:OutputLamps x:Name="OutLamps" Grid.Column="1" Margin="0,0,0,0" VerticalAlignment="Stretch"/>
-                <Button x:Name="OutputButton" Grid.Column="2" Content="⇶" FontFamily="Segoe UI Symbol"
+                <ui:OutputLamps x:Name="OutLamps" Margin="0,0,0,0" VerticalAlignment="Stretch"/>
+                <Button x:Name="OutputButton" Grid.Column="1" Content="⇶" FontFamily="Segoe UI Symbol"
                         FontSize="16" MinWidth="34" Height="28" Padding="6,0" VerticalAlignment="Center"
                         ToolTip="{ui:T mainwindow.outputbutton.tooltip}" Click="Output_Click"
                         PreviewMouseRightButtonUp="Output_RightClick"/>
@@ -187,7 +180,16 @@
         </ScrollViewer>
 
         <!-- 右下: 録音履歴（ファイル一覧）・プレイヤー・ファイル操作 -->
-        <ui:FileListPanel x:Name="Files" Grid.Row="3" Grid.Column="2"/>
+        <ui:FileListPanel x:Name="Files" Grid.Row="3" Grid.Column="2">
+            <ui:FileListPanel.TabsTrailing>
+                <!-- 予約録音が有効なとき、次の予約を目立つ色で出す -->
+                <Border x:Name="ScheduleBadge" Visibility="Collapsed" CornerRadius="11" Padding="11,3" Margin="10,0,0,8"
+                        VerticalAlignment="Center" Background="{DynamicResource ScheduleOnBg}"
+                        ToolTip="{ui:T mainwindow.schedulebadge.tooltip}">
+                    <TextBlock x:Name="ScheduleBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ScheduleOnFg}"/>
+                </Border>
+            </ui:FileListPanel.TabsTrailing>
+        </ui:FileListPanel>
       </Grid>
 
       <!-- ウィンドウの一番下: ログ（保存しました など。常に2行分の高さ）。枠なし・少し暗い背景・ログ向けの等幅フォント。右側にホットキー（ONのとき） -->

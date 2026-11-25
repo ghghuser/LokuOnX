@@ -79,6 +79,13 @@ public partial class FileListPanel : UserControl
     private List<LibraryFile> SelectedFiles => List.SelectedItems.Cast<LibraryFile>().Where(f => !f.IsRecording).ToList();
 
     /// <summary>フォルダのプルダウン（最近の保存先）を作り直す。select があればそれを表示する（HistoryKey なら録音履歴のタブ）。なければ、いま表示している場所をできるだけ保つ。</summary>
+    /// <summary>タブの行の右端に置く要素（予約録音のお知らせ）。</summary>
+    public object? TabsTrailing
+    {
+        get => TabsTrailingHost.Content;
+        set => TabsTrailingHost.Content = value;
+    }
+
     public void ReloadSources(string? select = null)
     {
         var keep = select ?? SourceKey;

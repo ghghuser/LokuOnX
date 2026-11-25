@@ -19,7 +19,7 @@ internal static class EffectUi
     public static Border Card(UIElement header, out StackPanel body)
     {
         var root = new StackPanel();
-        if (header is FrameworkElement fe) fe.Margin = new Thickness(0, 0, 0, 6);
+        if (header is FrameworkElement fe) fe.Margin = new Thickness(0, 0, 0, 3);
         root.Children.Add(header);
         body = new StackPanel();
         root.Children.Add(body);
@@ -27,8 +27,8 @@ internal static class EffectUi
         {
             CornerRadius = new CornerRadius(10),
             BorderThickness = new Thickness(1),
-            Padding = new Thickness(14, 10, 14, 10),
-            Margin = new Thickness(0, 0, 0, 10),
+            Padding = new Thickness(14, 7, 14, 7),
+            Margin = new Thickness(0, 0, 0, 6),
             Child = root,
         };
         card.SetResourceReference(Border.BackgroundProperty, "CardBg");
@@ -102,7 +102,7 @@ internal static class EffectUi
     public static Grid Slide(string label, double min, double max, double value, double def, Func<double, string> text,
         Action<double> set, double step = 0, string? tip = null, double labelWidth = 96, double valueWidth = 74)
     {
-        var g = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+        var g = new Grid { Margin = new Thickness(0, 1, 0, 1) };
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelWidth) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(valueWidth) });
