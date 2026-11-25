@@ -51,6 +51,10 @@
     <Compile Include="..\..\src\Core\OutputHub.cs" Link="Core\OutputHub.cs" />
     <Compile Include="..\..\src\Core\TagInfo.cs" Link="Core\TagInfo.cs" />
     <Compile Include="..\..\src\Core\TagEditor.cs" Link="Core\TagEditor.cs" />
+    <Compile Include="..\..\src\Core\LauncherList.cs" Link="Core\LauncherList.cs" />
+    <Compile Include="..\..\src\Core\ControlProtocol.cs" Link="Core\ControlProtocol.cs" />
+    <Compile Include="..\..\src\Core\ControlDispatcher.cs" Link="Core\ControlDispatcher.cs" />
+    <Compile Include="..\..\src\Core\ControlServer.cs" Link="Core\ControlServer.cs" />
   </ItemGroup>
 
 </Project>

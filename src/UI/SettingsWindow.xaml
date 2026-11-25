@@ -76,6 +76,17 @@
                             </StackPanel>
                         </Border>
 
+                        <TextBlock Text="{ui:T settings.section.control}" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource SectionBody}">
+                            <StackPanel>
+                                <CheckBox x:Name="ControlCheck" Content="{ui:T settings.control}"
+                                          ToolTip="{ui:T settings.control.tip}"
+                                          Checked="Control_Changed" Unchecked="Control_Changed"/>
+                                <TextBlock Text="{ui:T settings.control.note}"
+                                           TextWrapping="Wrap" FontSize="12" Opacity="0.65" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+
                         <TextBlock Text="{ui:T settings.section.tray}" Style="{StaticResource SectionTitle}"/>
                         <Border Style="{StaticResource SectionBody}">
                             <StackPanel>

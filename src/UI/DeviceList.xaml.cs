@@ -724,4 +724,29 @@ public partial class DeviceList : UserControl
 
     /// <summary>全体ゲイン（dB）。</summary>
     public double MasterGainDb => _master?.Value ?? 0;
+
+    /// <summary>全体ゲインを指定する（制御API用。画面のつまみと同じ経路で、録音・待機へも反映される）。</summary>
+    public void SetMasterGainDb(double db)
+    {
+        if (_master != null) _master.Value = db;
+    }
+
+    /// <summary>入力 slot（0〜）が使える行か（デバイスが選ばれている）。</summary>
+    public bool HasInput(int slot) => slot >= 0 && slot < _rows.Count && _rows[slot].Key.Length > 0;
+
+    /// <summary>入力 slot のゲインを指定する（制御API用）。</summary>
+    public void SetInputGainDb(int slot, double db)
+    {
+        if (HasInput(slot)) _rows[slot].Gain.SetGainDb(db);
+    }
+
+    /// <summary>入力 slot のミュートを入れる／解く（制御API用）。</summary>
+    public void SetInputMute(int slot, bool mute)
+    {
+        if (HasInput(slot)) _rows[slot].Gain.SetMuted(mute);
+    }
+
+    /// <summary>入力の状態（制御APIの state 用）: slot・使うか・ゲイン（一括／左／右）・ミュート。</summary>
+    public IReadOnlyList<(int Slot, bool Active, double Db, double DbR, bool Muted)> InputStates() =>
+        _rows.Select((r, i) => (i, r.Key.Length > 0 && r.Use.IsChecked == true, r.Gain.Value, r.Gain.Mode == 1 ? r.Gain.ValueR : r.Gain.Value, r.Gain.AnyMuted)).ToList();
 }

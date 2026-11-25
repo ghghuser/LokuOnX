@@ -86,6 +86,9 @@ public partial class MainWindow : Window
         Options.Changed += OnOptionsChanged;
         Plans.Changed += ArmSchedule;
         InitTray();
+        Launcher.Notice = text => { if (_session == null) StatusText.Text = text; };
+        Launcher.Init(settings);
+        ApplyControlApi();
         ArmSchedule();
 
         UpdateInfo();
@@ -102,6 +105,7 @@ public partial class MainWindow : Window
     {
         Player.Shutdown();
         DisposeTray();
+        StopControlApi();
         StopCheckMonitor();
         if (_monitor is { } monitor)   // 待機中に終了した
         {
@@ -182,7 +186,7 @@ public partial class MainWindow : Window
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e) =>
-        new SettingsWindow(_settings, ApplyHotkeys, OnHotkeyCapture, OnTrayOptionsChanged, PollDevices) { Owner = this }.ShowDialog();
+        new SettingsWindow(_settings, ApplyHotkeys, OnHotkeyCapture, OnTrayOptionsChanged, PollDevices, ApplyControlApi) { Owner = this }.ShowDialog();
 
     /// <summary>選んだデバイスから決まる、録音の元のサンプリング周波数とチャンネル数（形式・音質の一行まとめの見積もり用。未選択は 0）。</summary>
     private (int Rate, int Channels) DeviceFormat()

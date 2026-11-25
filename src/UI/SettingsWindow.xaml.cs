@@ -30,14 +30,16 @@ public partial class SettingsWindow : Window
     private readonly Action<bool> _hotkeyCapture;
     private readonly Action _trayChanged;
     private readonly Action _asioChanged;
+    private readonly Action _controlChanged;
     private readonly bool _loading = true;
 
     /// <param name="applyHotkeys">ホットキーを登録し直し、結果のメッセージ（登録できなかったキー）を返す。</param>
     /// <param name="hotkeyCapture">キーの割り当て中は true（登録済みのキーを一時的に外すため）。</param>
     /// <param name="trayChanged">トレイの設定が変わった。</param>
     /// <param name="asioChanged">ASIOを一覧に出す設定が変わった（メイン画面がデバイス一覧を読み直す）。</param>
+    /// <param name="controlChanged">制御API（外部アプリからの操作）の設定が変わった。</param>
     public SettingsWindow(Settings settings, Func<(string Text, bool Error)> applyHotkeys,
-        Action<bool> hotkeyCapture, Action trayChanged, Action asioChanged)
+        Action<bool> hotkeyCapture, Action trayChanged, Action asioChanged, Action controlChanged)
     {
         InitializeComponent();
         _s = settings;
@@ -45,7 +47,10 @@ public partial class SettingsWindow : Window
         _hotkeyCapture = hotkeyCapture;
         _trayChanged = trayChanged;
         _asioChanged = asioChanged;
+        _controlChanged = controlChanged;
         AsioCheck.IsChecked = settings.AsioEnabled;
+        ControlCheck.IsChecked = settings.ControlApiOn;
+        ControlCheck.IsEnabled = !settings.ReadOnly;
         var langs = LangList.Scan(Path.Combine(AppPaths.Dir, "Lang"), new[] { "ja" }, c => App.ReadEmbeddedLang(c + ".ini"));
         langs.Insert(0, new LangInfo(LangList.Auto, Loc.Get("settings.language.auto")));
         if (!langs.Any(l => l.Code.Equals(settings.Language, StringComparison.OrdinalIgnoreCase))) langs.Add(new LangInfo(settings.Language, settings.Language));
@@ -191,6 +196,13 @@ public partial class SettingsWindow : Window
         if (_loading) return;
         _s.AsioEnabled = AsioCheck.IsChecked == true;
         _asioChanged();
+    }
+
+    private void Control_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _s.ControlApiOn = ControlCheck.IsChecked == true;
+        _controlChanged();
     }
 
     private void Tray_Changed(object sender, RoutedEventArgs e)

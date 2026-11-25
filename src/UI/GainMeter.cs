@@ -235,6 +235,20 @@ public sealed class GainMeter : Grid
         };
     }
 
+    /// <summary>ミュートを入れる／解く（制御API用。左右それぞれのときは両方を揃える）。すでにその状態なら何もしない。</summary>
+    public void SetMuted(bool mute)
+    {
+        if (GainMath.IsMuted(_value) != mute) ToggleMute(0);
+        if (_mode == 1 && GainMath.IsMuted(_valueR) != mute) ToggleMute(1);
+    }
+
+    /// <summary>ゲインを dB で指定する（制御API用。左右それぞれのときは両方を同じ値にする）。</summary>
+    public void SetGainDb(double db)
+    {
+        Value = db;
+        if (_mode == 1) ValueR = db;
+    }
+
     /// <summary>ミュートを入れる／解く（解くときは、ミュートする前のゲインに戻す。無ければ 0 dB）。ch＝0 左（または一括）／1 右（左右それぞれのとき）。</summary>
     private void ToggleMute(int ch)
     {
