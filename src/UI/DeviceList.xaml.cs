@@ -269,7 +269,7 @@ public partial class DeviceList : UserControl
         var g = row.Panel;
         g.Margin = new Thickness(0, 0, 0, 6);
         // 見出し（DeviceList.xaml）と同じ列幅: チェック・プルダウン・波形・ゲイン・ゲインの数値・動かし方と↺・FX
-        foreach (var w in new[] { 30.0, 250.0, -1, 220.0, 70.0, 30.0, 34.0 })
+        foreach (var w in new[] { 30.0, 250.0, -1, 220.0, 60.0, 30.0, 34.0 })
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = w < 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(w) });
 
         row.Use.Style = (Style)Application.Current.FindResource("LampCheck");

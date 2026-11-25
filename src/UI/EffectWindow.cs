@@ -249,6 +249,9 @@ public sealed partial class EffectWindow : Window
         else UpdateHeaders();
     }
 
+    /// <summary>いま開いている入力（タブ式で選ばれているタブ）。カード式では、同じ入力と見なさない（-1）。</summary>
+    public int ShownSlot => CardMode ? -1 : _slot;
+
     /// <summary>入力 slot のエフェクトを表示する（すでに開いているウィンドウを、別の入力へ切り替える）。</summary>
     public void ShowSlot(int slot)
     {

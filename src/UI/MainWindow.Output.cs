@@ -236,8 +236,12 @@ public partial class MainWindow : IOutputHost
     void IOutputHost.SetFolded(int index, bool folded) => _settings.SetOutputFolded(index, folded);
 
     // ---- ⇶ボタン ----
-    /// <summary>左クリック＝出力ウィンドウ（待たずにすぐ開く）。右クリック＝メニュー（出力ごとのオン/オフ・すべて停止・すべて再開）。</summary>
-    private void Output_Click(object sender, RoutedEventArgs e) => OpenOutputWindow();
+    /// <summary>左クリック＝出力ウィンドウ（待たずにすぐ開く。開いていれば閉じる）。右クリック＝メニュー（出力ごとのオン/オフ・すべて停止・すべて再開）。</summary>
+    private void Output_Click(object sender, RoutedEventArgs e)
+    {
+        if (_outWindow != null) _outWindow.Close();   // すでに開いていれば閉じる
+        else OpenOutputWindow();
+    }
 
     private void Output_RightClick(object sender, MouseButtonEventArgs e)
     {

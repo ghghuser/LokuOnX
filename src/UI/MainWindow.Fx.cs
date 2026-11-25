@@ -77,6 +77,11 @@ public partial class MainWindow : IEffectHost
     {
         if (_fxWindow != null)
         {
+            if (_fxWindow.ShownSlot == slot)   // すでに同じ入力のエフェクトが開いている → 閉じる
+            {
+                _fxWindow.Close();
+                return;
+            }
             _fxWindow.ShowSlot(slot);
             if (_fxWindow.WindowState == WindowState.Minimized) _fxWindow.WindowState = WindowState.Normal;
             _fxWindow.Activate();
