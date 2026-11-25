@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Markup;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using Recorder.Core;
@@ -19,6 +20,14 @@ namespace Recorder.UI;
 public sealed class LauncherBar : StackPanel
 {
     private const double ButtonSize = 28;
+
+    /// <summary>丸いボタンの見た目（テーマの面・枠・ホバー色）。</summary>
+    private static readonly ControlTemplate RoundTemplate = (ControlTemplate)XamlReader.Parse(
+        "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='Button'>" +
+        "<Border x:Name='B' CornerRadius='14' BorderThickness='1' Background='{DynamicResource PanelBg}' BorderBrush='{DynamicResource PanelBorder}'>" +
+        "<ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/></Border>" +
+        "<ControlTemplate.Triggers><Trigger Property='IsMouseOver' Value='True'><Setter TargetName='B' Property='Background' Value='{DynamicResource PanelHover}'/></Trigger></ControlTemplate.Triggers>" +
+        "</ControlTemplate>");
 
     private Settings? _s;
     private readonly Dictionary<string, ImageSource?> _icons = new(StringComparer.OrdinalIgnoreCase);
@@ -56,6 +65,7 @@ public sealed class LauncherBar : StackPanel
             Width = ButtonSize,
             Height = ButtonSize,
             Padding = new Thickness(0),
+            Template = RoundTemplate,
             Margin = new Thickness(0, 0, 4, 0),
             ToolTip = tip,
             VerticalAlignment = VerticalAlignment.Center,

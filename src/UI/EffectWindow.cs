@@ -43,7 +43,7 @@ public interface IEffectHost
 /// </summary>
 public sealed partial class EffectWindow : Window
 {
-    private const double CardWidth = 620;
+    private const double CardWidth = 548;   // タブ式で最小サイズのときの中身の幅と同じ
 
     private readonly IEffectHost _host;
     private readonly Settings _s;

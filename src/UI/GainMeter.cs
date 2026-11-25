@@ -229,10 +229,16 @@ public sealed class GainMeter : Grid
         text.MouseLeftButtonDown += (_, e) =>
         {
             if (e.ClickCount < 2) return;
-            Value = 0;
-            if (_modes) { ValueR = 0; Balance = 0; }
+            ResetGain();
             e.Handled = true;
         };
+    }
+
+    /// <summary>0 dB（バランスは中央）に戻す。</summary>
+    public void ResetGain()
+    {
+        Value = 0;
+        if (_modes) { ValueR = 0; Balance = 0; }
     }
 
     /// <summary>ミュートを入れる／解く（制御API用。左右それぞれのときは両方を揃える）。すでにその状態なら何もしない。</summary>

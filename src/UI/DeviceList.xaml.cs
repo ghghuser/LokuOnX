@@ -27,6 +27,7 @@ public partial class DeviceList : UserControl
         public readonly TextBox NameBox = new();     // 名前の入力欄（変更中だけ出す）
         public readonly Button FxButton = new();     // この入力のエフェクトを開く（M11-4）
         public readonly GainMeter Gain = new(2, 6, true);   // 左右2本の細いメーター＋つまみ（動かし方は3通り。M15）
+        public readonly Button ResetButton = new();  // ゲインを 0 dB（バランスは中央）に戻す（↺）
         public readonly Button ModeButton = new();   // ゲインの動かし方の切り替え（≡ 左右一括／⇅ 左右それぞれ／⇄ バランス）
         public readonly StackPanel MeterBox = new();   // メーター＋その下のdB目盛り
         public readonly LevelScale Scale = new() { Margin = new Thickness(0, 1, 0, 0) };   // dB目盛り（左右それぞれのときは消す）
@@ -267,8 +268,8 @@ public partial class DeviceList : UserControl
         var row = new Row { Key = key };
         var g = row.Panel;
         g.Margin = new Thickness(0, 0, 0, 6);
-        // 見出し（DeviceList.xaml）と同じ列幅: チェック・プルダウン・波形・ゲイン・ゲインの数値・レベル
-        foreach (var w in new[] { 30.0, 250.0, -1, 220.0, 70.0 })
+        // 見出し（DeviceList.xaml）と同じ列幅: チェック・プルダウン・波形・ゲイン・ゲインの数値・動かし方と↺・FX
+        foreach (var w in new[] { 30.0, 250.0, -1, 220.0, 70.0, 30.0, 34.0 })
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = w < 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(w) });
 
         row.Use.Style = (Style)Application.Current.FindResource("LampCheck");
@@ -306,16 +307,17 @@ public partial class DeviceList : UserControl
         row.NameBox.LostFocus += (_, _) => CommitRename(row, true);
         row.Left.Margin = new Thickness(0, 0, 10, 0);
         row.Left.VerticalAlignment = VerticalAlignment.Center;
-        // 名前ラベルの行の右端に「FX」ボタン（M11-4）
+        // 「FX」ボタン（M11-4）は、ゲインの数値の右（動かし方・↺の、さらに右）
         row.FxButton.Content = "FX";
         row.FxButton.Style = (Style)Application.Current.FindResource("FxButton");
         row.FxButton.FontSize = 10;
         row.FxButton.Height = 18;
         row.FxButton.MinWidth = 26;
-        row.FxButton.Margin = new Thickness(6, 0, 0, 2);
+        row.FxButton.Margin = new Thickness(0);
         row.FxButton.VerticalAlignment = VerticalAlignment.Center;
+        row.FxButton.HorizontalAlignment = HorizontalAlignment.Left;
         row.FxButton.Click += (_, _) => FxRequested?.Invoke(_rows.IndexOf(row));
-        DockPanel.SetDock(row.FxButton, Dock.Right);
+        Grid.SetColumn(row.FxButton, 6);
         var nameRow = new DockPanel { LastChildFill = true };
         row.BgMark.Text = Loc.Get("devlist.bgmark");
         row.BgMark.FontSize = 10;
@@ -326,8 +328,7 @@ public partial class DeviceList : UserControl
         row.BgMark.ToolTip = Loc.Get("devlist.bgmark.tip");
         row.BgMark.Foreground = MeterColors.Muted;   // オレンジ（切り離しの色）
         DockPanel.SetDock(row.BgMark, Dock.Right);
-        nameRow.Children.Add(row.FxButton);
-        nameRow.Children.Add(row.BgMark);   // FXの左（右詰めの2番目）
+        nameRow.Children.Add(row.BgMark);   // 名前の右端（右詰め）
         nameRow.Children.Add(row.NameText);
         nameRow.Children.Add(row.NameBox);
         row.Left.Children.Add(nameRow);
@@ -356,17 +357,25 @@ public partial class DeviceList : UserControl
         row.MeterBox.VerticalAlignment = VerticalAlignment.Center;
         row.MeterBox.Children.Add(row.Gain);
         row.MeterBox.Children.Add(row.Scale);
-        // 動かし方の切り替えボタンは、メーターの前（クリックで 一括→左右それぞれ→バランス の順）
+        // 動かし方の切り替えボタンは、ゲインの数値（dB）の右。その下に ↺（クリックで一括→左右それぞれ→バランス の順）
         row.ModeButton.Style = (Style)Application.Current.FindResource("FxButton");
         row.ModeButton.FontFamily = new FontFamily("Segoe UI Symbol");
         row.ModeButton.FontSize = 11;
         row.ModeButton.Height = 18;
         row.ModeButton.MinWidth = 22;
-        row.ModeButton.Margin = new Thickness(0, 0, 6, 0);
-        row.ModeButton.VerticalAlignment = VerticalAlignment.Center;
+        row.ModeButton.Margin = new Thickness(0, 0, 0, 2);
         row.ModeButton.Click += (_, _) => row.Gain.Mode = (row.Gain.Mode + 1) % 3;
-        DockPanel.SetDock(row.ModeButton, Dock.Left);
-        row.MeterHost.Children.Add(row.ModeButton);
+        row.ResetButton.Style = (Style)Application.Current.FindResource("FxButton");
+        row.ResetButton.Content = "↺";
+        row.ResetButton.FontSize = 11;
+        row.ResetButton.Height = 18;
+        row.ResetButton.MinWidth = 22;
+        row.ResetButton.ToolTip = Loc.Get("devlist.gainreset.tip");
+        row.ResetButton.Click += (_, _) => row.Gain.ResetGain();
+        var modeBox = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
+        modeBox.Children.Add(row.ModeButton);
+        modeBox.Children.Add(row.ResetButton);
+        Grid.SetColumn(modeBox, 5);
         row.MeterHost.Children.Add(row.MeterBox);
         Grid.SetColumn(row.MeterHost, 3);
 
@@ -382,6 +391,8 @@ public partial class DeviceList : UserControl
         g.Children.Add(row.Lane);
         g.Children.Add(row.MeterHost);
         g.Children.Add(row.GainText);
+        g.Children.Add(modeBox);
+        g.Children.Add(row.FxButton);
         row.Lane.ContextMenu = new ContextMenu { Items = { FxItem(row) } };
         row.MeterBox.ContextMenu = new ContextMenu { Items = { FxItem(row) } };
 

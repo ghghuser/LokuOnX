@@ -48,7 +48,7 @@
                 <TextBlock Text="{ui:T mainwindow.textblock1.text}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <ui:ProfileBar x:Name="Profiles"/>
                 <!-- アプリランチャー（M17）: 「Profilesフォルダを開く」の右 -->
-                <ui:LauncherBar x:Name="Launcher" Margin="4,0,0,2" VerticalAlignment="Top"/>
+                <ui:LauncherBar x:Name="Launcher" Margin="16,0,0,2" VerticalAlignment="Top"/>
             </StackPanel>
             <!-- 出力（M11-2）: 出力ウィンドウを開く。出力中は色が変わる -->
             <Grid Grid.Column="3" Margin="0,0,6,0">

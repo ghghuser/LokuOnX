@@ -31,6 +31,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="34"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="1" Text="{ui:T devicelist.textblock1.text}" ToolTip="{ui:T devicelist.textblock2.tooltip}"/>
             <TextBlock Grid.Column="2" Text="{ui:T devicelist.textblock3.text}" Margin="2,0,0,0"/>
