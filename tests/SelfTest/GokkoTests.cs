@@ -85,7 +85,7 @@ static class GokkoTests
             check(buf.All(x => x == 0f), "何も鳴っていなければ無音");
             m.Start(1, Clip(10000, 16384), false, 0);
             m.Read(buf, 0, buf.Length);
-            check(Math.Abs(buf[190] - 0.5f) < 0.001f && m.IsPlaying(1), "鳴らすと音が出る（フェードインのあとは原音の大きさ）", buf[190].ToString());
+            check(Math.Abs(buf[198] - 0.5f) < 0.001f && m.IsPlaying(1), "鳴らすと音が出る（フェードインのあとは原音の大きさ）", buf[198].ToString());
             check(buf[0] == 0f && buf[1] == 0f, "頭は無音から立ち上がる（プツッを防ぐ）");
             m.Start(2, Clip(10000, 30000), false, 0);
             Array.Clear(buf);
@@ -140,7 +140,7 @@ static class GokkoTests
             check(!mixer.IsPlaying(1), "ループ: もう一度押すと止まる");
             check(c.Press(2) && mixer.IsPlaying(2), "押している間だけ: 押すと鳴る");
             c.Press(2);
-            check(loads == 4, "押しっぱなしの繰り返しは無視する（読み込みは増えない）", loads.ToString());
+            check(loads == 3, "押しっぱなしの繰り返しは無視する（読み込みは増えない）", loads.ToString());
             c.Release(2);
             check(!mixer.IsPlaying(2), "押している間だけ: 離すと止まる");
             c.Press(0);

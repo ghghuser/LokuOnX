@@ -16,7 +16,15 @@ public sealed record PadConfig(string Name, string FilePath, PadMode Mode, doubl
     public bool IsEmpty => FilePath.Length == 0;
 
     /// <summary>画面に出す名前。名前が空ならファイル名（拡張子なし）。</summary>
-    public string Title => Name.Length > 0 ? Name : (FilePath.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(FilePath) : "");
+    public string Title => Name.Length > 0 ? Name : (FilePath.Length > 0 ? FileTitle(FilePath) : "");
+
+    /// <summary>フォルダ（\\ と / のどちらでも）と拡張子を除いたファイル名。</summary>
+    private static string FileTitle(string path)
+    {
+        var name = path[(path.LastIndexOfAny(new[] { '\\', '/' }) + 1)..];
+        var dot = name.LastIndexOf('.');
+        return dot > 0 ? name[..dot] : name;
+    }
 
     /// <summary>範囲外・壊れた値を範囲内へ直す。</summary>
     public PadConfig Normalize()
