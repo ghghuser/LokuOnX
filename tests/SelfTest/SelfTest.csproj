@@ -55,6 +55,8 @@
     <Compile Include="..\..\src\Core\ControlProtocol.cs" Link="Core\ControlProtocol.cs" />
     <Compile Include="..\..\src\Core\ControlDispatcher.cs" Link="Core\ControlDispatcher.cs" />
     <Compile Include="..\..\src\Core\ControlServer.cs" Link="Core\ControlServer.cs" />
+    <!-- Gokko4DJ（M18）の Core -->
+    <Compile Include="..\..\gokko\Core\*.cs" LinkBase="Gokko" />
   </ItemGroup>
 
 </Project>
