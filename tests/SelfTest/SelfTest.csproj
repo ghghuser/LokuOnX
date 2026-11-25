@@ -57,6 +57,7 @@
     <Compile Include="..\..\src\Core\ControlServer.cs" Link="Core\ControlServer.cs" />
     <!-- Gokko4DJ（M18）の Core -->
     <Compile Include="..\..\gokko\Core\*.cs" LinkBase="Gokko" />
+    <Compile Include="..\..\src\Core\AppInfo.cs" Link="Core\AppInfo.cs" />
   </ItemGroup>
 
 </Project>

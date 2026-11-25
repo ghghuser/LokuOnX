@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- SEアプリ（サウンドパッド）＋ランチャー＋LokuOnX の遠隔操作（M18）。LokuOnX 本体とは別の exe。
+       共通の部品は src/Core のソースをリンクして使う（コピーしない） -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Gokko</RootNamespace>
+    <AssemblyName>Gokko4DJ</AssemblyName>
+    <Version>2.0.0.0</Version>   <!-- Actions では build.yml が -p:Version=2.0.x.y を渡す -->
+    <ApplicationIcon>..\assets\icon\Gokko4DJ.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src\Core\IniFile.cs" Link="Shared\IniFile.cs" />
+    <Compile Include="..\src\Core\Loc.cs" Link="Shared\Loc.cs" />
+    <Compile Include="..\src\Core\AppInfo.cs" Link="Shared\AppInfo.cs" />
+    <Compile Include="..\src\Core\LauncherList.cs" Link="Shared\LauncherList.cs" />
+    <Compile Include="..\src\Core\ControlProtocol.cs" Link="Shared\ControlProtocol.cs" />
+    <Resource Include="..\assets\icon\Gokko4DJ.ico" Link="Gokko4DJ.ico" />
+    <EmbeddedResource Include="Lang\ja.ini" LogicalName="Lang.ja.ini" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+</Project>

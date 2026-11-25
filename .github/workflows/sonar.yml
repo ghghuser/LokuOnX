@@ -55,6 +55,7 @@ jobs:
           ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"ghghuser_LokuOnX" /o:"ghghuser" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.issue.ignore.multicriteria=e1 /d:sonar.issue.ignore.multicriteria.e1.ruleKey="csharpsquid:S1244" /d:sonar.issue.ignore.multicriteria.e1.resourceKey="**/*.cs"
           # ソリューションファイルが無いので、アプリ本体を指定してビルドする（ルートで dotnet build だけだと対象が決まらず失敗する）
           dotnet build src/LokuOnX.csproj -c Release
+          dotnet build gokko/Gokko4DJ.csproj -c Release
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       # 手動実行（workflow_dispatch）のときだけ: SonarCloud の API から未解決の issue を全件取り、重大度順にログと実行の要約へ出す。
