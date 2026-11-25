@@ -180,16 +180,7 @@
         </ScrollViewer>
 
         <!-- 右下: 録音履歴（ファイル一覧）・プレイヤー・ファイル操作 -->
-        <ui:FileListPanel x:Name="Files" Grid.Row="3" Grid.Column="2">
-            <ui:FileListPanel.TabsTrailing>
-                <!-- 予約録音が有効なとき、次の予約を目立つ色で出す -->
-                <Border x:Name="ScheduleBadge" Visibility="Collapsed" CornerRadius="11" Padding="11,3" Margin="10,0,0,8"
-                        VerticalAlignment="Center" Background="{DynamicResource ScheduleOnBg}"
-                        ToolTip="{ui:T mainwindow.schedulebadge.tooltip}">
-                    <TextBlock x:Name="ScheduleBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ScheduleOnFg}"/>
-                </Border>
-            </ui:FileListPanel.TabsTrailing>
-        </ui:FileListPanel>
+        <ui:FileListPanel x:Name="Files" Grid.Row="3" Grid.Column="2"/>
       </Grid>
 
       <!-- ウィンドウの一番下: ログ（保存しました など。常に2行分の高さ）。枠なし・少し暗い背景・ログ向けの等幅フォント。右側にホットキー（ONのとき） -->

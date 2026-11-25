@@ -33,12 +33,11 @@ public partial class MainWindow
         Plans.ShowNext(_scheduleAt);
         if (_scheduleAt is not { } at)
         {
-            ScheduleBadge.Visibility = Visibility.Collapsed;
+            Files.SetScheduleBadge(null);
             return;
         }
         var day = at.Date == DateTime.Today ? Loc.Get("sched.today") : at.Date == DateTime.Today.AddDays(1) ? Loc.Get("sched.tomorrow") : at.ToString("M/d");
-        ScheduleBadgeText.Text = Loc.Get("sched.badge", day, at.ToString("HH:mm:ss"), Loc.Get(_settings.ScheduleDaily ? "sched.daily" : "sched.once"));
-        ScheduleBadge.Visibility = Visibility.Visible;
+        Files.SetScheduleBadge(Loc.Get("sched.badge", day, at.ToString("HH:mm:ss"), Loc.Get(_settings.ScheduleDaily ? "sched.daily" : "sched.once")));
     }
 
     /// <summary>トレイのツールチップの末尾に付ける予約の表示（予約が有効なときだけ）。</summary>
