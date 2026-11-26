@@ -124,6 +124,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "$dst/ffmpeg" | Out-Null
           Copy-Item publish/LokuOnX.exe "$dst/LokuOnX.exe"
           Copy-Item publish_gokko/Gokko4DJ.exe "$dst/Gokko4DJ.exe"
+          Copy-Item SE "$dst/SE" -Recurse
           Copy-Item $env:FFMPEG_EXE "$dst/ffmpeg/ffmpeg.exe"
           New-Item -ItemType Directory -Force -Path "$dst/Lang" | Out-Null
           Copy-Item src/Lang/ja.ini "$dst/Lang/ja.ini"

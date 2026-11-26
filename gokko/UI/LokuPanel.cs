@@ -29,13 +29,10 @@ public sealed class LokuPanel : Border
     {
         _client = client;
         Padding = new Thickness(12);
-        Margin = new Thickness(4);
-        CornerRadius = new CornerRadius(8);
-        BorderThickness = new Thickness(1);
-        BorderBrush = System.Windows.SystemColors.ControlDarkBrush;
+        CornerRadius = new CornerRadius(10);
+        SetResourceReference(BackgroundProperty, "PanelBg");
 
         var root = new StackPanel();
-        root.Children.Add(new TextBlock { Text = Loc.Get("g.loku.title"), FontWeight = FontWeights.Bold, FontSize = 15, Margin = new Thickness(0, 0, 0, 6) });
         root.Children.Add(_status);
 
         _start.Content = Loc.Get("g.loku.start");
@@ -157,7 +154,7 @@ public sealed class LokuPanel : Border
             for (var i = 0; i < Slots; i++)
             {
                 var inp = s.Inputs.FirstOrDefault(x => x.Index == i + 1);
-                _fx[i].IsEnabled = inp != null && inp.FxAny;
+                _fx[i].IsEnabled = inp != null && inp.Active;
                 _fx[i].IsChecked = inp != null && inp.FxAny && inp.FxOn;
                 _fx[i].ToolTip = inp != null && !inp.FxAny ? Loc.Get("g.loku.fx.none", i + 1) : Loc.Get("g.loku.fx.tip", i + 1);
                 _mute[i].IsEnabled = inp != null && inp.Active;

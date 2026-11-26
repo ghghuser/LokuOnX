@@ -3,12 +3,11 @@ using Recorder.Core;
 
 namespace Gokko.Core;
 
-/// <summary>パッドの一覧（4ページ×16個＝64個）。番号 id は 0〜63（ページ×16＋位置）。設定は ini の [Pads] に、使っているパッドだけ書く。</summary>
+/// <summary>パッドの一覧（最大10×10＝100個）。番号 id＝行×10＋列（0〜99）。画面に出す数（横・縦）を減らしても、外れたパッドの設定は残る。設定は ini の [Pads] に、使っているパッドだけ書く。</summary>
 public sealed class PadBank
 {
-    public const int Pages = 4;
-    public const int PerPage = 16;
-    public const int Total = Pages * PerPage;
+    public const int Side = 10;
+    public const int Total = Side * Side;
     private const string Section = "Pads";
 
     private readonly PadConfig[] _pads = new PadConfig[Total];
@@ -18,7 +17,13 @@ public sealed class PadBank
         for (var i = 0; i < Total; i++) _pads[i] = PadConfig.Empty;
     }
 
-    public static int Id(int page, int slot) => page * PerPage + slot;
+    public static int Id(int row, int col) => row * Side + col;
+
+    /// <summary>2つのパッドの中身を入れ替える。</summary>
+    public void Swap(int a, int b)
+    {
+        (_pads[a], _pads[b]) = (_pads[b], _pads[a]);
+    }
 
     public PadConfig this[int id]
     {

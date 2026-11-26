@@ -1,6 +1,9 @@
 namespace Gokko.Core;
 
-/// <summary>パッドの押す・離すを、鳴らし方（1回だけ／ループ／押している間だけ）に従って <see cref="PadMixer"/> へ伝える。UI のスレッドから呼ぶ。</summary>
+/// <summary>
+/// パッドの押す・離すを、鳴らし方に従って <see cref="PadMixer"/> へ伝える。UI のスレッドから呼ぶ。
+/// 1回だけ／ループ: 押すと鳴り、鳴っているあいだにもう一度押すと止まる（連打できる）。押している間だけ: 離すと止まる。
+/// </summary>
 public sealed class PadController
 {
     private readonly PadBank _bank;
@@ -21,15 +24,12 @@ public sealed class PadController
     {
         var p = _bank[id];
         if (p.IsEmpty) return false;
-        switch (p.Mode)
+        if (p.Mode != PadMode.Hold && _mixer.IsPlaying(id))
         {
-            case PadMode.Loop when _mixer.IsPlaying(id):
-                _mixer.Stop(id);
-                return true;
-            case PadMode.Hold:
-                if (!_held.Add(id)) return true;   // 押しっぱなしの繰り返しは無視
-                break;
+            _mixer.Stop(id);
+            return true;
         }
+        if (p.Mode == PadMode.Hold && !_held.Add(id)) return true;   // 押しっぱなしの繰り返しは無視
         var clip = _load(p.FilePath);
         if (clip == null) { _held.Remove(id); return false; }
         _mixer.Start(id, clip, p.Mode == PadMode.Loop, p.VolumeDb);
@@ -43,9 +43,17 @@ public sealed class PadController
         _mixer.Stop(id);
     }
 
+    /// <summary>そのパッドを、押している状態も含めて即座に止める（設定・位置を変えるとき）。</summary>
+    public void Forget(int id)
+    {
+        _held.Remove(id);
+        _mixer.StopNow(id);
+    }
+
+    /// <summary>すべて即座に止める。</summary>
     public void StopAll()
     {
         _held.Clear();
-        _mixer.StopAll();
+        _mixer.StopAllNow();
     }
 }

@@ -56,14 +56,17 @@ static class GokkoTests
                 var s = new GokkoSettings(path);
                 s.OutputDeviceId = "dev-1";
                 s.MasterDb = -4.5;
-                s.Page = 2;
+                s.Cols = 6; s.Rows = 3; s.Theme = "dark"; s.Borders[GokkoSettings.BorderKey(true, 1, 2)] = 3; s.Borders[GokkoSettings.BorderKey(false, 0, 0)] = 7;
                 s.Launcher = new List<string> { "C:\\a\\b.exe" };
                 s.Bank[PadBank.Id(1, 5)] = new PadConfig("Boom", "C:\\se\\boom.wav", PadMode.Loop, -6, 3);
                 s.Bank[0] = new PadConfig("", "C:\\se\\hold.mp3", PadMode.Hold, 2.5, 7);
                 s.Save();
                 var r = new GokkoSettings(path);
                 var p = r.Bank[PadBank.Id(1, 5)];
-                check(r.OutputDeviceId == "dev-1" && r.MasterDb == -4.5 && r.Page == 2, "出力・全体の音量・ページを読み戻せる");
+                check(r.OutputDeviceId == "dev-1" && r.MasterDb == -4.5, "出力・全体の音量を読み戻せる");
+                check(r.Cols == 6 && r.Rows == 3 && r.Theme == "dark", "タイルの数・画面の色を読み戻せる");
+                check(r.Borders.Count == 2 && r.Borders[GokkoSettings.BorderKey(true, 1, 2)] == 3 && r.Borders[GokkoSettings.BorderKey(false, 0, 0)] == 7, "枠の色を読み戻せる");
+                check(new GokkoSettings(path + ".none").Cols == 4 && new GokkoSettings(path + ".none").Rows == 4, "初期のタイルは4×4");
                 check(r.Launcher.Count == 1 && r.Launcher[0] == "C:\\a\\b.exe", "ランチャーの登録を読み戻せる");
                 check(p.Name == "Boom" && p.Mode == PadMode.Loop && p.VolumeDb == -6 && p.Color == 3, "パッドを読み戻せる");
                 check(r.Bank[0].Mode == PadMode.Hold && r.Bank[0].VolumeDb == 2.5, "別のパッド（押している間だけ）も読み戻せる");
@@ -126,6 +129,7 @@ static class GokkoTests
             var mixer = new PadMixer();
             var loads = 0;
             var c = new PadController(bank, mixer, _ => { loads++; return Clip(100000, 8000); });
+            var buf = new float[200];
             bank[0] = new PadConfig("", "a.wav", PadMode.Once, 0, 0);
             bank[1] = new PadConfig("", "b.wav", PadMode.Loop, 0, 0);
             bank[2] = new PadConfig("", "c.wav", PadMode.Hold, 0, 0);
@@ -133,21 +137,46 @@ static class GokkoTests
             check(c.Press(0) && mixer.IsPlaying(0), "1回だけ: 押すと鳴る");
             c.Release(0);
             check(mixer.IsPlaying(0), "1回だけ: 離しても止まらない");
+            c.Press(0);
+            check(!mixer.IsPlaying(0), "1回だけ: 鳴っているあいだにもう一度押すと止まる");
+            c.Press(0);
+            check(mixer.IsPlaying(0), "1回だけ: 止めたあとの押し直しでまた鳴る（連打できる）");
             check(c.Press(1) && mixer.IsPlaying(1), "ループ: 押すと始まる");
             c.Release(1);
             check(mixer.IsPlaying(1), "ループ: 離しても続く");
             c.Press(1);
             check(!mixer.IsPlaying(1), "ループ: もう一度押すと止まる");
             check(c.Press(2) && mixer.IsPlaying(2), "押している間だけ: 押すと鳴る");
+            var before = loads;
             c.Press(2);
-            check(loads == 3, "押しっぱなしの繰り返しは無視する（読み込みは増えない）", loads.ToString());
+            check(loads == before, "押しっぱなしの繰り返しは無視する（読み込みは増えない）");
             c.Release(2);
             check(!mixer.IsPlaying(2), "押している間だけ: 離すと止まる");
-            c.Press(0);
             c.StopAll();
             check(!mixer.IsPlaying(0), "全停止");
+            mixer.Read(buf, 0, buf.Length);
+            check(buf.All(x => x == 0f), "全停止は即座に無音になる（フェードを待たない）");
             var bad = new PadController(bank, mixer, _ => null);
             check(!bad.Press(0), "読み込めなければ false");
+
+            // 鳴っている途中で鳴らし方を変えても、止められる（実機で止まらなくなった不具合の再現）
+            c.Press(0);
+            bank[0] = new PadConfig("", "a.wav", PadMode.Hold, 0, 0);
+            c.Forget(0);
+            check(!mixer.IsPlaying(0), "設定を変えると、鳴っていた音は止まる");
+            c.Press(0);
+            c.Press(0);
+            c.StopAll();
+            mixer.Read(buf, 0, buf.Length);
+            check(buf.All(x => x == 0f) && !mixer.IsPlaying(0), "押している間だけに変えたあとでも、全停止で止まる");
+            c.Press(0);
+            c.Forget(0);
+            bank[0] = new PadConfig("", "a.wav", PadMode.Loop, 0, 0);
+            c.Press(0);
+            c.StopAll();
+            check(!mixer.IsPlaying(0), "ループに変えて鳴らしたあとでも全停止で止まる");
+            bank.Swap(0, 3);
+            check(bank[0].IsEmpty && bank[3].Mode == PadMode.Loop, "パッドを入れ替えられる");
         }
         section("Gokko4DJ: LokuOnX の状態の読み取り（M18）");
         {

@@ -32,7 +32,9 @@
     <Compile Include="..\src\Core\AppInfo.cs" Link="Shared\AppInfo.cs" />
     <Compile Include="..\src\Core\LauncherList.cs" Link="Shared\LauncherList.cs" />
     <Compile Include="..\src\Core\ControlProtocol.cs" Link="Shared\ControlProtocol.cs" />
+    <Compile Include="..\src\UI\MessageWindow.cs" Link="Shared\MessageWindow.cs" />
     <Resource Include="..\assets\icon\Gokko4DJ.ico" Link="Gokko4DJ.ico" />
+    <Resource Include="..\assets\icon\gokko-icon.png" Link="gokko-icon.png" />
     <EmbeddedResource Include="Lang\ja.ini" LogicalName="Lang.ja.ini" />
   </ItemGroup>
 

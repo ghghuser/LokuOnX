@@ -53,6 +53,18 @@ public sealed class PadMixer
         lock (_lock) foreach (var v in _voices) BeginFadeOut(v);
     }
 
+    /// <summary>フェードなしで、すべて即座に止める（「全停止」・設定の変更・異常時の最後の手段）。</summary>
+    public void StopAllNow()
+    {
+        lock (_lock) _voices.Clear();
+    }
+
+    /// <summary>そのパッドの音だけ、フェードなしで即座に止める。</summary>
+    public void StopNow(int id)
+    {
+        lock (_lock) _voices.RemoveAll(v => v.Id == id);
+    }
+
     private static void BeginFadeOut(Voice v)
     {
         if (v.Stopping) return;
@@ -83,6 +95,8 @@ public sealed class PadMixer
         var frames = count / 2;
         lock (_lock)
         {
+            try
+            {
             for (var vi = _voices.Count - 1; vi >= 0; vi--)
             {
                 var v = _voices[vi];
@@ -109,6 +123,12 @@ public sealed class PadMixer
                     if (v.Stopping && v.FadeOutLeft <= 0) { done = true; break; }
                 }
                 if (done) _voices.RemoveAt(vi);
+            }
+            }
+            catch (Exception)
+            {
+                _voices.Clear();   // 音を出す側のスレッドで例外を出さない（出力が止まったままになるのを防ぐ）
+                Array.Clear(buffer, offset, count);
             }
         }
         for (var i = 0; i < count; i++)

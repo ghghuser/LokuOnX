@@ -27,6 +27,7 @@ public sealed class PadDialog : Window
         ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;
+        ThemeManager.Attach(this);
 
         _file.Text = initial.FilePath;
         _name.Text = initial.Name;
@@ -102,7 +103,7 @@ public sealed class PadDialog : Window
 
     private void Browse()
     {
-        var dlg = new OpenFileDialog { Title = Loc.Get("g.dlg.pick"), Filter = Loc.Get("g.dlg.filter") };
+        var dlg = new OpenFileDialog { Title = Loc.Get("g.dlg.pick"), Filter = Loc.Get("g.dlg.filter"), InitialDirectory = SeFolder.Initial(_file.Text.Trim().Trim('"')) };
         if (dlg.ShowDialog(this) == true) _file.Text = dlg.FileName;
     }
 
